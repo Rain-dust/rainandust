@@ -6,8 +6,8 @@ export const metadata: Metadata = {
   description:
     "寻辰沐雨的私人数字空间：把念头、感受和一些忍不住想解决的麻烦做成真的。",
   icons: {
-    icon: "/rain-dust/fragments/zhiwei-node.png",
-    shortcut: "/rain-dust/fragments/zhiwei-node.png",
+    icon: "/rain-dust/fragments/zhiwei-node.webp",
+    shortcut: "/rain-dust/fragments/zhiwei-node.webp",
   },
 };
 

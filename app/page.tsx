@@ -274,12 +274,12 @@ export default function Home() {
           <div className="hero-portrait" aria-hidden="true">
             <img
               className="portrait-base"
-              src="/rain-dust/hero/hero-girl-lineart-temp-v2.png"
+              src="/rain-dust/hero/hero-girl-lineart-temp-v2.webp"
               alt=""
             />
             <img
               className="portrait-reveal"
-              src="/rain-dust/hero/hero-girl-lineart-temp-v2.png"
+              src="/rain-dust/hero/hero-girl-lineart-temp-v2.webp"
               alt=""
             />
             <div className="reveal-ghosts">
@@ -356,21 +356,21 @@ export default function Home() {
         <div className="observation-images" aria-label="创作观察碎片">
           <figure className="observation observation-editor">
             <img
-              src="/rain-dust/source/zhiwei-current.png"
+              src="/rain-dust/source/zhiwei-current.webp"
               alt="知微项目编辑界面局部"
             />
             <figcaption>01 / EDITOR RESIDUE</figcaption>
           </figure>
           <figure className="observation observation-thought">
             <img
-              src="/rain-dust/source/earth-online-current.png"
+              src="/rain-dust/source/earth-online-current.webp"
               alt="Earth Online 项目运行画面局部"
             />
             <figcaption>02 / A THOUGHT TAKING SHAPE</figcaption>
           </figure>
           <figure className="observation observation-aesthetic">
             <img
-              src="/rain-dust/source/fushenglu-current.jpg"
+              src="/rain-dust/source/fushenglu-current.webp"
               alt="浮生录视觉情绪局部"
             />
             <figcaption>03 / AESTHETIC REMAINS</figcaption>
@@ -466,17 +466,17 @@ export default function Home() {
             <span className="night-wash" />
             <img
               className="earth-globe"
-              src="/rain-dust/fragments/earth-globe.png"
+              src="/rain-dust/fragments/earth-globe.webp"
               alt=""
             />
             <img
               className="earth-orbits"
-              src="/rain-dust/fragments/earth-orbits.png"
+              src="/rain-dust/fragments/earth-orbits.webp"
               alt=""
             />
             <img
               className="earth-status"
-              src="/rain-dust/fragments/earth-status.png"
+              src="/rain-dust/fragments/earth-status.webp"
               alt=""
             />
             <span className="earth-copy">THE WORLD IS RUNNING.</span>
@@ -490,27 +490,27 @@ export default function Home() {
             <span className="paper-wash" />
             <img
               className="fushenglu-title"
-              src="/rain-dust/fragments/fushenglu-title.png"
+              src="/rain-dust/fragments/fushenglu-title.webp"
               alt=""
             />
             <img
               className="fushenglu-cat"
-              src="/rain-dust/fragments/fushenglu-cat.png"
+              src="/rain-dust/fragments/fushenglu-cat.webp"
               alt=""
             />
             <img
               className="fushenglu-seal"
-              src="/rain-dust/fragments/fushenglu-seal.png"
+              src="/rain-dust/fragments/fushenglu-seal.webp"
               alt=""
             />
             <img
               className="fushenglu-branch"
-              src="/rain-dust/fragments/fushenglu-branch.png"
+              src="/rain-dust/fragments/fushenglu-branch.webp"
               alt=""
             />
             <img
               className="fushenglu-quote"
-              src="/rain-dust/fragments/fushenglu-quote.png"
+              src="/rain-dust/fragments/fushenglu-quote.webp"
               alt=""
             />
           </div>
@@ -534,17 +534,17 @@ export default function Home() {
             <span className="zhiwei-wash" />
             <img
               className="zhiwei-path"
-              src="/rain-dust/fragments/zhiwei-path.png"
+              src="/rain-dust/fragments/zhiwei-path.webp"
               alt=""
             />
             <img
               className="zhiwei-node"
-              src="/rain-dust/fragments/zhiwei-node.png"
+              src="/rain-dust/fragments/zhiwei-node.webp"
               alt=""
             />
             <img
               className="zhiwei-labels"
-              src="/rain-dust/fragments/zhiwei-labels.png"
+              src="/rain-dust/fragments/zhiwei-labels.webp"
               alt=""
             />
             <span className="zhiwei-copy">WHAT WOULD YOU SAY NEXT?</span>
@@ -637,7 +637,7 @@ export default function Home() {
             CLOSE ×
           </button>
           <img
-            src="/rain-dust/hero/hero-girl-crop-v2.png"
+            src="/rain-dust/hero/hero-girl-crop-v2.webp"
             alt=""
             aria-hidden="true"
           />

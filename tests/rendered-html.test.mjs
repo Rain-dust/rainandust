@@ -48,7 +48,7 @@ test("keeps the design constraints in the shipped source", async () => {
   ]);
 
   assert.match(page, /fragment-group/);
-  assert.match(page, /hero-girl-lineart-temp-v2\.png/);
+  assert.match(page, /hero-girl-lineart-temp-v2\.webp/);
   assert.match(page, /prefers-reduced-motion|trailMarks/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css, /\.hair-5/);
