@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import {
   type CSSProperties,
@@ -9,7 +10,6 @@ import {
   useRef,
   useState,
 } from "react";
-import Image from "next/image";
 
 type ProjectId = "earth" | "fushenglu" | "reimburse" | "zhiwei";
 
@@ -462,13 +462,10 @@ export default function Home() {
             <h1>于无声处，<br />拾取微光。</h1>
             <p>INDEPENDENT BUILDER / AI-NATIVE CREATOR</p>
           </div>
-          <Image
+          <img
             className="opening-girl"
             src="/rain-dust/hero/hero-girl-lineart-temp-v2.webp"
             alt=""
-            width={650}
-            height={760}
-            priority
           />
           <i className="red-eye" aria-hidden="true" />
           {[1, 2, 3, 4, 5].map((strand) => (
@@ -519,11 +516,9 @@ export default function Home() {
         </section>
 
         <section className="identity-layer" id="identity" aria-hidden={info < 0.05}>
-          <Image
+          <img
             src="/rain-dust/hero/hero-girl-lineart-temp-v2.webp"
             alt=""
-            width={650}
-            height={760}
           />
           <div>
             <span>寻迹沐雨</span>
