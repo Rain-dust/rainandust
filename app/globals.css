@@ -323,7 +323,7 @@ a { text-decoration: none; }
   align-content: center;
   padding-left: clamp(2rem, 7vw, 8rem);
   color: var(--silver);
-  opacity: calc(var(--descent) * (1 - var(--earth-presence)));
+  opacity: var(--descent-copy);
   pointer-events: none;
   transform: translateY(calc((1 - var(--descent)) * 1.4rem));
 }
@@ -493,4 +493,8 @@ a { text-decoration: none; }
     letter-spacing: .14em;
     cursor: pointer;
   }
+}
+
+.cinematic-stage[data-motion-override="full"] .motion-controls {
+  display: none;
 }

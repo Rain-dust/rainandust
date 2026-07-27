@@ -30,7 +30,7 @@ const smooth = (value: number) => {
 const segment = (progress: number, start: number, end: number) =>
   clamp((progress - start) / (end - start));
 
-const SNAP_POINTS = [0, 0.14, 0.25, 0.34, 0.405, 0.438, 0.462, 0.495];
+const SNAP_POINTS = [0, 0.25, 0.34, 0.42, 0.462, 0.495];
 
 const PHASES = [
   { start: 0, label: "DAYLIGHT" },
@@ -51,6 +51,8 @@ export default function Home() {
   const daylight = 1 - smooth(segment(progress, 0.14, 0.3));
   const erosion = smooth(segment(progress, 0.14, 0.3));
   const descent = smooth(segment(progress, 0.3, 0.4));
+  const descentCopy =
+    descent * (1 - smooth(segment(progress, 0.395, 0.42)));
   const earth = segment(progress, 0.4, 0.5);
   const earthPresence =
     smooth(segment(earth, 0.04, 0.36)) *
@@ -80,6 +82,11 @@ export default function Home() {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const forceFullMotion =
       new URLSearchParams(window.location.search).get("motion") === "full";
+    if (stageRef.current) {
+      stageRef.current.dataset.motionOverride = forceFullMotion
+        ? "full"
+        : "system";
+    }
     const syncMotion = () => setReducedMotion(media.matches && !forceFullMotion);
     syncMotion();
     media.addEventListener("change", syncMotion);
@@ -162,6 +169,7 @@ export default function Home() {
             "--daylight": daylight,
             "--erosion": erosion,
             "--descent": descent,
+            "--descent-copy": descentCopy,
             "--earth-presence": earthPresence,
             "--assembled": assembled,
           } as CSSProperties
