@@ -145,10 +145,10 @@ function createErosionMaterial() {
         float filaments = sin(vUv.x * 42.0 + grain * 10.0) * 0.035;
         float threshold = uProgress * 1.16 + (0.12 - edge) * 0.62 + filaments;
         float field = smoothstep(grain - 0.07, grain + 0.07, threshold);
-        float band = smoothstep(0.0, 0.045, abs(grain - threshold));
+        float contour = 1.0 - smoothstep(0.006, 0.016, abs(grain - threshold));
         vec3 night = mix(vec3(0.063, 0.051, 0.094), vec3(0.09, 0.067, 0.125), grain);
-        vec3 silver = vec3(0.75, 0.76, 0.81);
-        vec3 color = mix(silver, night, band);
+        vec3 silver = vec3(0.46, 0.47, 0.52);
+        vec3 color = mix(night, silver, contour * 0.62);
         float alpha = clamp(field * uVisibility * (0.92 + uVelocity * 0.08), 0.0, 1.0);
         if (alpha < 0.015) discard;
         gl_FragColor = vec4(color, alpha);
