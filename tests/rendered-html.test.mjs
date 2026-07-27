@@ -50,6 +50,7 @@ test("keeps the V4 scroll timeline and shared-master constraints", async () => {
   assert.match(css, /\.cinematic-stage\s*\{[^}]*position:\s*sticky/s);
   assert.match(css, /\.eidolon-shard/);
   assert.match(css, /perspective:\s*1400px/);
+  assert.match(css, /translate:\s*-50%\s+-50%/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(layout, /lang="zh-CN"/);
 });

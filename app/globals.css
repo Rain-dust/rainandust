@@ -367,8 +367,9 @@ a {
   left: 54%;
   width: min(72vw, 74rem);
   aspect-ratio: 16 / 9;
+  translate: -50% -50%;
   transform:
-    translate3d(calc(-50% + var(--parallax-x-small)), calc(-50% + var(--parallax-y-small)), 0)
+    translate3d(var(--parallax-x-small), var(--parallax-y-small), 0)
     rotateX(var(--parallax-rotate-x))
     rotateY(var(--parallax-rotate-y));
   transform-style: preserve-3d;
