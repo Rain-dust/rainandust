@@ -321,16 +321,14 @@ export function NightRelicCanvas({
     scene.add(particles);
 
     let composer: EffectComposer | null = null;
-    let bokehPass: BokehPass | null = null;
     if (!isMobile) {
       composer = new EffectComposer(renderer);
       composer.addPass(new RenderPass(scene, camera));
-      bokehPass = new BokehPass(scene, camera, {
+      composer.addPass(new BokehPass(scene, camera, {
         focus: 10,
         aperture: 0.000018,
         maxblur: 0.004,
-      });
-      composer.addPass(bokehPass);
+      }));
       composer.addPass(new UnrealBloomPass(
         new THREE.Vector2(window.innerWidth, window.innerHeight),
         0.12,
@@ -457,12 +455,11 @@ export function NightRelicCanvas({
         node.scale.setScalar(0.01 + activation * (1 + Math.sin(elapsed * 2.1 + index) * 0.08));
       });
       redSignalLight.intensity = constellation * 3.4;
-      if (bokehPass) bokehPass.enabled = progress > 0.3;
 
       relicGroup.rotation.y = Math.sin(elapsed * 0.16) * 0.012 * (1 - assembleForGroup(earth));
       relicGroup.position.z = mix(-1.8, 0, smooth(segment(earth, 0.05, 0.5)));
 
-      if (composer) composer.render();
+      if (composer && progress > 0.3) composer.render();
       else renderer.render(scene, camera);
       animationFrame = window.requestAnimationFrame(render);
     };
