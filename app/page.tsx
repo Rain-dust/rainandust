@@ -3,120 +3,190 @@
 import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
-  useCallback,
+  type TouchEvent as ReactTouchEvent,
+  type WheelEvent as ReactWheelEvent,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
 
-type TrailMark = {
-  id: number;
+type PortfolioState = "opening" | "workspace" | "project-focus" | "info";
+type ProjectId = "earth" | "fushenglu" | "reimburse" | "zhiwei";
+type ShardKind = "image" | "receipt" | "amount" | "grid" | "folder" | "order";
+
+type Shard = {
+  id: string;
+  image?: string;
+  kind: ShardKind;
+  content?: string;
+  clipPath: string;
+  objectPosition?: string;
   x: number;
   y: number;
-  angle: number;
+  width: number;
+  height: number;
+  rotate: number;
+  activeX: number;
+  activeY: number;
+  focusX: number;
+  focusY: number;
+  depth: 1 | 2 | 3;
 };
 
-type ProjectId = "earth" | "fushenglu" | "reimburse" | "zhiwei";
-
-const signalSections = [
-  ["opening", "OPENING"],
-  ["about", "ABOUT"],
-  ["interlude", "INTERLUDE"],
-  ["work", "SELECTED WORK"],
-  ["archive", "ARCHIVE"],
-  ["other-side", "OTHER SIDE"],
-] as const;
-
-const projects: Array<{
+type Project = {
   id: ProjectId;
-  name: string;
-  eyebrow: string;
-  href: string;
-}> = [
+  title: string;
+  year: string;
+  tags: string[];
+  definition: string;
+  sourceUrl: string;
+  demoUrl?: string;
+  labelPosition: string;
+  shards: Shard[];
+};
+
+const projects: Project[] = [
   {
     id: "earth",
-    name: "EARTH ONLINE",
-    eyebrow: "A WORLD THAT KEEPS RUNNING",
-    href: "https://github.com/Rain-dust/earth-online",
+    title: "EARTH ONLINE",
+    year: "2026",
+    tags: ["THREE.JS", "LOCAL-FIRST", "EXPERIMENT"],
+    definition: "A quiet world that keeps running after you leave.",
+    sourceUrl: "https://github.com/Rain-dust/earth-online",
+    labelPosition: "label-earth",
+    shards: [
+      { id: "earth-arc", kind: "image", image: "/rain-dust/fragments/earth-globe.webp", clipPath: "polygon(7% 5%, 88% 0, 100% 38%, 74% 100%, 18% 86%, 0 42%)", x: 61, y: 10, width: 18, height: 25, rotate: 5, activeX: -2, activeY: 4, focusX: -10, focusY: 12, depth: 2 },
+      { id: "earth-night", kind: "image", image: "/rain-dust/source/earth-online-current.webp", clipPath: "polygon(13% 0, 100% 9%, 86% 91%, 29% 100%, 0 55%)", objectPosition: "76% 56%", x: 76, y: 31, width: 11, height: 17, rotate: -7, activeX: -6, activeY: 1, focusX: -18, focusY: 3, depth: 3 },
+      { id: "earth-orbit", kind: "image", image: "/rain-dust/fragments/earth-orbits.webp", clipPath: "polygon(0 31%, 28% 0, 100% 17%, 91% 72%, 55% 100%, 8% 81%)", x: 48, y: 48, width: 17, height: 13, rotate: -4, activeX: 8, activeY: -8, focusX: 15, focusY: -18, depth: 1 },
+      { id: "earth-signal", kind: "image", image: "/rain-dust/fragments/earth-status.webp", clipPath: "polygon(8% 12%, 92% 0, 100% 69%, 76% 100%, 0 81%)", x: 84, y: 60, width: 8, height: 10, rotate: 8, activeX: -10, activeY: -4, focusX: -23, focusY: -14, depth: 2 },
+      { id: "earth-lights", kind: "image", image: "/rain-dust/source/earth-online-current.webp", clipPath: "polygon(26% 0, 100% 21%, 82% 100%, 0 71%, 9% 19%)", objectPosition: "43% 67%", x: 55, y: 72, width: 7, height: 11, rotate: 12, activeX: 13, activeY: -8, focusX: 22, focusY: -25, depth: 3 },
+    ],
   },
   {
     id: "fushenglu",
-    name: "浮生录",
-    eyebrow: "SOME WORDS SHOULD ONLY BE KEPT",
-    href: "https://github.com/Rain-dust/fushenglu",
+    title: "浮生录",
+    year: "2026",
+    tags: ["WRITING", "MEMORY", "LOCAL-FIRST"],
+    definition: "Some words should only be kept, not explained.",
+    sourceUrl: "https://github.com/Rain-dust/fushenglu",
+    labelPosition: "label-fushenglu",
+    shards: [
+      { id: "fushenglu-paper", kind: "image", image: "/rain-dust/fragments/fushenglu-title.webp", clipPath: "polygon(12% 0, 88% 7%, 100% 68%, 62% 100%, 0 82%, 5% 23%)", x: 56, y: 13, width: 12, height: 23, rotate: -6, activeX: 5, activeY: 4, focusX: 13, focusY: 12, depth: 2 },
+      { id: "fushenglu-quote", kind: "image", image: "/rain-dust/fragments/fushenglu-quote.webp", clipPath: "polygon(7% 13%, 73% 0, 100% 27%, 89% 91%, 24% 100%, 0 64%)", x: 78, y: 17, width: 7, height: 20, rotate: 7, activeX: -7, activeY: 5, focusX: -17, focusY: 12, depth: 3 },
+      { id: "fushenglu-cat", kind: "image", image: "/rain-dust/fragments/fushenglu-cat.webp", clipPath: "polygon(0 19%, 37% 0, 100% 13%, 87% 83%, 48% 100%, 8% 69%)", x: 68, y: 46, width: 14, height: 15, rotate: 3, activeX: -1, activeY: -5, focusX: -4, focusY: -13, depth: 2 },
+      { id: "fushenglu-seal", kind: "image", image: "/rain-dust/fragments/fushenglu-seal.webp", clipPath: "polygon(21% 0, 100% 18%, 83% 93%, 11% 100%, 0 31%)", x: 86, y: 51, width: 5, height: 8, rotate: -11, activeX: -12, activeY: 0, focusX: -25, focusY: -3, depth: 3 },
+      { id: "fushenglu-branch", kind: "image", image: "/rain-dust/fragments/fushenglu-branch.webp", clipPath: "polygon(0 22%, 44% 0, 100% 31%, 92% 84%, 35% 100%, 8% 69%)", x: 46, y: 68, width: 15, height: 14, rotate: -9, activeX: 12, activeY: -9, focusX: 22, focusY: -24, depth: 1 },
+      { id: "fushenglu-ink", kind: "image", image: "/rain-dust/source/fushenglu-current.webp", clipPath: "polygon(15% 0, 100% 7%, 76% 100%, 0 78%)", objectPosition: "50% 35%", x: 80, y: 71, width: 8, height: 13, rotate: 10, activeX: -8, activeY: -9, focusX: -19, focusY: -24, depth: 2 },
+    ],
   },
   {
     id: "reimburse",
-    name: "CAMPUS REIMBURSE KIT",
-    eyebrow: "THIS PROCESS WAS TOO ANNOYING",
-    href: "https://github.com/Rain-dust/campus-reimburse-kit",
+    title: "CAMPUS REIMBURSE KIT",
+    year: "2026",
+    tags: ["DESKTOP TOOL", "AUTOMATION", "WORKFLOW"],
+    definition: "Turn reimbursement mess into one quiet sequence.",
+    sourceUrl: "https://github.com/Rain-dust/campus-reimburse-kit",
+    labelPosition: "label-reimburse",
+    shards: [
+      { id: "reimburse-receipt", kind: "receipt", content: "REIMBURSEMENT / 024", clipPath: "polygon(0 0, 93% 5%, 100% 79%, 87% 100%, 70% 88%, 56% 100%, 39% 89%, 21% 100%, 0 86%)", x: 51, y: 15, width: 14, height: 20, rotate: -7, activeX: 7, activeY: 5, focusX: 16, focusY: 13, depth: 2 },
+      { id: "reimburse-amount", kind: "amount", content: "¥ 1,217.60", clipPath: "polygon(11% 0, 100% 16%, 84% 100%, 0 72%)", x: 78, y: 19, width: 10, height: 10, rotate: 8, activeX: -8, activeY: 7, focusX: -19, focusY: 17, depth: 3 },
+      { id: "reimburse-grid", kind: "grid", clipPath: "polygon(0 24%, 30% 0, 100% 14%, 91% 91%, 43% 100%, 9% 76%)", x: 63, y: 44, width: 18, height: 18, rotate: 4, activeX: -2, activeY: -2, focusX: -5, focusY: -6, depth: 1 },
+      { id: "reimburse-folder", kind: "folder", content: "ARCHIVE / CRK-024", clipPath: "polygon(8% 0, 79% 7%, 100% 43%, 88% 100%, 0 82%)", x: 45, y: 66, width: 11, height: 11, rotate: -10, activeX: 13, activeY: -8, focusX: 25, focusY: -23, depth: 2 },
+      { id: "reimburse-order", kind: "order", content: "MESS → SORTED", clipPath: "polygon(0 13%, 87% 0, 100% 75%, 18% 100%)", x: 80, y: 70, width: 12, height: 9, rotate: 6, activeX: -10, activeY: -9, focusX: -22, focusY: -25, depth: 3 },
+    ],
   },
   {
     id: "zhiwei",
-    name: "知微",
-    eyebrow: "WHAT WOULD YOU SAY NEXT?",
-    href: "https://github.com/Rain-dust/Zhi-Wei",
+    title: "知微",
+    year: "2026",
+    tags: ["AI-NATIVE", "DECISION", "INTERACTIVE"],
+    definition: "What would you say next, if every word changed the path?",
+    sourceUrl: "https://github.com/Rain-dust/Zhi-Wei",
+    labelPosition: "label-zhiwei",
+    shards: [
+      { id: "zhiwei-path", kind: "image", image: "/rain-dust/fragments/zhiwei-path.webp", clipPath: "polygon(0 27%, 28% 0, 100% 19%, 91% 73%, 58% 100%, 8% 84%)", x: 50, y: 14, width: 18, height: 15, rotate: -5, activeX: 8, activeY: 6, focusX: 17, focusY: 17, depth: 1 },
+      { id: "zhiwei-node", kind: "image", image: "/rain-dust/fragments/zhiwei-node.webp", clipPath: "polygon(8% 0, 100% 9%, 82% 100%, 21% 90%, 0 37%)", x: 76, y: 19, width: 13, height: 16, rotate: 7, activeX: -8, activeY: 6, focusX: -19, focusY: 15, depth: 3 },
+      { id: "zhiwei-labels", kind: "image", image: "/rain-dust/fragments/zhiwei-labels.webp", clipPath: "polygon(20% 0, 100% 15%, 91% 72%, 61% 100%, 0 81%, 7% 21%)", x: 58, y: 47, width: 11, height: 18, rotate: 4, activeX: 4, activeY: -3, focusX: 9, focusY: -8, depth: 2 },
+      { id: "zhiwei-dialogue", kind: "image", image: "/rain-dust/source/zhiwei-current.webp", clipPath: "polygon(0 18%, 35% 0, 100% 12%, 84% 100%, 14% 83%)", objectPosition: "68% 47%", x: 79, y: 50, width: 12, height: 16, rotate: -8, activeX: -10, activeY: -3, focusX: -23, focusY: -9, depth: 2 },
+      { id: "zhiwei-signal", kind: "image", image: "/rain-dust/fragments/zhiwei-node.webp", clipPath: "polygon(23% 0, 100% 34%, 72% 100%, 0 76%, 8% 18%)", x: 46, y: 72, width: 8, height: 10, rotate: 11, activeX: 13, activeY: -10, focusX: 25, focusY: -27, depth: 3 },
+    ],
   },
 ];
 
-function addUnique<T>(values: Set<T>, value: T) {
-  if (values.has(value)) return values;
-  const next = new Set(values);
-  next.add(value);
-  return next;
+const stateLabels: Record<PortfolioState, string> = {
+  opening: "OPENING",
+  workspace: "WORK",
+  "project-focus": "PROJECT FOCUS",
+  info: "INFO",
+};
+
+function shardStyle(shard: Shard): CSSProperties {
+  return {
+    left: `${shard.x}%`,
+    top: `${shard.y}%`,
+    width: `${shard.width}vw`,
+    height: `${shard.height}vh`,
+    clipPath: shard.clipPath,
+    "--shard-rotate": `${shard.rotate}deg`,
+    "--active-rotate": `${shard.rotate * 0.32}deg`,
+    "--focus-rotate": `${shard.rotate * 0.18}deg`,
+    "--active-x": `${shard.activeX}vw`,
+    "--active-y": `${shard.activeY}vh`,
+    "--focus-x": `${shard.focusX}vw`,
+    "--focus-y": `${shard.focusY}vh`,
+    "--mobile-width": `${shard.width * 1.45}vw`,
+    "--mobile-height": `${shard.height * 0.82}vh`,
+  } as CSSProperties;
 }
 
 export default function Home() {
-  const heroRef = useRef<HTMLElement>(null);
-  const exploredKeys = useRef(new Set(["opening"]));
-  const revealTarget = useRef({ x: 72, y: 43 });
-  const revealCurrent = useRef({ x: 72, y: 43 });
-  const trailId = useRef(0);
-  const lastTrailAt = useRef(0);
-  const [explored, setExplored] = useState(7);
-  const [heroProgress, setHeroProgress] = useState(0);
+  const rootRef = useRef<HTMLElement>(null);
+  const revealTarget = useRef({ x: 73, y: 42 });
+  const revealCurrent = useRef({ x: 73, y: 42 });
+  const parallaxTarget = useRef({ x: 0, y: 0 });
+  const parallaxCurrent = useRef({ x: 0, y: 0 });
+  const wheelLocked = useRef(false);
+  const touchStartX = useRef(0);
+  const [state, setState] = useState<PortfolioState>("opening");
+  const [activeProjectId, setActiveProjectId] = useState<ProjectId>("earth");
   const [revealActive, setRevealActive] = useState(false);
-  const [activeProject, setActiveProject] = useState<ProjectId | null>(null);
-  const [trailMarks, setTrailMarks] = useState<TrailMark[]>([]);
-  const [otherSideOpen, setOtherSideOpen] = useState(false);
-  const [soundTouched, setSoundTouched] = useState(false);
 
-  const markExplore = useCallback((key: string, amount: number) => {
-    if (exploredKeys.current.has(key)) return;
-    exploredKeys.current = addUnique(exploredKeys.current, key);
-    setExplored((value) => Math.min(92, value + amount));
-  }, []);
+  const activeProject = useMemo(
+    () => projects.find((project) => project.id === activeProjectId) ?? projects[0],
+    [activeProjectId],
+  );
 
-  useEffect(() => {
-    let frame = 0;
+  const projectIndex = projects.findIndex((project) => project.id === activeProjectId);
 
-    const updateHero = () => {
-      const next = Math.min(1, Math.max(0, window.scrollY / window.innerHeight));
-      setHeroProgress(next);
-      frame = 0;
-    };
+  const moveProject = (direction: 1 | -1) => {
+    const nextIndex = (projectIndex + direction + projects.length) % projects.length;
+    setActiveProjectId(projects[nextIndex].id);
+  };
 
-    const onScroll = () => {
-      if (!frame) frame = window.requestAnimationFrame(updateHero);
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    updateHero();
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, []);
+  const enterWorkspace = () => setState("workspace");
+  const enterProjectFocus = () => setState("project-focus");
+  const leaveProjectFocus = () => setState("workspace");
 
   useEffect(() => {
     let frame = 0;
     const follow = () => {
-      const current = revealCurrent.current;
-      const target = revealTarget.current;
-      current.x += (target.x - current.x) * 0.14;
-      current.y += (target.y - current.y) * 0.14;
-      heroRef.current?.style.setProperty("--mx", `${current.x}%`);
-      heroRef.current?.style.setProperty("--my", `${current.y}%`);
+      revealCurrent.current.x += (revealTarget.current.x - revealCurrent.current.x) * 0.14;
+      revealCurrent.current.y += (revealTarget.current.y - revealCurrent.current.y) * 0.14;
+      parallaxCurrent.current.x += (parallaxTarget.current.x - parallaxCurrent.current.x) * 0.09;
+      parallaxCurrent.current.y += (parallaxTarget.current.y - parallaxCurrent.current.y) * 0.09;
+
+      const root = rootRef.current;
+      if (root) {
+        root.style.setProperty("--mx", `${revealCurrent.current.x}%`);
+        root.style.setProperty("--my", `${revealCurrent.current.y}%`);
+        root.style.setProperty("--px1", `${parallaxCurrent.current.x * 0.34}px`);
+        root.style.setProperty("--py1", `${parallaxCurrent.current.y * 0.34}px`);
+        root.style.setProperty("--px2", `${parallaxCurrent.current.x * 0.68}px`);
+        root.style.setProperty("--py2", `${parallaxCurrent.current.y * 0.68}px`);
+        root.style.setProperty("--px3", `${parallaxCurrent.current.x}px`);
+        root.style.setProperty("--py3", `${parallaxCurrent.current.y}px`);
+      }
       frame = window.requestAnimationFrame(follow);
     };
     frame = window.requestAnimationFrame(follow);
@@ -124,535 +194,243 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          const element = entry.target as HTMLElement;
-          const key = element.dataset.explore;
-          const amount = Number(element.dataset.amount ?? 5);
-          if (key) markExplore(key, amount);
-        }
-      },
-      { threshold: 0.38 },
-    );
-
-    document.querySelectorAll<HTMLElement>("[data-explore]").forEach((element) => {
-      observer.observe(element);
-    });
-    return () => observer.disconnect();
-  }, [markExplore]);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOtherSideOpen(false);
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        if (state === "project-focus") leaveProjectFocus();
+        else if (state === "info") setState("workspace");
+        return;
+      }
+      if (event.key === "Enter") {
+        if (state === "opening") enterWorkspace();
+        else if (state === "workspace") enterProjectFocus();
+        return;
+      }
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        if (state === "opening") enterWorkspace();
+        else if (state === "workspace" || state === "project-focus") moveProject(1);
+        else if (state === "info") setState("opening");
+      }
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        if (state === "project-focus") leaveProjectFocus();
+        else if (state === "workspace") moveProject(-1);
+        else if (state === "info") setState("workspace");
+      }
     };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [projectIndex, state]);
 
-  const handleReveal = (event: ReactPointerEvent<HTMLElement>) => {
+  const handlePointerMove = (event: ReactPointerEvent<HTMLElement>) => {
     if (event.pointerType === "touch") return;
     const rect = event.currentTarget.getBoundingClientRect();
-    revealTarget.current = {
-      x: ((event.clientX - rect.left) / rect.width) * 100,
-      y: ((event.clientY - rect.top) / rect.height) * 100,
-    };
-    if (!revealActive) {
-      setRevealActive(true);
-      markExplore("hero-reveal", 8);
+    const x = (event.clientX - rect.left) / rect.width;
+    const y = (event.clientY - rect.top) / rect.height;
+    revealTarget.current = { x: x * 100, y: y * 100 };
+    parallaxTarget.current = { x: (x - 0.5) * 12, y: (y - 0.5) * 12 };
+    if (state === "opening" && x > 0.45) setRevealActive(true);
+  };
+
+  const handleWheel = (event: ReactWheelEvent<HTMLElement>) => {
+    event.preventDefault();
+    if (wheelLocked.current || Math.abs(event.deltaY) < 20) return;
+    wheelLocked.current = true;
+    window.setTimeout(() => (wheelLocked.current = false), 650);
+    const direction = event.deltaY > 0 ? 1 : -1;
+    if (state === "opening" && direction > 0) enterWorkspace();
+    else if (state === "workspace") moveProject(direction);
+    else if (state === "project-focus" && direction < 0) leaveProjectFocus();
+    else if (state === "info" && direction < 0) setState("workspace");
+  };
+
+  const handleTouchEnd = (event: ReactTouchEvent<HTMLElement>) => {
+    const endX = event.changedTouches[0]?.clientX ?? touchStartX.current;
+    const distance = endX - touchStartX.current;
+    if (Math.abs(distance) < 48) return;
+    const direction: 1 | -1 = distance < 0 ? 1 : -1;
+    if (state === "opening" && direction > 0) enterWorkspace();
+    else if (state === "workspace") moveProject(direction);
+    else if (state === "project-focus" && direction < 0) leaveProjectFocus();
+    else if (state === "info" && direction < 0) setState("workspace");
+  };
+
+  const handleProjectSelect = (event: ReactPointerEvent<HTMLButtonElement>, id: ProjectId) => {
+    if (event.pointerType === "touch" && activeProjectId !== id) {
+      setActiveProjectId(id);
+      return;
     }
-  };
-
-  const handleInterludeTrail = (event: ReactPointerEvent<HTMLElement>) => {
-    const now = performance.now();
-    if (now - lastTrailAt.current < 42) return;
-    lastTrailAt.current = now;
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * 100;
-    const y = ((event.clientY - rect.top) / rect.height) * 100;
-    const id = ++trailId.current;
-    const angle = ((x + y) % 38) - 19;
-
-    setTrailMarks((marks) => [...marks, { id, x, y, angle }].slice(-38));
-    window.setTimeout(() => {
-      setTrailMarks((marks) => marks.filter((mark) => mark.id !== id));
-    }, 2300);
-    markExplore("interlude-trail", 7);
-  };
-
-  const activateProject = (id: ProjectId) => {
-    setActiveProject(id);
-    markExplore(`project-${id}`, 5);
-  };
-
-  const openOtherSide = () => {
-    setOtherSideOpen(true);
-    markExplore("other-side-open", 8);
+    setActiveProjectId(id);
+    enterProjectFocus();
   };
 
   return (
-    <main>
-      <a className="skip-link" href="#about">
-        跳到主要内容
-      </a>
+    <main
+      ref={rootRef}
+      className="portfolio"
+      data-state={state}
+      data-project={activeProjectId}
+      data-reveal={revealActive}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={() => {
+        setRevealActive(false);
+        parallaxTarget.current = { x: 0, y: 0 };
+      }}
+      onWheel={handleWheel}
+      onTouchStart={(event) => {
+        touchStartX.current = event.changedTouches[0]?.clientX ?? 0;
+      }}
+      onTouchEnd={handleTouchEnd}
+    >
+      <a className="skip-link" href="#portfolio-stage">跳到作品集空间</a>
 
-      <aside className="signal-trace" aria-label="页面章节">
-        <div className="signal-line" aria-hidden="true">
-          <span />
-        </div>
-        <nav>
-          {signalSections.map(([href, label]) => (
-            <a key={href} href={`#${href}`}>
-              {label}
-            </a>
+      <header className="shell-header">
+        <button className="brand" type="button" onClick={() => setState("opening")}>
+          <span>RAIN_DUST</span>
+          <strong>寻辰沐雨</strong>
+        </button>
+        <nav aria-label="作品集状态">
+          {(["opening", "workspace", "info"] as const).map((item) => (
+            <button
+              key={item}
+              type="button"
+              className={state === item || (item === "workspace" && state === "project-focus") ? "is-current" : ""}
+              onClick={() => setState(item)}
+            >
+              {item === "workspace" ? "WORK" : item.toUpperCase()}
+            </button>
           ))}
         </nav>
-      </aside>
+      </header>
 
-      <aside className="explored" aria-label={`探索程度 ${explored}%`}>
-        <span>EXPLORED</span>
-        <strong>{String(explored).padStart(2, "0")}%</strong>
-      </aside>
+      <div className="signal-mark" aria-hidden="true"><i /></div>
+      <p className="sr-only" aria-live="polite">当前状态：{stateLabels[state]}，当前项目：{activeProject.title}</p>
 
-      <section
-        className="opening"
-        id="opening"
-        ref={heroRef}
-        onPointerMove={handleReveal}
-        onPointerLeave={() => setRevealActive(false)}
-        data-reveal-active={revealActive}
-        style={{ "--hero-progress": heroProgress } as CSSProperties}
-      >
-        <div className="opening-frame">
-          <header className="site-header">
-            <a className="brand" href="#opening" aria-label="寻辰沐雨，返回开场">
-              <span>RAIN_DUST / 00</span>
-              <strong>寻辰沐雨</strong>
-            </a>
-            <nav className="top-nav" aria-label="主要导航">
-              <a href="#about">ABOUT</a>
-              <a href="#work">WORK</a>
-              <a href="#archive">ARCHIVE</a>
-              <button
-                type="button"
-                className={explored >= 35 ? "other-side-ready" : ""}
-                onClick={openOtherSide}
-              >
-                {explored >= 35 ? "OTHER SIDE" : "···"}
-              </button>
-            </nav>
-          </header>
-
-          <div className="hero-copy">
-            <p className="location-copy">
-              BASED SOMEWHERE BETWEEN
-              <br />
-              REALITY AND THE INTERNET.
-            </p>
-            <h1 aria-label="I make digital things out of thoughts, feelings and small problems.">
-              <span>I MAKE</span>
-              <span>DIGITAL THINGS</span>
-              <span>OUT OF</span>
-              <span className="ghost-word" data-ghost="念头">
-                THOUGHTS,
-              </span>
-              <span className="ghost-word" data-ghost="感受">
-                FEELINGS AND
-              </span>
-              <span className="ghost-word" data-ghost="一些忍不住想解决的麻烦">
-                SMALL PROBLEMS.
-              </span>
+      <div className="portfolio-stage" id="portfolio-stage">
+        <section className="state-panel opening-panel" aria-hidden={state !== "opening"}>
+          <div className="opening-copy">
+            <span className="opening-label">PRIVATE DIGITAL SPACE</span>
+            <h1>
+              I MAKE DIGITAL THINGS
+              <br />OUT OF THOUGHTS,
+              <br />FEELINGS AND
+              <br />SMALL PROBLEMS.
             </h1>
-            <p className="hero-cn">
-              我喜欢把脑子里的东西，
-              <br />
-              做成真的。
-            </p>
-          </div>
-
-          <div className="hero-portrait" aria-hidden="true">
-            <img
-              className="portrait-base"
-              src="/rain-dust/hero/hero-girl-lineart-temp-v2.webp"
-              alt=""
-            />
-            <img
-              className="portrait-reveal"
-              src="/rain-dust/hero/hero-girl-lineart-temp-v2.webp"
-              alt=""
-            />
-            <div className="reveal-ghosts">
-              <span className="ghost-orbit" />
-              <span className="ghost-grid" />
-              <small>OTHER SIDE</small>
-              <i>MEMORY FRAGMENT</i>
-            </div>
-            <span className="hair-strand hair-1" />
-            <span className="hair-strand hair-2" />
-            <span className="hair-strand hair-3" />
-            <span className="hair-strand hair-4" />
-            <span className="hair-strand hair-5" />
-          </div>
-
-          <div className="hero-status">
-            <button type="button" onClick={() => setSoundTouched(true)}>
-              {soundTouched ? "SOUND — NO TRACK" : "SOUND OFF"}
+            <p>我喜欢把脑子里的东西，做成真的。</p>
+            <button className="enter-space" type="button" onClick={enterWorkspace}>
+              <i aria-hidden="true" /> ENTER SPACE
             </button>
-            <a href="#about" className="scroll-cue">
-              <span aria-hidden="true">↓</span>
-              SCROLL
-            </a>
-            <span>PRIVATE SPACE / RUNNING</span>
-          </div>
-        </div>
-      </section>
-
-      <section
-        className="about"
-        id="about"
-        data-explore="about"
-        data-amount="8"
-      >
-        <div className="about-background" aria-hidden="true">
-          <span>THOUGHTS</span>
-          <span>FEELINGS</span>
-          <span>PROBLEMS</span>
-        </div>
-        <div className="section-kicker">
-          <span>PERSONAL OBSERVATION / IN PROGRESS</span>
-          <i />
-        </div>
-        <div className="about-copy">
-          <h2>一张仍在被补充的个人观察页。</h2>
-          <p>
-            INTP，独立开发者。
-            <br />
-            也是一个经常被突然出现的想法打断的人。
-          </p>
-          <p>
-            我没有固定的创作方向。
-            <br />
-            有时做产品，有时写工具，
-            <br />
-            有时只是想看看一个念头
-            <br />
-            最终能够长成什么样。
-          </p>
-        </div>
-
-        <div className="identity-fragments" aria-label="身份碎片">
-          <span className="identity-intp">INTP</span>
-          <span className="identity-builder">INDEPENDENT BUILDER</span>
-          <span className="identity-ai">
-            AI-NATIVE CREATOR <small>v1.07</small>
-          </span>
-          <span className="identity-direction">
-            NO FIXED DIRECTION
-            <small>THAT MAY BE THE DIRECTION.</small>
-          </span>
-        </div>
-
-        <div className="observation-images" aria-label="创作观察碎片">
-          <figure className="observation observation-editor">
-            <img
-              src="/rain-dust/source/zhiwei-current.webp"
-              alt="知微项目编辑界面局部"
-            />
-            <figcaption>01 / EDITOR RESIDUE</figcaption>
-          </figure>
-          <figure className="observation observation-thought">
-            <img
-              src="/rain-dust/source/earth-online-current.webp"
-              alt="Earth Online 项目运行画面局部"
-            />
-            <figcaption>02 / A THOUGHT TAKING SHAPE</figcaption>
-          </figure>
-          <figure className="observation observation-aesthetic">
-            <img
-              src="/rain-dust/source/fushenglu-current.webp"
-              alt="浮生录视觉情绪局部"
-            />
-            <figcaption>03 / AESTHETIC REMAINS</figcaption>
-          </figure>
-        </div>
-
-        <p className="about-ending">
-          这些仍然不足以解释我。
-          <span>THE WORK MAY EXPLAIN A LITTLE MORE.</span>
-        </p>
-      </section>
-
-      <section
-        className="interlude"
-        id="interlude"
-        data-explore="interlude"
-        data-amount="6"
-        onPointerMove={handleInterludeTrail}
-      >
-        <div className="interlude-heading">
-          <span>DIGITAL INTERLUDE</span>
-          <h2>未完成的念头场</h2>
-        </div>
-
-        <div className="trail-field" aria-hidden="true">
-          {trailMarks.map((mark) => (
-            <span
-              className="trail-mark"
-              key={mark.id}
-              style={
-                {
-                  left: `${mark.x}%`,
-                  top: `${mark.y}%`,
-                  "--trail-angle": `${mark.angle}deg`,
-                } as CSSProperties
-              }
-            />
-          ))}
-          <span className="hidden-thought thought-a">
-            A WORLD THAT KEEPS RUNNING
-          </span>
-          <span className="hidden-thought thought-b">
-            SOME WORDS SHOULD ONLY BE KEPT
-          </span>
-          <span className="hidden-thought thought-c">
-            THIS PROCESS WAS TOO ANNOYING
-          </span>
-          <span className="hidden-thought thought-d">
-            WHAT WOULD YOU SAY NEXT?
-          </span>
-          <i className="signal-pulse" />
-        </div>
-
-        <p className="interlude-ending">
-          有些念头最后变成了作品。
-          <span>SOME OF THEM BECAME REAL.</span>
-        </p>
-      </section>
-
-      <section
-        className="spatial-work"
-        id="work"
-        data-active={activeProject ?? "none"}
-        data-explore="work"
-        data-amount="7"
-        onPointerLeave={() => setActiveProject(null)}
-      >
-        <div className="work-heading">
-          <span>SELECTED WORK</span>
-          <p>项目不是陈列品。它们是被唤醒的空间碎片。</p>
-        </div>
-
-        <div className="project-names">
-          {projects.map((project) => (
-            <a
-              key={project.id}
-              className={`project-link project-link-${project.id}`}
-              href={project.href}
-              target="_blank"
-              rel="noreferrer"
-              onPointerEnter={() => activateProject(project.id)}
-              onFocus={() => activateProject(project.id)}
-            >
-              <small>{project.eyebrow}</small>
-              <strong>{project.name}</strong>
-              <span>OPEN GITHUB ↗</span>
-            </a>
-          ))}
-        </div>
-
-        <div className="fragment-field" aria-hidden="true">
-          <div className="fragment-group fragments-earth" data-project="earth">
-            <span className="night-wash" />
-            <img
-              className="earth-globe"
-              src="/rain-dust/fragments/earth-globe.webp"
-              alt=""
-            />
-            <img
-              className="earth-orbits"
-              src="/rain-dust/fragments/earth-orbits.webp"
-              alt=""
-            />
-            <img
-              className="earth-status"
-              src="/rain-dust/fragments/earth-status.webp"
-              alt=""
-            />
-            <span className="earth-copy">THE WORLD IS RUNNING.</span>
-            <span className="earth-coordinates">31.2304° N / 121.4737° E</span>
           </div>
 
-          <div
-            className="fragment-group fragments-fushenglu"
-            data-project="fushenglu"
-          >
-            <span className="paper-wash" />
-            <img
-              className="fushenglu-title"
-              src="/rain-dust/fragments/fushenglu-title.webp"
-              alt=""
-            />
-            <img
-              className="fushenglu-cat"
-              src="/rain-dust/fragments/fushenglu-cat.webp"
-              alt=""
-            />
-            <img
-              className="fushenglu-seal"
-              src="/rain-dust/fragments/fushenglu-seal.webp"
-              alt=""
-            />
-            <img
-              className="fushenglu-branch"
-              src="/rain-dust/fragments/fushenglu-branch.webp"
-              alt=""
-            />
-            <img
-              className="fushenglu-quote"
-              src="/rain-dust/fragments/fushenglu-quote.webp"
-              alt=""
-            />
+          <div className="opening-portrait" aria-hidden="true">
+            <img className="portrait-base" src="/rain-dust/hero/hero-girl-lineart-temp-v2.webp" alt="" />
+            <img className="portrait-reveal" src="/rain-dust/hero/hero-girl-lineart-temp-v2.webp" alt="" />
+            <span className="red-eye" />
+            <span className="residue residue-orbit" />
+            <span className="residue residue-path">MEMORY FRAGMENT</span>
+            <i className="hair-strand hair-1" />
+            <i className="hair-strand hair-2" />
+            <i className="hair-strand hair-3" />
+            <i className="hair-strand hair-4" />
+            <i className="hair-strand hair-5" />
+          </div>
+        </section>
+
+        <section className="state-panel workspace-panel" aria-hidden={state !== "workspace" && state !== "project-focus"}>
+          <div className="workspace-note">
+            <span>SELECTED WORK</span>
+            <small>HOVER / CLICK / ARROW KEYS</small>
           </div>
 
-          <div
-            className="fragment-group fragments-reimburse"
-            data-project="reimburse"
-          >
-            <span className="receipt-piece">
-              <small>REIMBURSEMENT / 2026-07</small>
-              <strong>¥ 1,217.60</strong>
-              <i>ORIGINAL RECEIPTS: 08</i>
-            </span>
-            <span className="table-piece" />
-            <span className="folder-piece">ARCHIVE / CRK-024</span>
-            <span className="sorted-piece">MESS → SORTED</span>
-            <span className="tear-piece">APPROVED</span>
+          <div className="shard-space" aria-hidden="true">
+            {projects.flatMap((project) =>
+              project.shards.map((shard) => (
+                <div
+                  key={shard.id}
+                  className={`glass-shard depth-${shard.depth} shard-${shard.kind}`}
+                  data-project={project.id}
+                  style={shardStyle(shard)}
+                >
+                  <div className="shard-parallax">
+                    {shard.image ? (
+                      <img src={shard.image} alt="" style={{ objectPosition: shard.objectPosition ?? "center" }} />
+                    ) : (
+                      <span>{shard.content}</span>
+                    )}
+                  </div>
+                </div>
+              )),
+            )}
           </div>
 
-          <div className="fragment-group fragments-zhiwei" data-project="zhiwei">
-            <span className="zhiwei-wash" />
-            <img
-              className="zhiwei-path"
-              src="/rain-dust/fragments/zhiwei-path.webp"
-              alt=""
-            />
-            <img
-              className="zhiwei-node"
-              src="/rain-dust/fragments/zhiwei-node.webp"
-              alt=""
-            />
-            <img
-              className="zhiwei-labels"
-              src="/rain-dust/fragments/zhiwei-labels.webp"
-              alt=""
-            />
-            <span className="zhiwei-copy">WHAT WOULD YOU SAY NEXT?</span>
+          <div className="project-constellation">
+            {projects.map((project) => (
+              <button
+                key={project.id}
+                type="button"
+                className={`project-name ${project.labelPosition}`}
+                data-project={project.id}
+                aria-pressed={activeProjectId === project.id}
+                onPointerEnter={(event) => {
+                  if (event.pointerType !== "touch" && state === "workspace") setActiveProjectId(project.id);
+                }}
+                onFocus={() => setActiveProjectId(project.id)}
+                onPointerUp={(event) => handleProjectSelect(event, project.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setActiveProjectId(project.id);
+                    enterProjectFocus();
+                  }
+                }}
+              >
+                <small>{project.definition}</small>
+                <strong>{project.title}</strong>
+                <span>OPEN</span>
+              </button>
+            ))}
           </div>
-        </div>
-      </section>
 
-      <section
-        className="archive"
-        id="archive"
-        data-explore="archive"
-        data-amount="5"
-      >
-        <header>
-          <span>ARCHIVE / NOTES</span>
-          <h2>没有完成，也值得被留下。</h2>
-        </header>
-        <div className="archive-list">
-          <a
-            href="https://github.com/Rain-dust/MindCache"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <time>2026 — NOW</time>
-            <strong>MindCache</strong>
-            <span>MEMORY TOOL / OPEN SOURCE ↗</span>
-          </a>
-          <div>
-            <time>ONGOING</time>
-            <strong>SMALL EXPERIMENTS</strong>
-            <span>UI / AUTOMATION / THOUGHT TOOLS</span>
+          <div className="project-focus" aria-hidden={state !== "project-focus"}>
+            <button type="button" className="focus-back" onClick={leaveProjectFocus}>← BACK</button>
+            <div className="focus-meta">
+              <span>{activeProject.year}</span>
+              <h2>{activeProject.title}</h2>
+              <p>{activeProject.definition}</p>
+              <ul>{activeProject.tags.map((tag) => <li key={tag}>{tag}</li>)}</ul>
+              <div className="focus-links">
+                {activeProject.demoUrl ? (
+                  <a href={activeProject.demoUrl} target="_blank" rel="noreferrer">VIEW ↗</a>
+                ) : (
+                  <span aria-disabled="true">VIEW —</span>
+                )}
+                <a href={activeProject.sourceUrl} target="_blank" rel="noreferrer">SOURCE ↗</a>
+              </div>
+            </div>
           </div>
-          <div>
-            <time>UNFINISHED</time>
-            <strong>PROCESS DRAFTS</strong>
-            <span>AI COLLABORATION RECORDS</span>
-          </div>
-          <div>
-            <time>SOON</time>
-            <strong>NOTES FOR A FUTURE ARTICLE</strong>
-            <span>NOT YET ARRANGED</span>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section
-        className="contact"
-        id="other-side"
-        data-explore="contact"
-        data-amount="4"
-      >
-        <div className="contact-copy">
-          <span>OTHER SIDE / CONTACT</span>
-          <h2>
-            THE PAGE ENDS.
-            <br />
-            THE SPACE DOES NOT.
-          </h2>
-          <p>如果你也在把某个念头做成真的，可以来找我。</p>
-        </div>
-        <div className="contact-links">
-          <a href="https://github.com/Rain-dust" target="_blank" rel="noreferrer">
-            GITHUB ↗
-          </a>
-          <span>EMAIL / TO BE REPLACED</span>
-          <span>BILIBILI / TO BE REPLACED</span>
-          <button type="button" onClick={openOtherSide}>
-            OPEN THE OTHER SIDE
-          </button>
-        </div>
-        <footer>
-          <span>寻辰沐雨 / RAIN_DUST</span>
-          <span>PRIVATE SPACE / V1</span>
-        </footer>
-      </section>
-
-      {otherSideOpen && (
-        <div
-          className="other-side-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="other-side-title"
-        >
-          <button
-            className="overlay-close"
-            type="button"
-            onClick={() => setOtherSideOpen(false)}
-            aria-label="关闭另一侧"
-          >
-            CLOSE ×
-          </button>
-          <img
-            src="/rain-dust/hero/hero-girl-crop-v2.webp"
-            alt=""
-            aria-hidden="true"
-          />
-          <div className="other-side-copy">
-            <span>THE OTHER SIDE / PROTOTYPE LAYER</span>
-            <h2 id="other-side-title">有些部分，不属于作品说明。</h2>
-            <p>
-              AIMER / QUIET NIGHT / LINE ART / SMALL WORLDS
-              <br />
-              LONG CONVERSATIONS / UNFINISHED IDEAS
-            </p>
-            <small>这只是第二层的入口。它会在后续继续生长。</small>
+        <section className="state-panel info-panel" aria-hidden={state !== "info"}>
+          <div className="info-identities">
+            <span>INTP</span>
+            <span>INDEPENDENT <br className="mobile-break" />BUILDER</span>
+            <span>AI-NATIVE <br className="mobile-break" />CREATOR</span>
           </div>
-        </div>
-      )}
+          <div className="info-links">
+            <a href="https://github.com/Rain-dust" target="_blank" rel="noreferrer">GITHUB ↗</a>
+            <span>EMAIL / TO BE REPLACED</span>
+            <span>BILIBILI / TO BE REPLACED</span>
+            <small>OTHER SIDE / NOT YET MAPPED</small>
+          </div>
+          <img src="/rain-dust/hero/hero-girl-crop-v2.webp" alt="" aria-hidden="true" />
+        </section>
+      </div>
+
+      <footer className="shell-footer">
+        <span>{stateLabels[state]}</span>
+        <div><kbd>←</kbd><kbd>→</kbd><span>MOVE</span><kbd>ENTER</kbd><span>OPEN</span><kbd>ESC</kbd><span>BACK</span></div>
+        <span>V3 / SINGLE VIEWPORT</span>
+      </footer>
     </main>
   );
 }
