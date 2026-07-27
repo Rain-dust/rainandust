@@ -419,10 +419,19 @@ export default function Home() {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width - 0.5;
     const y = (event.clientY - rect.top) / rect.height - 0.5;
-    stageRef.current?.style.setProperty("--parallax-x", `${x * 16}px`);
-    stageRef.current?.style.setProperty("--parallax-y", `${y * 12}px`);
-    stageRef.current?.style.setProperty("--cursor-x", `${(x + 0.5) * 100}%`);
-    stageRef.current?.style.setProperty("--cursor-y", `${(y + 0.5) * 100}%`);
+    const stage = stageRef.current;
+    const px = x * 16;
+    const py = y * 12;
+    stage?.style.setProperty("--parallax-x", `${px}px`);
+    stage?.style.setProperty("--parallax-y", `${py}px`);
+    stage?.style.setProperty("--parallax-x-small", `${px * 0.35}px`);
+    stage?.style.setProperty("--parallax-y-small", `${py * 0.35}px`);
+    stage?.style.setProperty("--parallax-x-negative", `${px * -0.6}px`);
+    stage?.style.setProperty("--parallax-y-negative", `${py * -0.6}px`);
+    stage?.style.setProperty("--parallax-rotate-x", `${py * -0.08}deg`);
+    stage?.style.setProperty("--parallax-rotate-y", `${px * 0.08}deg`);
+    stage?.style.setProperty("--cursor-x", `${(x + 0.5) * 100}%`);
+    stage?.style.setProperty("--cursor-y", `${(y + 0.5) * 100}%`);
   };
 
   return (

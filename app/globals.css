@@ -52,6 +52,12 @@ a {
 .cinematic-stage {
   --parallax-x: 0px;
   --parallax-y: 0px;
+  --parallax-x-small: 0px;
+  --parallax-y-small: 0px;
+  --parallax-x-negative: 0px;
+  --parallax-y-negative: 0px;
+  --parallax-rotate-x: 0deg;
+  --parallax-rotate-y: 0deg;
   --cursor-x: 70%;
   --cursor-y: 42%;
   position: sticky;
@@ -243,9 +249,7 @@ a {
   mask-image:
     radial-gradient(circle 15rem at var(--cursor-x) var(--cursor-y), #000 36%, transparent 100%),
     linear-gradient(to bottom, #000 75%, transparent);
-  transform:
-    translate3d(calc(var(--parallax-x) * 0.35), calc(var(--parallax-y) * 0.35), 0)
-    scale(calc(1 - (1 - var(--opening-opacity)) * 0.025));
+  transform: translate3d(var(--parallax-x-small), var(--parallax-y-small), 0);
 }
 
 .cursor-reveal {
@@ -364,9 +368,9 @@ a {
   width: min(72vw, 74rem);
   aspect-ratio: 16 / 9;
   transform:
-    translate3d(calc(-50% + var(--parallax-x) * 0.3), calc(-50% + var(--parallax-y) * 0.3), 0)
-    rotateX(calc(var(--parallax-y) * -0.08))
-    rotateY(calc(var(--parallax-x) * 0.08));
+    translate3d(calc(-50% + var(--parallax-x-small)), calc(-50% + var(--parallax-y-small)), 0)
+    rotateX(var(--parallax-rotate-x))
+    rotateY(var(--parallax-rotate-y));
   transform-style: preserve-3d;
 }
 
@@ -631,9 +635,9 @@ a {
 }
 
 .orbit-work-1 { top: 18%; left: 23%; }
-.orbit-work-2 { top: 16%; right: 22%; transform: translate3d(calc(var(--parallax-x) * -0.6), calc(var(--parallax-y) * -0.6), 0) rotate(5deg); }
-.orbit-work-3 { bottom: 17%; left: 19%; transform: translate3d(calc(var(--parallax-x) * -0.35), calc(var(--parallax-y) * -0.35), 0) rotate(-7deg); }
-.orbit-work-4 { right: 20%; bottom: 16%; transform: translate3d(calc(var(--parallax-x) * 0.7), calc(var(--parallax-y) * 0.7), 0) rotate(8deg); }
+.orbit-work-2 { top: 16%; right: 22%; transform: translate3d(var(--parallax-x-negative), var(--parallax-y-negative), 0) rotate(5deg); }
+.orbit-work-3 { bottom: 17%; left: 19%; transform: translate3d(var(--parallax-x-small), var(--parallax-y-small), 0) rotate(-7deg); }
+.orbit-work-4 { right: 20%; bottom: 16%; transform: translate3d(var(--parallax-x), var(--parallax-y), 0) rotate(8deg); }
 
 .identity-layer {
   z-index: 50;
