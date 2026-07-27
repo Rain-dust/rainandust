@@ -3,35 +3,32 @@
 import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
-  type TouchEvent as ReactTouchEvent,
-  type WheelEvent as ReactWheelEvent,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
+import Image from "next/image";
 
-type PortfolioState = "opening" | "workspace" | "project-focus" | "info";
 type ProjectId = "earth" | "fushenglu" | "reimburse" | "zhiwei";
-type ShardKind = "image" | "receipt" | "amount" | "grid" | "folder" | "order";
+
+type SourceRect = { x: number; y: number; w: number; h: number };
 
 type Shard = {
   id: string;
-  image?: string;
-  kind: ShardKind;
-  content?: string;
-  clipPath: string;
-  objectPosition?: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotate: number;
-  activeX: number;
-  activeY: number;
-  focusX: number;
-  focusY: number;
-  depth: 1 | 2 | 3;
+  polygon: string;
+  sourceRect: SourceRect;
+  rest: {
+    x: number;
+    y: number;
+    z: number;
+    rotateX: number;
+    rotateY: number;
+    rotateZ: number;
+  };
+  delay: number;
+  node?: { x: number; y: number };
 };
 
 type Project = {
@@ -39,12 +36,103 @@ type Project = {
   title: string;
   year: string;
   tags: string[];
-  definition: string;
   sourceUrl: string;
-  demoUrl?: string;
-  labelPosition: string;
-  shards: Shard[];
+  master: string;
+  center: number;
+  tint: string;
+  nodes: { x: number; y: number; label: string }[];
 };
+
+const clamp = (value: number, min = 0, max = 1) =>
+  Math.min(max, Math.max(min, value));
+
+const mix = (from: number, to: number, amount: number) =>
+  from + (to - from) * amount;
+
+const smooth = (value: number) => {
+  const t = clamp(value);
+  return t * t * (3 - 2 * t);
+};
+
+const segment = (progress: number, start: number, end: number) =>
+  clamp((progress - start) / (end - start));
+
+const shards: Shard[] = [
+  {
+    id: "crown",
+    polygon: "polygon(4% 9%, 83% 0, 100% 24%, 88% 94%, 19% 100%, 0 58%)",
+    sourceRect: { x: 6, y: 7, w: 35, h: 33 },
+    rest: { x: -43, y: -31, z: 150, rotateX: -12, rotateY: 18, rotateZ: -16 },
+    delay: 0.02,
+    node: { x: 35, y: 28 },
+  },
+  {
+    id: "north",
+    polygon: "polygon(8% 0, 94% 12%, 100% 73%, 69% 100%, 0 82%, 7% 29%)",
+    sourceRect: { x: 39, y: 4, w: 29, h: 28 },
+    rest: { x: 9, y: -48, z: -120, rotateX: 20, rotateY: -13, rotateZ: 11 },
+    delay: 0.1,
+  },
+  {
+    id: "east",
+    polygon: "polygon(16% 4%, 100% 0, 91% 78%, 63% 100%, 0 84%, 8% 25%)",
+    sourceRect: { x: 68, y: 9, w: 27, h: 34 },
+    rest: { x: 48, y: -22, z: 230, rotateX: -16, rotateY: -22, rotateZ: 18 },
+    delay: 0.06,
+    node: { x: 76, y: 32 },
+  },
+  {
+    id: "west",
+    polygon: "polygon(0 19%, 27% 0, 100% 9%, 87% 92%, 46% 100%, 9% 73%)",
+    sourceRect: { x: 10, y: 39, w: 29, h: 30 },
+    rest: { x: -52, y: 3, z: -180, rotateX: 18, rotateY: 25, rotateZ: 9 },
+    delay: 0.16,
+  },
+  {
+    id: "heart",
+    polygon: "polygon(7% 7%, 79% 0, 100% 23%, 91% 78%, 65% 100%, 12% 92%, 0 38%)",
+    sourceRect: { x: 38, y: 31, w: 37, h: 37 },
+    rest: { x: 4, y: 6, z: 390, rotateX: -8, rotateY: 10, rotateZ: -8 },
+    delay: 0,
+    node: { x: 57, y: 53 },
+  },
+  {
+    id: "rim",
+    polygon: "polygon(12% 0, 100% 17%, 86% 89%, 23% 100%, 0 62%, 5% 21%)",
+    sourceRect: { x: 75, y: 41, w: 19, h: 31 },
+    rest: { x: 53, y: 11, z: 40, rotateX: 12, rotateY: -28, rotateZ: -14 },
+    delay: 0.19,
+  },
+  {
+    id: "southwest",
+    polygon: "polygon(0 22%, 31% 0, 100% 13%, 89% 83%, 55% 100%, 9% 74%)",
+    sourceRect: { x: 17, y: 68, w: 29, h: 25 },
+    rest: { x: -35, y: 42, z: 220, rotateX: -22, rotateY: 12, rotateZ: 19 },
+    delay: 0.12,
+    node: { x: 34, y: 80 },
+  },
+  {
+    id: "south",
+    polygon: "polygon(10% 0, 82% 5%, 100% 45%, 88% 100%, 17% 91%, 0 37%)",
+    sourceRect: { x: 46, y: 68, w: 36, h: 27 },
+    rest: { x: 19, y: 47, z: -160, rotateX: 19, rotateY: -15, rotateZ: -12 },
+    delay: 0.21,
+  },
+  {
+    id: "dust-left",
+    polygon: "polygon(17% 0, 100% 18%, 74% 100%, 0 71%)",
+    sourceRect: { x: 2, y: 64, w: 8, h: 12 },
+    rest: { x: -66, y: 21, z: -310, rotateX: 31, rotateY: 24, rotateZ: 35 },
+    delay: 0.25,
+  },
+  {
+    id: "dust-right",
+    polygon: "polygon(0 25%, 31% 0, 100% 14%, 82% 100%, 19% 80%)",
+    sourceRect: { x: 88, y: 74, w: 8, h: 11 },
+    rest: { x: 67, y: 39, z: 310, rotateX: -27, rotateY: -33, rotateZ: -29 },
+    delay: 0.28,
+  },
+];
 
 const projects: Project[] = [
   {
@@ -52,15 +140,15 @@ const projects: Project[] = [
     title: "EARTH ONLINE",
     year: "2026",
     tags: ["THREE.JS", "LOCAL-FIRST", "EXPERIMENT"],
-    definition: "A quiet world that keeps running after you leave.",
     sourceUrl: "https://github.com/Rain-dust/earth-online",
-    labelPosition: "label-earth",
-    shards: [
-      { id: "earth-arc", kind: "image", image: "/rain-dust/fragments/earth-globe.webp", clipPath: "polygon(7% 5%, 88% 0, 100% 38%, 74% 100%, 18% 86%, 0 42%)", x: 61, y: 10, width: 18, height: 25, rotate: 5, activeX: -2, activeY: 4, focusX: -10, focusY: 12, depth: 2 },
-      { id: "earth-night", kind: "image", image: "/rain-dust/source/earth-online-current.webp", clipPath: "polygon(13% 0, 100% 9%, 86% 91%, 29% 100%, 0 55%)", objectPosition: "76% 56%", x: 76, y: 31, width: 11, height: 17, rotate: -7, activeX: -6, activeY: 1, focusX: -18, focusY: 3, depth: 3 },
-      { id: "earth-orbit", kind: "image", image: "/rain-dust/fragments/earth-orbits.webp", clipPath: "polygon(0 31%, 28% 0, 100% 17%, 91% 72%, 55% 100%, 8% 81%)", x: 48, y: 48, width: 17, height: 13, rotate: -4, activeX: 8, activeY: -8, focusX: 15, focusY: -18, depth: 1 },
-      { id: "earth-signal", kind: "image", image: "/rain-dust/fragments/earth-status.webp", clipPath: "polygon(8% 12%, 92% 0, 100% 69%, 76% 100%, 0 81%)", x: 84, y: 60, width: 8, height: 10, rotate: 8, activeX: -10, activeY: -4, focusX: -23, focusY: -14, depth: 2 },
-      { id: "earth-lights", kind: "image", image: "/rain-dust/source/earth-online-current.webp", clipPath: "polygon(26% 0, 100% 21%, 82% 100%, 0 71%, 9% 19%)", objectPosition: "43% 67%", x: 55, y: 72, width: 7, height: 11, rotate: 12, activeX: 13, activeY: -8, focusX: 22, focusY: -25, depth: 3 },
+    master: "/rain-dust/masters/earth-master.webp",
+    center: 0.345,
+    tint: "18 45 68",
+    nodes: [
+      { x: 18, y: 23, label: "WORLD" },
+      { x: 78, y: 28, label: "RUNTIME" },
+      { x: 34, y: 78, label: "RECORD" },
+      { x: 73, y: 69, label: "LOCAL" },
     ],
   },
   {
@@ -68,16 +156,15 @@ const projects: Project[] = [
     title: "浮生录",
     year: "2026",
     tags: ["WRITING", "MEMORY", "LOCAL-FIRST"],
-    definition: "Some words should only be kept, not explained.",
     sourceUrl: "https://github.com/Rain-dust/fushenglu",
-    labelPosition: "label-fushenglu",
-    shards: [
-      { id: "fushenglu-paper", kind: "image", image: "/rain-dust/fragments/fushenglu-title.webp", clipPath: "polygon(12% 0, 88% 7%, 100% 68%, 62% 100%, 0 82%, 5% 23%)", x: 56, y: 13, width: 12, height: 23, rotate: -6, activeX: 5, activeY: 4, focusX: 13, focusY: 12, depth: 2 },
-      { id: "fushenglu-quote", kind: "image", image: "/rain-dust/fragments/fushenglu-quote.webp", clipPath: "polygon(7% 13%, 73% 0, 100% 27%, 89% 91%, 24% 100%, 0 64%)", x: 78, y: 17, width: 7, height: 20, rotate: 7, activeX: -7, activeY: 5, focusX: -17, focusY: 12, depth: 3 },
-      { id: "fushenglu-cat", kind: "image", image: "/rain-dust/fragments/fushenglu-cat.webp", clipPath: "polygon(0 19%, 37% 0, 100% 13%, 87% 83%, 48% 100%, 8% 69%)", x: 68, y: 46, width: 14, height: 15, rotate: 3, activeX: -1, activeY: -5, focusX: -4, focusY: -13, depth: 2 },
-      { id: "fushenglu-seal", kind: "image", image: "/rain-dust/fragments/fushenglu-seal.webp", clipPath: "polygon(21% 0, 100% 18%, 83% 93%, 11% 100%, 0 31%)", x: 86, y: 51, width: 5, height: 8, rotate: -11, activeX: -12, activeY: 0, focusX: -25, focusY: -3, depth: 3 },
-      { id: "fushenglu-branch", kind: "image", image: "/rain-dust/fragments/fushenglu-branch.webp", clipPath: "polygon(0 22%, 44% 0, 100% 31%, 92% 84%, 35% 100%, 8% 69%)", x: 46, y: 68, width: 15, height: 14, rotate: -9, activeX: 12, activeY: -9, focusX: 22, focusY: -24, depth: 1 },
-      { id: "fushenglu-ink", kind: "image", image: "/rain-dust/source/fushenglu-current.webp", clipPath: "polygon(15% 0, 100% 7%, 76% 100%, 0 78%)", objectPosition: "50% 35%", x: 80, y: 71, width: 8, height: 13, rotate: 10, activeX: -8, activeY: -9, focusX: -19, focusY: -24, depth: 2 },
+    master: "/rain-dust/masters/fushenglu-master.webp",
+    center: 0.485,
+    tint: "116 82 48",
+    nodes: [
+      { x: 20, y: 26, label: "TEXT" },
+      { x: 76, y: 24, label: "MEMORY" },
+      { x: 31, y: 78, label: "INK" },
+      { x: 76, y: 72, label: "SEAL" },
     ],
   },
   {
@@ -85,15 +172,15 @@ const projects: Project[] = [
     title: "CAMPUS REIMBURSE KIT",
     year: "2026",
     tags: ["DESKTOP TOOL", "AUTOMATION", "WORKFLOW"],
-    definition: "Turn reimbursement mess into one quiet sequence.",
     sourceUrl: "https://github.com/Rain-dust/campus-reimburse-kit",
-    labelPosition: "label-reimburse",
-    shards: [
-      { id: "reimburse-receipt", kind: "receipt", content: "REIMBURSEMENT / 024", clipPath: "polygon(0 0, 93% 5%, 100% 79%, 87% 100%, 70% 88%, 56% 100%, 39% 89%, 21% 100%, 0 86%)", x: 51, y: 15, width: 14, height: 20, rotate: -7, activeX: 7, activeY: 5, focusX: 16, focusY: 13, depth: 2 },
-      { id: "reimburse-amount", kind: "amount", content: "¥ 1,217.60", clipPath: "polygon(11% 0, 100% 16%, 84% 100%, 0 72%)", x: 78, y: 19, width: 10, height: 10, rotate: 8, activeX: -8, activeY: 7, focusX: -19, focusY: 17, depth: 3 },
-      { id: "reimburse-grid", kind: "grid", clipPath: "polygon(0 24%, 30% 0, 100% 14%, 91% 91%, 43% 100%, 9% 76%)", x: 63, y: 44, width: 18, height: 18, rotate: 4, activeX: -2, activeY: -2, focusX: -5, focusY: -6, depth: 1 },
-      { id: "reimburse-folder", kind: "folder", content: "ARCHIVE / CRK-024", clipPath: "polygon(8% 0, 79% 7%, 100% 43%, 88% 100%, 0 82%)", x: 45, y: 66, width: 11, height: 11, rotate: -10, activeX: 13, activeY: -8, focusX: 25, focusY: -23, depth: 2 },
-      { id: "reimburse-order", kind: "order", content: "MESS → SORTED", clipPath: "polygon(0 13%, 87% 0, 100% 75%, 18% 100%)", x: 80, y: 70, width: 12, height: 9, rotate: 6, activeX: -10, activeY: -9, focusX: -22, focusY: -25, depth: 3 },
+    master: "/rain-dust/masters/reimburse-master-placeholder.webp",
+    center: 0.625,
+    tint: "66 80 81",
+    nodes: [
+      { x: 19, y: 27, label: "IMPORT" },
+      { x: 78, y: 29, label: "PARSE" },
+      { x: 29, y: 78, label: "MATCH" },
+      { x: 78, y: 72, label: "EXPORT" },
     ],
   },
   {
@@ -101,336 +188,363 @@ const projects: Project[] = [
     title: "知微",
     year: "2026",
     tags: ["AI-NATIVE", "DECISION", "INTERACTIVE"],
-    definition: "What would you say next, if every word changed the path?",
     sourceUrl: "https://github.com/Rain-dust/Zhi-Wei",
-    labelPosition: "label-zhiwei",
-    shards: [
-      { id: "zhiwei-path", kind: "image", image: "/rain-dust/fragments/zhiwei-path.webp", clipPath: "polygon(0 27%, 28% 0, 100% 19%, 91% 73%, 58% 100%, 8% 84%)", x: 50, y: 14, width: 18, height: 15, rotate: -5, activeX: 8, activeY: 6, focusX: 17, focusY: 17, depth: 1 },
-      { id: "zhiwei-node", kind: "image", image: "/rain-dust/fragments/zhiwei-node.webp", clipPath: "polygon(8% 0, 100% 9%, 82% 100%, 21% 90%, 0 37%)", x: 76, y: 19, width: 13, height: 16, rotate: 7, activeX: -8, activeY: 6, focusX: -19, focusY: 15, depth: 3 },
-      { id: "zhiwei-labels", kind: "image", image: "/rain-dust/fragments/zhiwei-labels.webp", clipPath: "polygon(20% 0, 100% 15%, 91% 72%, 61% 100%, 0 81%, 7% 21%)", x: 58, y: 47, width: 11, height: 18, rotate: 4, activeX: 4, activeY: -3, focusX: 9, focusY: -8, depth: 2 },
-      { id: "zhiwei-dialogue", kind: "image", image: "/rain-dust/source/zhiwei-current.webp", clipPath: "polygon(0 18%, 35% 0, 100% 12%, 84% 100%, 14% 83%)", objectPosition: "68% 47%", x: 79, y: 50, width: 12, height: 16, rotate: -8, activeX: -10, activeY: -3, focusX: -23, focusY: -9, depth: 2 },
-      { id: "zhiwei-signal", kind: "image", image: "/rain-dust/fragments/zhiwei-node.webp", clipPath: "polygon(23% 0, 100% 34%, 72% 100%, 0 76%, 8% 18%)", x: 46, y: 72, width: 8, height: 10, rotate: 11, activeX: 13, activeY: -10, focusX: 25, focusY: -27, depth: 3 },
+    master: "/rain-dust/masters/zhiwei-master.webp",
+    center: 0.765,
+    tint: "31 39 73",
+    nodes: [
+      { x: 18, y: 27, label: "SIGNAL" },
+      { x: 78, y: 25, label: "EXPRESSION" },
+      { x: 30, y: 78, label: "JUDGMENT" },
+      { x: 76, y: 70, label: "DECISION" },
     ],
   },
 ];
 
-const stateLabels: Record<PortfolioState, string> = {
-  opening: "OPENING",
-  workspace: "WORK",
-  "project-focus": "PROJECT FOCUS",
-  info: "INFO",
-};
+const snapPoints = [0, 0.145, ...projects.map((project) => project.center), 0.875, 0.985];
 
-function shardStyle(shard: Shard): CSSProperties {
+function shardBackground(rect: SourceRect): CSSProperties {
+  const x = rect.x / Math.max(1, 100 - rect.w);
+  const y = rect.y / Math.max(1, 100 - rect.h);
   return {
-    left: `${shard.x}%`,
-    top: `${shard.y}%`,
-    width: `${shard.width}vw`,
-    height: `${shard.height}vh`,
-    clipPath: shard.clipPath,
-    "--shard-rotate": `${shard.rotate}deg`,
-    "--active-rotate": `${shard.rotate * 0.32}deg`,
-    "--focus-rotate": `${shard.rotate * 0.18}deg`,
-    "--active-x": `${shard.activeX}vw`,
-    "--active-y": `${shard.activeY}vh`,
-    "--focus-x": `${shard.focusX}vw`,
-    "--focus-y": `${shard.focusY}vh`,
-    "--mobile-width": `${shard.width * 1.45}vw`,
-    "--mobile-height": `${shard.height * 0.82}vh`,
-  } as CSSProperties;
+    backgroundSize: `${(100 / rect.w) * 100}% ${(100 / rect.h) * 100}%`,
+    backgroundPosition: `${x * 100}% ${y * 100}%`,
+  };
+}
+
+function ProjectScene({
+  project,
+  progress,
+}: {
+  project: Project;
+  progress: number;
+}) {
+  const start = project.center - 0.105;
+  const end = project.center + 0.105;
+  const local = segment(progress, start, end);
+  const arrive = smooth(segment(local, 0.04, 0.45));
+  const depart = smooth(segment(local, 0.61, 0.98));
+  const assembled = arrive * (1 - depart);
+  const visibility = smooth(segment(local, 0, 0.18)) * (1 - smooth(segment(local, 0.83, 1)));
+  const titleReveal = smooth(segment(local, 0.36, 0.5)) * (1 - smooth(segment(local, 0.7, 0.9)));
+
+  return (
+    <section
+      className="project-scene"
+      data-project={project.id}
+      aria-hidden={visibility < 0.05}
+      style={
+        {
+          "--scene-opacity": visibility,
+          "--title-opacity": titleReveal,
+          "--scene-tint": project.tint,
+        } as CSSProperties
+      }
+    >
+      <div className="constellation-frame">
+        <div className="orbit-rings" aria-hidden="true" />
+
+        {shards.map((shard, index) => {
+          const delayedArrive = smooth(segment(arrive, shard.delay, Math.min(1, shard.delay + 0.58)));
+          const delayedDepart = smooth(segment(depart, shard.delay * 0.45, Math.min(1, 0.58 + shard.delay)));
+          const focus = delayedArrive * (1 - delayedDepart);
+          const exitDirection = index % 2 === 0 ? 1 : -1;
+          const x = mix(shard.rest.x, 0, delayedArrive) + shard.rest.x * -0.82 * delayedDepart;
+          const y = mix(shard.rest.y, 0, delayedArrive) + (shard.rest.y * 0.6 + exitDirection * 18) * delayedDepart;
+          const z = mix(shard.rest.z, 0, delayedArrive) + -shard.rest.z * 0.75 * delayedDepart;
+          const rotateX = mix(shard.rest.rotateX, 0, focus);
+          const rotateY = mix(shard.rest.rotateY, 0, focus);
+          const rotateZ =
+            mix(shard.rest.rotateZ, 0, delayedArrive) +
+            exitDirection * (14 + index * 1.7) * delayedDepart;
+          const blur = Math.abs(z) / 220;
+
+          return (
+            <div
+              className={`eidolon-shard shard-${shard.id}`}
+              key={shard.id}
+              style={
+                {
+                  left: `${shard.sourceRect.x}%`,
+                  top: `${shard.sourceRect.y}%`,
+                  width: `${shard.sourceRect.w}%`,
+                  height: `${shard.sourceRect.h}%`,
+                  clipPath: shard.polygon,
+                  opacity: visibility * (0.34 + focus * 0.66),
+                  filter: `blur(${blur.toFixed(2)}px) saturate(${0.72 + focus * 0.28})`,
+                  transform: `translate3d(${x.toFixed(2)}%, ${y.toFixed(2)}%, ${z.toFixed(1)}px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) rotateZ(${rotateZ.toFixed(2)}deg)`,
+                  "--edge-intensity": 0.18 + assembled * 0.72,
+                  "--shard-delay": `${shard.delay * 1.4}s`,
+                } as CSSProperties
+              }
+            >
+              <div
+                className="master-sample"
+                style={{
+                  ...shardBackground(shard.sourceRect),
+                  backgroundImage: `url(${project.master})`,
+                }}
+              />
+              <i className="shard-light" aria-hidden="true" />
+            </div>
+          );
+        })}
+
+        <div
+          className="constellation-lines"
+          aria-hidden="true"
+          style={{ opacity: titleReveal * 0.7 }}
+        >
+          <i className="line line-a" />
+          <i className="line line-b" />
+          <i className="line line-c" />
+        </div>
+
+        {project.nodes.map((node, index) => {
+          const active = smooth(segment(local, 0.37 + index * 0.035, 0.48 + index * 0.035));
+          return (
+            <div
+              className="constellation-node"
+              key={node.label}
+              style={
+                {
+                  left: `${node.x}%`,
+                  top: `${node.y}%`,
+                  opacity: visibility * active,
+                  "--node-energy": active,
+                } as CSSProperties
+              }
+            >
+              <i />
+              <span>{node.label}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="project-meta" style={{ opacity: titleReveal }}>
+        <span>{project.year} / 0{projects.findIndex((item) => item.id === project.id) + 1}</span>
+        <h2>{project.title}</h2>
+        <ul>
+          {project.tags.map((tag) => <li key={tag}>{tag}</li>)}
+        </ul>
+        <div>
+          <span aria-disabled="true">VIEW</span>
+          <a href={project.sourceUrl} target="_blank" rel="noreferrer">SOURCE</a>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 export default function Home() {
-  const rootRef = useRef<HTMLElement>(null);
-  const revealTarget = useRef({ x: 73, y: 42 });
-  const revealCurrent = useRef({ x: 73, y: 42 });
-  const parallaxTarget = useRef({ x: 0, y: 0 });
-  const parallaxCurrent = useRef({ x: 0, y: 0 });
-  const wheelLocked = useRef(false);
-  const touchStartX = useRef(0);
-  const [state, setState] = useState<PortfolioState>("opening");
-  const [activeProjectId, setActiveProjectId] = useState<ProjectId>("earth");
-  const [revealActive, setRevealActive] = useState(false);
+  const stageRef = useRef<HTMLElement>(null);
+  const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  const opening = 1 - smooth(segment(progress, 0.045, 0.185));
+  const fracture = smooth(segment(progress, 0.11, 0.285)) * (1 - smooth(segment(progress, 0.27, 0.35)));
+  const orbit = smooth(segment(progress, 0.815, 0.865)) * (1 - smooth(segment(progress, 0.93, 0.965)));
+  const info = smooth(segment(progress, 0.935, 0.995));
 
   const activeProject = useMemo(
-    () => projects.find((project) => project.id === activeProjectId) ?? projects[0],
-    [activeProjectId],
+    () =>
+      projects.reduce((closest, project) =>
+        Math.abs(project.center - progress) < Math.abs(closest.center - progress)
+          ? project
+          : closest,
+      projects[0]),
+    [progress],
   );
 
-  const projectIndex = projects.findIndex((project) => project.id === activeProjectId);
-
-  const moveProject = (direction: 1 | -1) => {
-    const nextIndex = (projectIndex + direction + projects.length) % projects.length;
-    setActiveProjectId(projects[nextIndex].id);
-  };
-
-  const enterWorkspace = () => setState("workspace");
-  const enterProjectFocus = () => setState("project-focus");
-  const leaveProjectFocus = () => setState("workspace");
+  const scrollToProgress = useCallback((target: number, behavior: ScrollBehavior = "smooth") => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    window.scrollTo({ top: max * target, behavior: reducedMotion ? "auto" : behavior });
+  }, [reducedMotion]);
 
   useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncMotion = () => setReducedMotion(media.matches);
+    syncMotion();
+    media.addEventListener("change", syncMotion);
+
     let frame = 0;
-    const follow = () => {
-      revealCurrent.current.x += (revealTarget.current.x - revealCurrent.current.x) * 0.14;
-      revealCurrent.current.y += (revealTarget.current.y - revealCurrent.current.y) * 0.14;
-      parallaxCurrent.current.x += (parallaxTarget.current.x - parallaxCurrent.current.x) * 0.09;
-      parallaxCurrent.current.y += (parallaxTarget.current.y - parallaxCurrent.current.y) * 0.09;
-
-      const root = rootRef.current;
-      if (root) {
-        root.style.setProperty("--mx", `${revealCurrent.current.x}%`);
-        root.style.setProperty("--my", `${revealCurrent.current.y}%`);
-        root.style.setProperty("--px1", `${parallaxCurrent.current.x * 0.34}px`);
-        root.style.setProperty("--py1", `${parallaxCurrent.current.y * 0.34}px`);
-        root.style.setProperty("--px2", `${parallaxCurrent.current.x * 0.68}px`);
-        root.style.setProperty("--py2", `${parallaxCurrent.current.y * 0.68}px`);
-        root.style.setProperty("--px3", `${parallaxCurrent.current.x}px`);
-        root.style.setProperty("--py3", `${parallaxCurrent.current.y}px`);
-      }
-      frame = window.requestAnimationFrame(follow);
+    const readScroll = () => {
+      const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      setProgress(clamp(window.scrollY / max));
+      frame = 0;
     };
-    frame = window.requestAnimationFrame(follow);
-    return () => window.cancelAnimationFrame(frame);
-  }, []);
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(readScroll);
+      if (scrollTimer.current) window.clearTimeout(scrollTimer.current);
+      scrollTimer.current = window.setTimeout(() => {
+        const current = window.scrollY / Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        if (current >= 0.27 && current <= 0.83) {
+          const nearest = projects.reduce((best, project) =>
+            Math.abs(project.center - current) < Math.abs(best - current) ? project.center : best,
+          projects[0].center);
+          if (Math.abs(nearest - current) < 0.055) scrollToProgress(nearest);
+        }
+      }, 170);
+    };
+    readScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      media.removeEventListener("change", syncMotion);
+      window.removeEventListener("scroll", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+      if (scrollTimer.current) window.clearTimeout(scrollTimer.current);
+    };
+  }, [scrollToProgress]);
 
   useEffect(() => {
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        if (state === "project-focus") leaveProjectFocus();
-        else if (state === "info") setState("workspace");
-        return;
-      }
-      if (event.key === "Enter") {
-        if (state === "opening") enterWorkspace();
-        else if (state === "workspace") enterProjectFocus();
-        return;
-      }
-      if (event.key === "ArrowRight") {
-        event.preventDefault();
-        if (state === "opening") enterWorkspace();
-        else if (state === "workspace" || state === "project-focus") moveProject(1);
-        else if (state === "info") setState("opening");
-      }
-      if (event.key === "ArrowLeft") {
-        event.preventDefault();
-        if (state === "project-focus") leaveProjectFocus();
-        else if (state === "workspace") moveProject(-1);
-        else if (state === "info") setState("workspace");
-      }
+    const onKey = (event: KeyboardEvent) => {
+      if (!["ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft", "Home", "End"].includes(event.key)) return;
+      event.preventDefault();
+      if (event.key === "Home") return scrollToProgress(0);
+      if (event.key === "End") return scrollToProgress(0.985);
+      const direction = event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : -1;
+      const next = direction > 0
+        ? snapPoints.find((point) => point > progress + 0.018)
+        : [...snapPoints].reverse().find((point) => point < progress - 0.018);
+      scrollToProgress(next ?? (direction > 0 ? 1 : 0));
     };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [projectIndex, state]);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [progress, scrollToProgress]);
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLElement>) => {
-    if (event.pointerType === "touch") return;
+    if (event.pointerType === "touch" || reducedMotion) return;
     const rect = event.currentTarget.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width;
-    const y = (event.clientY - rect.top) / rect.height;
-    revealTarget.current = { x: x * 100, y: y * 100 };
-    parallaxTarget.current = { x: (x - 0.5) * 12, y: (y - 0.5) * 12 };
-    if (state === "opening" && x > 0.45) setRevealActive(true);
-  };
-
-  const handleWheel = (event: ReactWheelEvent<HTMLElement>) => {
-    event.preventDefault();
-    if (wheelLocked.current || Math.abs(event.deltaY) < 20) return;
-    wheelLocked.current = true;
-    window.setTimeout(() => (wheelLocked.current = false), 650);
-    const direction = event.deltaY > 0 ? 1 : -1;
-    if (state === "opening" && direction > 0) enterWorkspace();
-    else if (state === "workspace") moveProject(direction);
-    else if (state === "project-focus" && direction < 0) leaveProjectFocus();
-    else if (state === "info" && direction < 0) setState("workspace");
-  };
-
-  const handleTouchEnd = (event: ReactTouchEvent<HTMLElement>) => {
-    const endX = event.changedTouches[0]?.clientX ?? touchStartX.current;
-    const distance = endX - touchStartX.current;
-    if (Math.abs(distance) < 48) return;
-    const direction: 1 | -1 = distance < 0 ? 1 : -1;
-    if (state === "opening" && direction > 0) enterWorkspace();
-    else if (state === "workspace") moveProject(direction);
-    else if (state === "project-focus" && direction < 0) leaveProjectFocus();
-    else if (state === "info" && direction < 0) setState("workspace");
-  };
-
-  const handleProjectSelect = (event: ReactPointerEvent<HTMLButtonElement>, id: ProjectId) => {
-    if (event.pointerType === "touch" && activeProjectId !== id) {
-      setActiveProjectId(id);
-      return;
-    }
-    setActiveProjectId(id);
-    enterProjectFocus();
+    const x = (event.clientX - rect.left) / rect.width - 0.5;
+    const y = (event.clientY - rect.top) / rect.height - 0.5;
+    stageRef.current?.style.setProperty("--parallax-x", `${x * 16}px`);
+    stageRef.current?.style.setProperty("--parallax-y", `${y * 12}px`);
+    stageRef.current?.style.setProperty("--cursor-x", `${(x + 0.5) * 100}%`);
+    stageRef.current?.style.setProperty("--cursor-y", `${(y + 0.5) * 100}%`);
   };
 
   return (
-    <main
-      ref={rootRef}
-      className="portfolio"
-      data-state={state}
-      data-project={activeProjectId}
-      data-reveal={revealActive}
-      onPointerMove={handlePointerMove}
-      onPointerLeave={() => {
-        setRevealActive(false);
-        parallaxTarget.current = { x: 0, y: 0 };
-      }}
-      onWheel={handleWheel}
-      onTouchStart={(event) => {
-        touchStartX.current = event.changedTouches[0]?.clientX ?? 0;
-      }}
-      onTouchEnd={handleTouchEnd}
-    >
-      <a className="skip-link" href="#portfolio-stage">跳到作品集空间</a>
+    <div className="scroll-track">
+      <main
+        ref={stageRef}
+        className="cinematic-stage"
+        data-active-project={activeProject.id}
+        onPointerMove={handlePointerMove}
+        style={
+          {
+            "--timeline-progress": progress,
+            "--opening-opacity": opening,
+            "--fracture-opacity": fracture,
+            "--orbit-opacity": orbit,
+            "--info-opacity": info,
+          } as CSSProperties
+        }
+      >
+        <a className="skip-link" href="#identity">跳到联系信息</a>
 
-      <header className="shell-header">
-        <button className="brand" type="button" onClick={() => setState("opening")}>
-          <span>RAIN_DUST</span>
-          <strong>寻辰沐雨</strong>
-        </button>
-        <nav aria-label="作品集状态">
-          {(["opening", "workspace", "info"] as const).map((item) => (
-            <button
-              key={item}
-              type="button"
-              className={state === item || (item === "workspace" && state === "project-focus") ? "is-current" : ""}
-              onClick={() => setState(item)}
-            >
-              {item === "workspace" ? "WORK" : item.toUpperCase()}
-            </button>
-          ))}
-        </nav>
-      </header>
+        <header className="stage-header">
+          <button type="button" onClick={() => scrollToProgress(0)}>
+            <span>RAIN_DUST</span>
+            <strong>寻迹沐雨</strong>
+          </button>
+          <div className="timeline-index">
+            <span>{String(Math.round(progress * 100)).padStart(2, "0")}</span>
+            <i><b /></i>
+            <span>100</span>
+          </div>
+        </header>
 
-      <div className="signal-mark" aria-hidden="true"><i /></div>
-      <p className="sr-only" aria-live="polite">当前状态：{stateLabels[state]}，当前项目：{activeProject.title}</p>
-
-      <div className="portfolio-stage" id="portfolio-stage">
-        <section className="state-panel opening-panel" aria-hidden={state !== "opening"}>
+        <section className="opening-scene" aria-hidden={opening < 0.05}>
           <div className="opening-copy">
-            <span className="opening-label">PRIVATE DIGITAL SPACE</span>
-            <h1>
-              I MAKE DIGITAL THINGS
-              <br />OUT OF THOUGHTS,
-              <br />FEELINGS AND
-              <br />SMALL PROBLEMS.
-            </h1>
-            <p>我喜欢把脑子里的东西，做成真的。</p>
-            <button className="enter-space" type="button" onClick={enterWorkspace}>
-              <i aria-hidden="true" /> ENTER SPACE
-            </button>
+            <span>RAIN_DUST / 寻迹沐雨</span>
+            <h1>于无声处，<br />拾取微光。</h1>
+            <p>INDEPENDENT BUILDER / AI-NATIVE CREATOR</p>
           </div>
-
-          <div className="opening-portrait" aria-hidden="true">
-            <img className="portrait-base" src="/rain-dust/hero/hero-girl-lineart-temp-v2.webp" alt="" />
-            <img className="portrait-reveal" src="/rain-dust/hero/hero-girl-lineart-temp-v2.webp" alt="" />
-            <span className="red-eye" />
-            <span className="residue residue-orbit" />
-            <span className="residue residue-path">MEMORY FRAGMENT</span>
-            <i className="hair-strand hair-1" />
-            <i className="hair-strand hair-2" />
-            <i className="hair-strand hair-3" />
-            <i className="hair-strand hair-4" />
-            <i className="hair-strand hair-5" />
-          </div>
+          <Image
+            className="opening-girl"
+            src="/rain-dust/hero/hero-girl-lineart-temp-v2.webp"
+            alt=""
+            width={650}
+            height={760}
+            priority
+          />
+          <i className="red-eye" aria-hidden="true" />
+          {[1, 2, 3, 4, 5].map((strand) => (
+            <i className={`hair-strand hair-${strand}`} key={strand} aria-hidden="true" />
+          ))}
+          <div className="cursor-reveal" aria-hidden="true" />
+          <p className="scroll-cue">SCROLL TO WAKE <i /></p>
         </section>
 
-        <section className="state-panel workspace-panel" aria-hidden={state !== "workspace" && state !== "project-focus"}>
-          <div className="workspace-note">
-            <span>SELECTED WORK</span>
-            <small>HOVER / CLICK / ARROW KEYS</small>
-          </div>
+        <div className="fracture-layer" aria-hidden="true">
+          <i className="fracture fracture-a" />
+          <i className="fracture fracture-b" />
+          <i className="fracture fracture-c" />
+          <i className="fracture fracture-d" />
+        </div>
 
-          <div className="shard-space" aria-hidden="true">
-            {projects.flatMap((project) =>
-              project.shards.map((shard) => (
-                <div
-                  key={shard.id}
-                  className={`glass-shard depth-${shard.depth} shard-${shard.kind}`}
-                  data-project={project.id}
-                  style={shardStyle(shard)}
-                >
-                  <div className="shard-parallax">
-                    {shard.image ? (
-                      <img src={shard.image} alt="" style={{ objectPosition: shard.objectPosition ?? "center" }} />
-                    ) : (
-                      <span>{shard.content}</span>
-                    )}
-                  </div>
-                </div>
-              )),
-            )}
-          </div>
+        <div className="project-universe">
+          {projects.map((project) => (
+            <ProjectScene project={project} progress={progress} key={project.id} />
+          ))}
+        </div>
 
-          <div className="project-constellation">
-            {projects.map((project) => (
+        <section className="all-works" aria-hidden={orbit < 0.05}>
+          <div className="orbit-core">
+            <span>ALL WORKS / ORBIT</span>
+            <i />
+          </div>
+          {projects.map((project, index) => {
+            const rect = shards[index === 0 ? 4 : index + 1].sourceRect;
+            return (
               <button
-                key={project.id}
                 type="button"
-                className={`project-name ${project.labelPosition}`}
-                data-project={project.id}
-                aria-pressed={activeProjectId === project.id}
-                onPointerEnter={(event) => {
-                  if (event.pointerType !== "touch" && state === "workspace") setActiveProjectId(project.id);
-                }}
-                onFocus={() => setActiveProjectId(project.id)}
-                onPointerUp={(event) => handleProjectSelect(event, project.id)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    setActiveProjectId(project.id);
-                    enterProjectFocus();
-                  }
-                }}
+                className={`orbit-work orbit-work-${index + 1}`}
+                key={project.id}
+                onClick={() => scrollToProgress(project.center)}
+                aria-label={`聚焦 ${project.title}`}
               >
-                <small>{project.definition}</small>
-                <strong>{project.title}</strong>
-                <span>OPEN</span>
+                <i
+                  style={{
+                    ...shardBackground(rect),
+                    backgroundImage: `url(${project.master})`,
+                  }}
+                />
+                <span>{project.title}</span>
               </button>
-            ))}
-          </div>
-
-          <div className="project-focus" aria-hidden={state !== "project-focus"}>
-            <button type="button" className="focus-back" onClick={leaveProjectFocus}>← BACK</button>
-            <div className="focus-meta">
-              <span>{activeProject.year}</span>
-              <h2>{activeProject.title}</h2>
-              <p>{activeProject.definition}</p>
-              <ul>{activeProject.tags.map((tag) => <li key={tag}>{tag}</li>)}</ul>
-              <div className="focus-links">
-                {activeProject.demoUrl ? (
-                  <a href={activeProject.demoUrl} target="_blank" rel="noreferrer">VIEW ↗</a>
-                ) : (
-                  <span aria-disabled="true">VIEW —</span>
-                )}
-                <a href={activeProject.sourceUrl} target="_blank" rel="noreferrer">SOURCE ↗</a>
-              </div>
-            </div>
-          </div>
+            );
+          })}
         </section>
 
-        <section className="state-panel info-panel" aria-hidden={state !== "info"}>
-          <div className="info-identities">
+        <section className="identity-layer" id="identity" aria-hidden={info < 0.05}>
+          <Image
+            src="/rain-dust/hero/hero-girl-lineart-temp-v2.webp"
+            alt=""
+            width={650}
+            height={760}
+          />
+          <div>
+            <span>寻迹沐雨</span>
+            <strong>RAIN_DUST</strong>
             <span>INTP</span>
-            <span>INDEPENDENT <br className="mobile-break" />BUILDER</span>
-            <span>AI-NATIVE <br className="mobile-break" />CREATOR</span>
+            <span>INDEPENDENT BUILDER</span>
+            <span>AI-NATIVE CREATOR</span>
           </div>
-          <div className="info-links">
-            <a href="https://github.com/Rain-dust" target="_blank" rel="noreferrer">GITHUB ↗</a>
-            <span>EMAIL / TO BE REPLACED</span>
-            <span>BILIBILI / TO BE REPLACED</span>
-            <small>OTHER SIDE / NOT YET MAPPED</small>
-          </div>
-          <img src="/rain-dust/hero/hero-girl-crop-v2.webp" alt="" aria-hidden="true" />
+          <nav aria-label="联系方式">
+            <a href="https://github.com/Rain-dust" target="_blank" rel="noreferrer">GITHUB</a>
+            <span aria-disabled="true">EMAIL</span>
+          </nav>
+          <i className="identity-eye" aria-hidden="true" />
         </section>
-      </div>
 
-      <footer className="shell-footer">
-        <span>{stateLabels[state]}</span>
-        <div><kbd>←</kbd><kbd>→</kbd><span>MOVE</span><kbd>ENTER</kbd><span>OPEN</span><kbd>ESC</kbd><span>BACK</span></div>
-        <span>V3 / SINGLE VIEWPORT</span>
-      </footer>
-    </main>
+        <div className="stage-footer">
+          <span>SCROLL / ARROW KEYS</span>
+          <span>{activeProject.title}</span>
+          <button type="button" onClick={() => scrollToProgress(0.985)}>INFO</button>
+        </div>
+      </main>
+    </div>
   );
 }

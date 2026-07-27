@@ -14,37 +14,42 @@ async function render() {
   );
 }
 
-test("server-renders the V3 single-viewport portfolio", async () => {
+test("server-renders the V4 cinematic portfolio", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>寻辰沐雨 \/ RAIN_DUST<\/title>/i);
-  assert.match(html, /ENTER SPACE/);
+  assert.match(html, /<title>寻迹沐雨 \/ RAIN_DUST<\/title>/i);
+  assert.match(html, /SCROLL TO WAKE/);
+  assert.match(html, /EARTH ONLINE/);
+  assert.match(html, /浮生录/);
   assert.match(html, /CAMPUS REIMBURSE KIT/);
-  assert.match(html, /class="project-focus"/);
-  assert.match(html, /AI-NATIVE/);
-  assert.match(html, /CREATOR/);
+  assert.match(html, /知微/);
+  assert.match(html, /ALL WORKS \/ ORBIT/);
+  assert.match(html, /AI-NATIVE CREATOR/);
   assert.match(html, /github\.com\/Rain-dust\/earth-online/);
-  assert.doesNotMatch(html, /ARCHIVE \/ NOTES|DIGITAL INTERLUDE|codex-preview/i);
 });
 
-test("keeps the V3 interaction and visual constraints", async () => {
+test("keeps the V4 scroll timeline and shared-master constraints", async () => {
   const [page, css, layout] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
   ]);
 
-  assert.match(page, /type PortfolioState = "opening" \| "workspace" \| "project-focus" \| "info"/);
-  assert.match(page, /type Shard =/);
-  assert.match(page, /handleWheel|handleTouchEnd|ArrowRight|Escape/);
-  assert.match(page, /github\.com\/Rain-dust\/Zhi-Wei/);
-  assert.match(css, /html,\s*\nbody\s*\{[^}]*overflow:\s*hidden/s);
-  assert.match(css, /\.glass-shard/);
-  assert.match(page, /clipPath/);
+  assert.match(page, /type SourceRect/);
+  assert.match(page, /function shardBackground/);
+  assert.match(page, /backgroundSize/);
+  assert.match(page, /earth-master\.webp/);
+  assert.match(page, /reimburse-master-placeholder\.webp/);
+  assert.match(page, /window\.scrollY/);
+  assert.match(page, /ArrowDown/);
+  assert.match(page, /scrollToProgress/);
+  assert.match(css, /\.scroll-track\s*\{[^}]*height:\s*1000dvh/s);
+  assert.match(css, /\.cinematic-stage\s*\{[^}]*position:\s*sticky/s);
+  assert.match(css, /\.eidolon-shard/);
+  assert.match(css, /perspective:\s*1400px/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
-  assert.match(css, /\.hair-5/);
   assert.match(layout, /lang="zh-CN"/);
 });
