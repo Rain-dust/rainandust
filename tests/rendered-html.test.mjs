@@ -14,43 +14,46 @@ async function render() {
   );
 }
 
-test("server-renders the V4 cinematic portfolio", async () => {
+test("server-renders the V6 Phase A portfolio", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>寻迹沐雨 \/ RAIN_DUST<\/title>/i);
-  assert.match(html, /SCROLL TO WAKE/);
+  assert.match(html, /DAY MASK \/ NIGHT SELF/);
+  assert.match(html, /于无声处/);
+  assert.match(html, /SCROLL TO ERODE/);
   assert.match(html, /EARTH ONLINE/);
-  assert.match(html, /浮生录/);
-  assert.match(html, /CAMPUS REIMBURSE KIT/);
-  assert.match(html, /知微/);
-  assert.match(html, /ALL WORKS \/ ORBIT/);
-  assert.match(html, /AI-NATIVE CREATOR/);
+  assert.match(html, /COLLAPSE/);
   assert.match(html, /github\.com\/Rain-dust\/earth-online/);
+  assert.doesNotMatch(html, /ALL WORKS \/ ORBIT/);
 });
 
-test("keeps the V4 scroll timeline and shared-master constraints", async () => {
-  const [page, css, layout] = await Promise.all([
+test("keeps the V6 fixed-stage, WebGL topology, and fallback constraints", async () => {
+  const [page, css, layout, canvas, topology] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/night-relic-canvas.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/relic-topology.ts", import.meta.url), "utf8"),
   ]);
 
-  assert.match(page, /type SourceRect/);
-  assert.match(page, /function shardBackground/);
-  assert.match(page, /backgroundSize/);
-  assert.match(page, /earth-master\.webp/);
-  assert.match(page, /reimburse-master-placeholder\.webp/);
+  assert.match(page, /progressRef/);
   assert.match(page, /window\.scrollY/);
   assert.match(page, /ArrowDown/);
-  assert.match(page, /scrollToProgress/);
-  assert.match(css, /\.scroll-track\s*\{[^}]*height:\s*1000dvh/s);
+  assert.match(page, /webglFallback/);
+  assert.match(page, /NightRelicCanvas/);
+  assert.match(css, /\.scroll-track\s*\{[^}]*height:\s*900dvh/s);
   assert.match(css, /\.cinematic-stage\s*\{[^}]*position:\s*sticky/s);
-  assert.match(css, /\.eidolon-shard/);
-  assert.match(css, /perspective:\s*1400px/);
-  assert.match(css, /translate:\s*-50%\s+-50%/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(canvas, /new THREE\.WebGLRenderer/);
+  assert.match(canvas, /new THREE\.ExtrudeGeometry/);
+  assert.match(canvas, /new EffectComposer/);
+  assert.match(canvas, /renderer\.setPixelRatio/);
+  assert.match(canvas, /renderer\.compile/);
+  assert.match(canvas, /textureLoader\.load/);
+  assert.match(topology, /RELIC_TOPOLOGY_SEED/);
+  assert.equal((topology.match(/id: "relic-/g) ?? []).length, 12);
+  assert.match(topology, /privateTraces: PrivateTrace\[\] = \[\]/);
   assert.match(layout, /lang="zh-CN"/);
 });
