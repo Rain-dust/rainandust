@@ -78,7 +78,9 @@ export default function Home() {
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const syncMotion = () => setReducedMotion(media.matches);
+    const forceFullMotion =
+      new URLSearchParams(window.location.search).get("motion") === "full";
+    const syncMotion = () => setReducedMotion(media.matches && !forceFullMotion);
     syncMotion();
     media.addEventListener("change", syncMotion);
 

@@ -42,6 +42,7 @@ test("keeps the V6 fixed-stage, WebGL topology, and fallback constraints", async
   assert.match(page, /window\.scrollY/);
   assert.match(page, /ArrowDown/);
   assert.match(page, /webglFallback/);
+  assert.match(page, /motion"\) === "full"/);
   assert.match(page, /NightRelicCanvas/);
   assert.match(css, /\.scroll-track\s*\{[^}]*height:\s*900dvh/s);
   assert.match(css, /\.cinematic-stage\s*\{[^}]*position:\s*sticky/s);

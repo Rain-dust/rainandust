@@ -50,6 +50,7 @@ npm test
 - Earth 纹理仅在接近下潜尾声时加载。
 - WebGL 初始化失败时显示静态 Earth 母图。
 - `prefers-reduced-motion` 下固定为 DAY 或 EARTH 两个稳定构图，并显示显式切换按钮。
+- 视觉验收可显式追加 `?motion=full` 覆盖测试浏览器的系统减动偏好；普通访问不会触发。
 - 支持方向键、Home、End 和原生滚动；所有外链保持键盘可聚焦。
 
 ## 当前缺失
