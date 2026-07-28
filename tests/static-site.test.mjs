@@ -12,6 +12,8 @@ test("Astro emits the video-led HOME and four route entrances", async () => {
   assert.match(html, /Vibe Coder/);
   assert.match(html, /shadow-home-loop\.mp4/);
   assert.match(html, /home-hero__stage/);
+  assert.match(html, /home-hero__dust/);
+  assert.match(html, /npx vibe --build/);
   assert.match(html, /播放动态背景/);
   assert.match(html, /HOME/);
   assert.match(html, /BLOG/);
@@ -74,5 +76,7 @@ test("the compiled site keeps motion, navigation, and accessibility fallbacks", 
   assert.match(css, /\.home-hero__video/);
   assert.match(css, /object-fit:\s*contain/);
   assert.match(css, /\.home-motion-toggle/);
+  assert.match(css, /\.home-terminal/);
+  assert.doesNotMatch(css, /\.home-hero__backdrop|blur\(28px\)|mask-image/);
   assert.doesNotMatch(css, /\.card\b|glassmorphism|#6366f1/i);
 });
