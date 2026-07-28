@@ -1,0 +1,24 @@
+---
+import { getCollection } from "astro:content";
+import Hero from "../components/Hero.astro";
+import ProjectField from "../components/ProjectField.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const projects = (await getCollection("projects")).sort(
+  (left, right) => left.data.order - right.data.order,
+);
+---
+
+<BaseLayout
+  title="寻辰沐雨 / RAIN_DUST"
+  description="寻辰沐雨的个人作品集，记录独立创作、AI 原生实践与持续发生的项目。"
+>
+  <SiteHeader />
+  <main id="main">
+    <Hero />
+    <ProjectField projects={projects} />
+  </main>
+  <SiteFooter />
+</BaseLayout>

@@ -1,18 +1,19 @@
 # 寻辰沐雨 / RAIN_DUST
 
-一个以“白昼伪装，影子接管”为核心事件的单页个人作品集。
+一个基于 Astro 的内容优先个人作品集。
 
-## 体验结构
+## 当前架构
 
 ```text
-短暂白昼
-→ 影子从人物脚下违反光照并接管页面
-→ 白发红瞳赤足少女唯一一次完整显形
-→ 三件作品在夜间编辑版面中被简单带过
-→ 影子收回，页面恢复白昼
+src/content/projects/  作品内容
+src/pages/             页面路由
+src/layouts/           文档与元信息
+src/components/        可复用视觉结构
+src/scripts/           按需加载的交互
+src/styles/            全站视觉规则
 ```
 
-作品不是卡片、完整案例或独立展台。首页只保留一张项目画面、作品名称和一句自然描述；点击图片或名称前往 GitHub。
+页面默认输出静态 HTML，只为连接作品焦点的信号场加载少量浏览器脚本。作品内容与视觉实现分离，新增项目不需要修改页面组件。
 
 ## 当前内容
 
@@ -23,12 +24,11 @@
 
 ## 视觉与交互
 
-- 冷白、吞光黑、冷银与单一深红信号色
-- 滚动驱动的固定视口影子遮罩
-- 原创白发红瞳少女全身素材
-- 可选声音，只在用户主动开启后于唯一揭露播放一次低频声压
-- 项目图保持静态；运动权主要属于影子
-- `prefers-reduced-motion` 使用稳定的静态揭露状态
+- 冷白、蓝黑、冷银与单一深红信号色
+- 白昼构图由一道稳定的暗面切入，不再播放完整角色登场
+- 三件作品组成同一张连续画面，不使用卡片网格
+- Canvas 信号线只连接作品与当前焦点，不承担页面内容
+- `prefers-reduced-motion` 使用完整静态状态
 - 键盘可聚焦的作品与联系链接
 
 ## 本地运行
@@ -38,17 +38,19 @@
 ```bash
 npm install
 npm run dev
-npm run lint
+npm run check
 npm test
 ```
 
 ## 主要文件
 
-- `app/page.tsx`：页面内容、滚动进度、声音与结尾状态
-- `app/globals.css`：白昼、影子接管、夜间作品编排与响应式样式
-- `public/rain-dust/hero/hero-girl-reveal-v2.webp`：唯一揭露角色素材
+- `src/pages/index.astro`：首页组合
+- `src/content/projects/`：项目内容集合
+- `src/components/ProjectField.astro`：非卡片作品场
+- `src/scripts/signal-field.ts`：轻量 Canvas 信号连接
+- `src/styles/global.css`：完整视觉与响应式规则
 - `public/rain-dust/masters/`：三件作品画面
-- `CONTEXT.md`：本轮访谈确认后的设计语境与禁止项
+- `CONTEXT.md`：设计语境与禁止项
 
 ## 已知内容缺口
 
