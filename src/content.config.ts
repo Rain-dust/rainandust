@@ -1,18 +1,18 @@
-import { defineCollection } from "astro:content";
+import { defineCollection, z } from "astro:content";
 import { glob } from "astro/loaders";
-import { z } from "astro/zod";
 
-const projects = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/projects" }),
+const blog = defineCollection({
+  loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/blog" }),
   schema: z.object({
     title: z.string(),
-    order: z.number().int().positive(),
     description: z.string(),
-    image: z.string(),
-    alt: z.string(),
-    url: z.url(),
-    placement: z.enum(["earth", "fushenglu", "zhiwei"]),
-  }),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+    cover: z.string().optional(),
+    tags: z.array(z.string()).default([]),
+    category: z.enum(["tech", "anime", "life"]).default("tech"),
+    draft: z.boolean().default(false)
+  })
 });
 
-export const collections = { projects };
+export const collections = { blog };

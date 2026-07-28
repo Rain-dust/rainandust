@@ -1,0 +1,1736 @@
+---
+import { Icon } from "astro-icon/components";
+
+const characters = [
+  { id: "kisara", src: "/themes/kisara/assets/chibi/kisara.webp", label: "木更" },
+  { id: "ayano", src: "/themes/kisara/assets/chibi/ayano.webp", label: "绫乃" },
+  { id: "shu", src: "/themes/kisara/assets/chibi/shu.webp", label: "修" },
+  { id: "sharon", src: "/themes/kisara/assets/chibi/sharon.webp", label: "莎朗" },
+];
+---
+
+<section class="kisara-chibi-stage" data-kisara-chibi-stage aria-label="Q 版角色互动舞台">
+  <div class="kisara-chibi-city" aria-hidden="true">
+    <span class="kisara-chibi-city-copy"><b>BAYRON CITY</b><small>CONTRACT STAGE / CHANNEL 03</small></span>
+    <i class="kisara-chibi-skyline is-back"></i>
+    <i class="kisara-chibi-skyline is-front"></i>
+    <span class="kisara-chibi-beacon"><i></i></span>
+  </div>
+  <div class="kisara-chibi-ambient" aria-hidden="true">
+    <i></i><i></i><i></i>
+  </div>
+  <div class="kisara-chibi-floor" aria-hidden="true"><span></span></div>
+
+  <div class="kisara-apple-cutscene" data-chibi-apple-cutscene aria-hidden="true">
+    <span class="kisara-apple-wash"></span>
+    <span class="kisara-apple-speedlines"><i></i><i></i><i></i></span>
+    <span class="kisara-apple-media" data-chibi-apple-media>
+      <video
+        data-chibi-apple-video
+        data-src="/themes/kisara/assets/effects/apple-throw.webm"
+        width="740"
+        height="540"
+        muted
+        playsinline
+        preload="none"
+      ></video>
+      <img
+        data-chibi-apple-fallback
+        data-src="/themes/kisara/assets/effects/apple-throw.webp"
+        width="640"
+        height="468"
+        alt=""
+        draggable="false"
+      />
+    </span>
+    <span class="kisara-apple-impact"><i></i></span>
+  </div>
+
+  <button
+    class="kisara-chibi-reset"
+    type="button"
+    data-chibi-reset
+    aria-label="复位 Q 版角色"
+    title="复位角色"
+  >
+    <Icon name="tabler:refresh" aria-hidden="true" />
+  </button>
+
+  {characters.map((character) => (
+    <button
+      class="kisara-chibi"
+      type="button"
+      data-chibi={character.id}
+      aria-label={`拖动${character.label}`}
+      title={`拖动${character.label}靠近其他角色`}
+    >
+      <span class="kisara-chibi-bubble" data-chibi-bubble aria-hidden="true"></span>
+      <span class="kisara-chibi-figure">
+        <img src={character.src} alt="" draggable="false" loading="lazy" decoding="async" />
+      </span>
+      <span class="kisara-chibi-shadow" aria-hidden="true"></span>
+    </button>
+  ))}
+
+  <span class="sr-only" data-chibi-live aria-live="polite"></span>
+</section>
+
+<style>
+  .kisara-chibi-stage {
+    --scene-accent: 255, 91, 126;
+    --apple-throw-wind: -5deg;
+    --apple-throw-release: 7deg;
+    --apple-throw-settle: -2deg;
+    --apple-hit-far: 13px;
+    --apple-hit-return: -5px;
+    --apple-hit-settle: 3px;
+    --apple-hit-tilt: 7deg;
+    --apple-hit-return-tilt: -4deg;
+    --apple-hit-settle-tilt: 2deg;
+    position: relative;
+    width: min(1240px, 100%);
+    min-height: clamp(430px, 48vw, 560px);
+    margin-inline: auto;
+    overflow: clip;
+    isolation: isolate;
+    background: linear-gradient(180deg, rgba(18, 24, 58, 0.12), transparent 42%, rgba(3, 6, 24, 0.2));
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .kisara-chibi-stage::before {
+    position: absolute;
+    z-index: -2;
+    inset: 4% 3% 1%;
+    content: "";
+    background:
+      linear-gradient(116deg, transparent 15%, rgba(255, 105, 146, 0.055) 15.2%, transparent 15.7% 47%, rgba(121, 155, 255, 0.05) 47.2%, transparent 47.7% 78%, rgba(255, 211, 129, 0.04) 78.2%, transparent 78.7%),
+      linear-gradient(180deg, transparent 52%, rgba(94, 114, 192, 0.035));
+    transition: background 500ms ease;
+  }
+
+  .kisara-chibi-stage::after {
+    position: absolute;
+    z-index: -1;
+    right: 3%;
+    bottom: 10.5%;
+    left: 3%;
+    height: 1px;
+    content: "";
+    background: linear-gradient(90deg, transparent, rgba(255, 103, 137, 0.58) 18%, rgba(141, 170, 255, 0.38) 52%, rgba(255, 103, 137, 0.58) 82%, transparent);
+    box-shadow: 0 0 18px rgba(var(--scene-accent), 0.28);
+  }
+
+  .kisara-chibi-city {
+    position: absolute;
+    z-index: -2;
+    inset: 3% 2% 9%;
+    overflow: hidden;
+    color: #91b1ff;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 8%, #000 95%, transparent);
+    mask-image: linear-gradient(180deg, transparent, #000 8%, #000 95%, transparent);
+  }
+
+  .kisara-chibi-city::before,
+  .kisara-chibi-city::after {
+    position: absolute;
+    content: "";
+    pointer-events: none;
+  }
+
+  .kisara-chibi-city::before {
+    right: 0;
+    bottom: 22%;
+    left: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(145, 177, 255, 0.24) 18%, rgba(255, 94, 137, 0.4) 52%, rgba(145, 177, 255, 0.24) 82%, transparent);
+    box-shadow: 0 0 24px rgba(255, 73, 105, 0.12);
+  }
+
+  .kisara-chibi-city::after {
+    inset: 6% 0 20%;
+    opacity: 0.24;
+    background:
+      linear-gradient(rgba(145, 177, 255, 0.08) 1px, transparent 1px) 0 0 / 100% 48px,
+      linear-gradient(90deg, rgba(145, 177, 255, 0.06) 1px, transparent 1px) 0 0 / 64px 100%;
+    -webkit-mask-image: linear-gradient(180deg, #000, transparent 86%);
+    mask-image: linear-gradient(180deg, #000, transparent 86%);
+  }
+
+  .kisara-chibi-city-copy {
+    position: absolute;
+    z-index: 0;
+    top: 7%;
+    left: 2.5%;
+    display: grid;
+    gap: 7px;
+    color: rgba(168, 184, 239, 0.38);
+    font: 800 0.55rem/1 "Courier New", Courier, monospace;
+  }
+
+  .kisara-chibi-city-copy b {
+    color: rgba(130, 151, 220, 0.075);
+    font: 400 clamp(4.8rem, 10vw, 8.6rem)/0.78 Georgia, "Times New Roman", serif;
+  }
+
+  .kisara-chibi-city-copy small {
+    padding-left: 5px;
+    font: inherit;
+  }
+
+  .kisara-chibi-skyline {
+    position: absolute;
+    right: -1%;
+    bottom: 3%;
+    left: -1%;
+    display: block;
+    transform-origin: bottom;
+  }
+
+  .kisara-chibi-skyline::after {
+    position: absolute;
+    inset: 18% 0 7%;
+    content: "";
+    opacity: 0.34;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 17px, rgba(205, 218, 255, 0.34) 17px 19px, transparent 19px 36px),
+      repeating-linear-gradient(180deg, transparent 0 15px, rgba(255, 111, 151, 0.24) 15px 17px, transparent 17px 32px);
+    mix-blend-mode: screen;
+  }
+
+  .kisara-chibi-skyline.is-back {
+    height: 31%;
+    opacity: 0.52;
+    background: linear-gradient(180deg, #1e2857, #0b1029);
+    clip-path: polygon(0 100%, 0 63%, 4% 63%, 4% 39%, 8% 39%, 8% 70%, 13% 70%, 13% 27%, 17% 27%, 17% 58%, 23% 58%, 23% 44%, 29% 44%, 29% 73%, 34% 73%, 34% 31%, 39% 31%, 39% 64%, 45% 64%, 45% 19%, 49% 19%, 49% 67%, 56% 67%, 56% 38%, 61% 38%, 61% 72%, 67% 72%, 67% 26%, 72% 26%, 72% 61%, 78% 61%, 78% 41%, 83% 41%, 83% 69%, 89% 69%, 89% 30%, 94% 30%, 94% 58%, 100% 58%, 100% 100%);
+  }
+
+  .kisara-chibi-skyline.is-front {
+    height: 22%;
+    opacity: 0.82;
+    background: linear-gradient(180deg, #11183a, #070a1c);
+    clip-path: polygon(0 100%, 0 54%, 6% 54%, 6% 23%, 11% 23%, 11% 68%, 19% 68%, 19% 39%, 26% 39%, 26% 74%, 34% 74%, 34% 17%, 40% 17%, 40% 61%, 49% 61%, 49% 34%, 56% 34%, 56% 72%, 64% 72%, 64% 24%, 70% 24%, 70% 58%, 78% 58%, 78% 31%, 85% 31%, 85% 69%, 92% 69%, 92% 20%, 97% 20%, 97% 56%, 100% 56%, 100% 100%);
+  }
+
+  .kisara-chibi-beacon {
+    position: absolute;
+    z-index: 1;
+    right: 15%;
+    bottom: 23%;
+    width: 1px;
+    height: 33%;
+    background: linear-gradient(180deg, rgba(255, 88, 132, 0.7), rgba(145, 177, 255, 0.18) 62%, transparent);
+  }
+
+  .kisara-chibi-beacon::before,
+  .kisara-chibi-beacon::after {
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    content: "";
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .kisara-chibi-beacon::before {
+    width: 7px;
+    height: 7px;
+    background: #ff5b82;
+    box-shadow: 0 0 12px rgba(255, 73, 105, 0.82);
+    animation: kisara-chibi-beacon 1.8s ease-in-out infinite;
+  }
+
+  .kisara-chibi-beacon::after {
+    width: 38px;
+    height: 38px;
+    border: 1px solid rgba(255, 104, 143, 0.22);
+    animation: kisara-chibi-beacon-ring 2.8s ease-out infinite;
+  }
+
+  .kisara-chibi-beacon > i {
+    position: absolute;
+    top: 31%;
+    left: -23px;
+    width: 47px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(145, 177, 255, 0.32), transparent);
+  }
+
+  .kisara-chibi-ambient {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .kisara-chibi-ambient i {
+    position: absolute;
+    top: 7%;
+    width: 1px;
+    height: 68%;
+    transform-origin: 50% 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(var(--scene-accent), 0.035) 45%, transparent);
+    filter: blur(0.2px);
+    opacity: 0.42;
+  }
+
+  .kisara-chibi-ambient i:nth-child(1) { left: 19%; transform: rotate(13deg); }
+  .kisara-chibi-ambient i:nth-child(2) { left: 50%; transform: rotate(-4deg); opacity: 0.28; }
+  .kisara-chibi-ambient i:nth-child(3) { right: 17%; transform: rotate(-14deg); }
+
+  .kisara-chibi-floor {
+    position: absolute;
+    z-index: -1;
+    right: 6%;
+    bottom: 1.5%;
+    left: 6%;
+    height: 24%;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(var(--scene-accent), 0.105), rgba(67, 84, 145, 0.035) 45%, transparent 72%);
+    transform: perspective(300px) rotateX(67deg);
+    filter: blur(1px);
+    pointer-events: none;
+  }
+
+  .kisara-chibi-floor span {
+    position: absolute;
+    inset: 15% 8%;
+    border: 1px solid rgba(160, 180, 255, 0.11);
+    border-radius: 50%;
+  }
+
+  .kisara-apple-cutscene {
+    --apple-x: 50%;
+    --apple-y: 50%;
+    --apple-media-width: clamp(414px, 70%, 830px);
+    --apple-direction: 1;
+    --apple-entry-x: -42px;
+    --apple-exit-x: 24px;
+    --apple-impact-x: 70%;
+    --apple-impact-y: 56%;
+    position: absolute;
+    z-index: 5;
+    inset: 0;
+    overflow: hidden;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease, visibility 0s linear 900ms;
+  }
+
+  .kisara-apple-cutscene.is-active {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s;
+  }
+
+  .kisara-apple-wash,
+  .kisara-apple-speedlines,
+  .kisara-apple-impact {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .kisara-apple-wash {
+    z-index: 0;
+    opacity: 0;
+    background:
+      radial-gradient(circle at var(--apple-impact-x) var(--apple-impact-y), rgba(255, 226, 236, 0.18), transparent 22%),
+      linear-gradient(112deg, rgba(5, 7, 26, 0.04), rgba(5, 7, 26, 0.46) 44%, rgba(91, 7, 34, 0.22) 74%, rgba(5, 7, 26, 0.08));
+  }
+
+  .kisara-apple-cutscene.is-active .kisara-apple-wash {
+    animation: kisara-apple-wash 940ms ease-out both;
+  }
+
+  .kisara-apple-speedlines {
+    z-index: 1;
+    opacity: 0;
+    overflow: hidden;
+    transform: scaleX(var(--apple-direction));
+    transform-origin: center;
+  }
+
+  .kisara-apple-speedlines::before,
+  .kisara-apple-speedlines::after,
+  .kisara-apple-speedlines > i {
+    position: absolute;
+    content: "";
+    height: 2px;
+    border-radius: 999px;
+    transform-origin: right center;
+    background: linear-gradient(90deg, transparent, rgba(255, 216, 230, 0.2) 22%, rgba(255, 119, 158, 0.88) 72%, transparent);
+    filter: drop-shadow(0 0 7px rgba(255, 73, 105, 0.46));
+  }
+
+  .kisara-apple-speedlines::before {
+    top: 24%;
+    right: -7%;
+    width: 58%;
+    transform: rotate(-11deg);
+  }
+
+  .kisara-apple-speedlines::after {
+    right: -3%;
+    bottom: 23%;
+    width: 48%;
+    transform: rotate(8deg);
+  }
+
+  .kisara-apple-speedlines > i:nth-child(1) {
+    top: 36%;
+    right: 4%;
+    width: 34%;
+    transform: rotate(-5deg);
+  }
+
+  .kisara-apple-speedlines > i:nth-child(2) {
+    top: 51%;
+    right: -5%;
+    width: 66%;
+    height: 3px;
+    transform: rotate(2deg);
+  }
+
+  .kisara-apple-speedlines > i:nth-child(3) {
+    right: 11%;
+    bottom: 34%;
+    width: 28%;
+    transform: rotate(13deg);
+  }
+
+  .kisara-apple-cutscene.is-active .kisara-apple-speedlines {
+    animation: kisara-apple-speedlines 820ms cubic-bezier(0.2, 0.72, 0.2, 1) both;
+  }
+
+  .kisara-apple-media {
+    position: absolute;
+    z-index: 2;
+    top: var(--apple-y);
+    left: var(--apple-x);
+    display: block;
+    width: var(--apple-media-width);
+    max-width: none;
+    aspect-ratio: 740 / 540;
+    opacity: 0;
+    transform: translate(-50%, -50%) translateX(var(--apple-entry-x)) scale(0.86);
+    transform-origin: center;
+    filter: blur(9px) brightness(1.28) saturate(1.08);
+    -webkit-mask-image: radial-gradient(ellipse at center, #000 0 42%, rgba(0, 0, 0, 0.94) 56%, rgba(0, 0, 0, 0.42) 71%, transparent 88%);
+    mask-image: radial-gradient(ellipse at center, #000 0 42%, rgba(0, 0, 0, 0.94) 56%, rgba(0, 0, 0, 0.42) 71%, transparent 88%);
+    will-change: transform, opacity, filter;
+  }
+
+  .kisara-apple-media video,
+  .kisara-apple-media img {
+    position: absolute;
+    inset: 0;
+    display: none;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: contrast(1.035) saturate(1.06) drop-shadow(0 22px 28px rgba(9, 1, 20, 0.38));
+    transform: scaleX(var(--apple-direction));
+    transform-origin: center;
+  }
+
+  .kisara-apple-cutscene[data-renderer="video"] .kisara-apple-media video,
+  .kisara-apple-cutscene[data-renderer="fallback"] .kisara-apple-media img {
+    display: block;
+  }
+
+  .kisara-apple-cutscene.is-active .kisara-apple-media {
+    animation: kisara-apple-media 840ms cubic-bezier(0.16, 0.82, 0.22, 1) both;
+  }
+
+  .kisara-apple-impact {
+    z-index: 3;
+    top: var(--apple-impact-y);
+    left: var(--apple-impact-x);
+    width: 84px;
+    height: 84px;
+    margin: -42px 0 0 -42px;
+    inset: auto;
+    border-radius: 50%;
+    opacity: 0;
+    transform: scale(0.25) rotate(-12deg);
+  }
+
+  .kisara-apple-impact::before,
+  .kisara-apple-impact::after,
+  .kisara-apple-impact > i {
+    position: absolute;
+    content: "";
+    pointer-events: none;
+  }
+
+  .kisara-apple-impact::before {
+    inset: 17%;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff 0 9%, #ffdce7 10% 22%, rgba(255, 82, 124, 0.88) 34%, transparent 72%);
+    box-shadow: 0 0 32px rgba(255, 74, 116, 0.82), 0 0 72px rgba(255, 73, 105, 0.38);
+  }
+
+  .kisara-apple-impact::after {
+    inset: -22%;
+    border: 2px solid rgba(255, 206, 221, 0.74);
+    border-radius: 50%;
+    box-shadow: inset 0 0 18px rgba(255, 73, 105, 0.22), 0 0 24px rgba(255, 73, 105, 0.3);
+  }
+
+  .kisara-apple-impact > i {
+    top: 50%;
+    left: 50%;
+    width: 170px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255, 232, 240, 0.95), transparent);
+    box-shadow: 0 -19px 0 -0.5px rgba(255, 132, 165, 0.52), 0 21px 0 -0.5px rgba(255, 132, 165, 0.38);
+    transform: translate(-50%, -50%) rotate(-13deg);
+  }
+
+  .kisara-chibi-stage.is-apple-impact .kisara-apple-impact {
+    animation: kisara-apple-impact 520ms cubic-bezier(0.12, 0.8, 0.2, 1) both;
+  }
+
+  .kisara-chibi-stage[data-apple-playing="true"] .kisara-chibi {
+    pointer-events: none;
+  }
+
+  .kisara-chibi-stage[data-apple-playing="true"] .kisara-chibi.is-apple-focus {
+    z-index: 7;
+  }
+
+  .kisara-chibi-stage[data-apple-playing="true"] .kisara-chibi:not(.is-apple-focus) .kisara-chibi-figure {
+    opacity: 0.34;
+    filter: blur(1.2px) saturate(0.58) brightness(0.66);
+    transform: translateY(4px) scale(0.97);
+  }
+
+  .kisara-chibi.is-apple-throw .kisara-chibi-figure {
+    animation: kisara-chibi-apple-throw 720ms cubic-bezier(0.16, 0.82, 0.24, 1) both;
+  }
+
+  .kisara-chibi.is-apple-hit .kisara-chibi-figure {
+    animation: kisara-chibi-apple-hit 680ms cubic-bezier(0.12, 0.86, 0.2, 1) both;
+  }
+
+  @keyframes kisara-apple-wash {
+    0% { opacity: 0; }
+    18% { opacity: 1; }
+    72% { opacity: 0.88; }
+    100% { opacity: 0; }
+  }
+
+  @keyframes kisara-apple-speedlines {
+    0% { opacity: 0; transform: scaleX(var(--apple-direction)) translateX(-8%); }
+    24% { opacity: 0.2; }
+    54% { opacity: 0.92; }
+    100% { opacity: 0; transform: scaleX(var(--apple-direction)) translateX(13%); }
+  }
+
+  @keyframes kisara-apple-media {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateX(var(--apple-entry-x)) scale(0.86) skewX(-2deg);
+      filter: blur(9px) brightness(1.28) saturate(1.08);
+    }
+    14% {
+      opacity: 1;
+      filter: blur(1.5px) brightness(1.06) saturate(1.08);
+    }
+    62% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateX(0) scale(1);
+      filter: blur(0) brightness(1.02) saturate(1.08);
+    }
+    78% {
+      opacity: 1;
+      filter: blur(0.6px) brightness(1.32) saturate(1.22);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateX(var(--apple-exit-x)) scale(1.055);
+      filter: blur(3px) brightness(1.5) saturate(1.22);
+    }
+  }
+
+  @keyframes kisara-apple-impact {
+    0% { opacity: 0; transform: scale(0.2) rotate(-14deg); }
+    24% { opacity: 1; transform: scale(1.12) rotate(0); }
+    54% { opacity: 0.86; transform: scale(1.7) rotate(8deg); }
+    100% { opacity: 0; transform: scale(2.5) rotate(13deg); }
+  }
+
+  @keyframes kisara-chibi-apple-throw {
+    0% { transform: translateY(0) rotate(0) scale(1); }
+    26% { transform: translateY(-6px) rotate(var(--apple-throw-wind)) scale(1.035, 0.98); }
+    54% { transform: translateY(-2px) rotate(var(--apple-throw-release)) scale(0.98, 1.035); }
+    76% { transform: translateY(-4px) rotate(var(--apple-throw-settle)) scale(1.015); }
+    100% { transform: translateY(0) rotate(0) scale(1); }
+  }
+
+  @keyframes kisara-chibi-apple-hit {
+    0% { transform: translate(0, 0) rotate(0) scale(1); }
+    18% { transform: translate(var(--apple-hit-far), -3px) rotate(var(--apple-hit-tilt)) scale(0.96, 1.04); }
+    42% { transform: translate(var(--apple-hit-return), 1px) rotate(var(--apple-hit-return-tilt)) scale(1.03, 0.97); }
+    68% { transform: translate(var(--apple-hit-settle), -2px) rotate(var(--apple-hit-settle-tilt)); }
+    100% { transform: translate(0, 0) rotate(0) scale(1); }
+  }
+
+  .kisara-chibi-reset {
+    position: absolute;
+    z-index: 8;
+    top: 20px;
+    right: 14px;
+    display: grid;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    place-items: center;
+    color: rgba(224, 230, 255, 0.7);
+    border: 0;
+    border-radius: 50%;
+    background: rgba(20, 25, 55, 0.38);
+    box-shadow: inset 0 0 0 1px rgba(162, 181, 255, 0.15), 0 8px 26px rgba(1, 3, 16, 0.2);
+    backdrop-filter: blur(12px) saturate(1.25);
+    cursor: pointer;
+    transition: color 180ms ease, background 180ms ease, transform 350ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .kisara-chibi-reset :global(svg) {
+    width: 17px;
+    height: 17px;
+    transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .kisara-chibi-reset:hover,
+  .kisara-chibi-reset:focus-visible {
+    color: #fff;
+    outline: none;
+    background: rgba(255, 73, 105, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .kisara-chibi-reset:hover :global(svg),
+  .kisara-chibi-reset:focus-visible :global(svg) { transform: rotate(-180deg); }
+
+  .kisara-chibi {
+    --chibi-x: 0px;
+    --chibi-y: 0px;
+    --drag-tilt: 0deg;
+    --chibi-acrylic: 255, 116, 161;
+    position: absolute;
+    z-index: 3;
+    top: 0;
+    left: 0;
+    display: block;
+    width: clamp(124px, 14.2vw, 176px);
+    padding: 0;
+    color: inherit;
+    border: 0;
+    background: transparent;
+    transform: translate3d(var(--chibi-x), var(--chibi-y), 0);
+    isolation: isolate;
+    touch-action: none;
+    cursor: grab;
+    opacity: 0;
+    will-change: transform;
+  }
+
+  .kisara-chibi::before,
+  .kisara-chibi::after {
+    position: absolute;
+    content: "";
+    pointer-events: none;
+    opacity: 0;
+    transition:
+      opacity 220ms ease,
+      transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .kisara-chibi::before {
+    z-index: 0;
+    inset: 8% -3% 4%;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 58%, rgba(var(--chibi-acrylic), 0.24), rgba(var(--chibi-acrylic), 0.07) 46%, transparent 72%);
+    filter: blur(7px);
+    transform: scale(0.76, 0.88);
+  }
+
+  .kisara-chibi::after {
+    z-index: 4;
+    top: 50%;
+    left: 50%;
+    width: auto;
+    height: 84%;
+    aspect-ratio: 1;
+    border-right: 2px solid rgba(var(--chibi-acrylic), 0.62);
+    border-left: 2px solid rgba(var(--chibi-acrylic), 0.62);
+    border-radius: 50%;
+    filter: drop-shadow(0 0 5px rgba(var(--chibi-acrylic), 0.4));
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 20%, #000 80%, transparent);
+    mask-image: linear-gradient(180deg, transparent, #000 20%, #000 80%, transparent);
+    transform: translate(-50%, -50%) scale(0.78);
+  }
+
+  .kisara-chibi[data-chibi="kisara"] {
+    --chibi-acrylic: 255, 113, 164;
+    aspect-ratio: 180 / 229;
+  }
+
+  .kisara-chibi[data-chibi="ayano"] {
+    --chibi-acrylic: 104, 156, 255;
+    width: clamp(112px, 12.7vw, 158px);
+    aspect-ratio: 149 / 236;
+  }
+
+  .kisara-chibi[data-chibi="sharon"] {
+    --chibi-acrylic: 177, 139, 255;
+    width: clamp(132px, 15.2vw, 188px);
+    aspect-ratio: 196 / 241;
+  }
+
+  .kisara-chibi[data-chibi="shu"] {
+    --chibi-acrylic: 124, 181, 150;
+    width: clamp(112px, 12.8vw, 158px);
+    aspect-ratio: 177 / 266;
+  }
+
+  .kisara-chibi-stage[data-ready="true"] .kisara-chibi {
+    opacity: 1;
+    transition: opacity 320ms ease;
+  }
+
+  .kisara-chibi.is-snapping {
+    transition: transform 520ms cubic-bezier(0.16, 1.25, 0.3, 1), opacity 220ms ease;
+  }
+
+  .kisara-chibi.is-dragging {
+    z-index: 7;
+    cursor: grabbing;
+  }
+
+  .kisara-chibi:focus-visible {
+    outline: none;
+  }
+
+  .kisara-chibi:focus-visible::before,
+  .kisara-chibi:focus-visible::before {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .kisara-chibi:focus-visible::after {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .kisara-chibi:focus-visible .kisara-chibi-figure {
+    transform: translateY(-7px) scale(1.035);
+    filter:
+      drop-shadow(0 18px 13px rgba(0, 0, 20, 0.38))
+      drop-shadow(0 0 1.2px rgba(4, 7, 27, 0.58))
+      drop-shadow(0 0 10px rgba(var(--chibi-acrylic), 0.48));
+  }
+
+  .kisara-chibi-figure {
+    position: relative;
+    z-index: 2;
+    display: block;
+    width: 100%;
+    height: 100%;
+    isolation: isolate;
+    transform-origin: 50% 92%;
+    filter:
+      drop-shadow(0 15px 12px rgba(0, 0, 20, 0.34))
+      drop-shadow(0 0 1.15px rgba(4, 7, 27, 0.62))
+      drop-shadow(0 0 2.5px rgba(var(--chibi-acrylic), 0.09));
+    transition:
+      transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
+      filter 240ms ease,
+      opacity 220ms ease;
+    will-change: transform, filter;
+  }
+
+  .kisara-chibi-figure img {
+    position: relative;
+    z-index: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: blur(0.12px) saturate(0.99) contrast(1.015);
+    pointer-events: none;
+    -webkit-user-drag: none;
+  }
+
+  .kisara-chibi.is-dragging .kisara-chibi-figure {
+    transform: translateY(-13px) rotate(var(--drag-tilt)) scale(1.055);
+    filter: drop-shadow(0 23px 15px rgba(0, 0, 20, 0.44)) drop-shadow(0 0 10px rgba(var(--scene-accent), 0.24));
+    transition: transform 90ms linear, filter 180ms ease;
+  }
+
+  .kisara-chibi.is-speaking .kisara-chibi-figure {
+    animation: kisara-chibi-speak 520ms cubic-bezier(0.16, 1.25, 0.3, 1);
+  }
+
+  .kisara-chibi.is-speaking .kisara-chibi-shadow {
+    animation: kisara-chibi-shadow-speak 520ms cubic-bezier(0.16, 1.25, 0.3, 1);
+  }
+
+  .kisara-chibi.is-dropped .kisara-chibi-figure {
+    animation: kisara-chibi-drop 560ms cubic-bezier(0.16, 1.3, 0.3, 1);
+  }
+
+  .kisara-chibi.is-dropped .kisara-chibi-shadow {
+    animation: kisara-chibi-shadow-drop 560ms cubic-bezier(0.16, 1.3, 0.3, 1);
+  }
+
+  .kisara-chibi-shadow {
+    position: absolute;
+    z-index: 1;
+    right: 22%;
+    bottom: -4px;
+    left: 22%;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(0, 0, 16, 0.32);
+    filter: blur(5px);
+    pointer-events: none;
+    transform: scaleX(0.78);
+    transition: opacity 180ms ease, transform 180ms ease, filter 180ms ease;
+  }
+
+  .kisara-chibi.is-dragging .kisara-chibi-shadow {
+    opacity: 0.42;
+    filter: blur(7px);
+    transform: scaleX(0.54);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .kisara-chibi:hover:not(.is-dragging)::before,
+    .kisara-chibi:hover:not(.is-dragging)::before {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .kisara-chibi:hover:not(.is-dragging)::after {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .kisara-chibi:hover:not(.is-dragging) .kisara-chibi-figure {
+      transform: translateY(-7px) scale(1.035);
+      filter:
+        drop-shadow(0 18px 13px rgba(0, 0, 20, 0.38))
+        drop-shadow(0 0 1.2px rgba(4, 7, 27, 0.58))
+        drop-shadow(0 0 10px rgba(var(--chibi-acrylic), 0.48));
+    }
+
+    .kisara-chibi:hover:not(.is-dragging) .kisara-chibi-shadow {
+      opacity: 0.68;
+      transform: scaleX(0.62);
+    }
+  }
+
+  .kisara-chibi-bubble {
+    position: absolute;
+    z-index: 9;
+    top: -24%;
+    left: 50%;
+    display: grid;
+    min-width: 58px;
+    min-height: 44px;
+    padding: 8px 13px 9px;
+    place-items: center;
+    color: #19152b;
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: 52% 48% 45% 55% / 56% 53% 47% 44%;
+    background:
+      radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.96), transparent 34%),
+      rgba(248, 246, 255, 0.9);
+    box-shadow: 0 12px 26px rgba(1, 2, 15, 0.24), 0 0 22px rgba(var(--scene-accent), 0.16);
+    backdrop-filter: blur(8px) saturate(1.15);
+    font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+    font-size: clamp(1.15rem, 1.8vw, 1.55rem);
+    line-height: 1;
+    letter-spacing: 0;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 11px) scale(0.62) rotate(-4deg);
+    transform-origin: 45% 100%;
+  }
+
+  .kisara-chibi-bubble::before,
+  .kisara-chibi-bubble::after {
+    position: absolute;
+    content: "";
+    border-radius: 50%;
+    background: rgba(248, 246, 255, 0.9);
+    box-shadow: 0 6px 10px rgba(1, 2, 15, 0.16);
+  }
+
+  .kisara-chibi-bubble::before {
+    right: 15%;
+    bottom: -9px;
+    width: 12px;
+    height: 12px;
+  }
+
+  .kisara-chibi-bubble::after {
+    right: 8%;
+    bottom: -18px;
+    width: 6px;
+    height: 6px;
+  }
+
+  .kisara-chibi-bubble.is-visible {
+    animation: kisara-chibi-bubble-in 240ms cubic-bezier(0.16, 1.35, 0.3, 1) forwards;
+  }
+
+  @keyframes kisara-chibi-speak {
+    0%, 100% { transform: translateY(0) scale(1); }
+    34% { transform: translateY(-13px) scale(1.04, 0.97) rotate(-2deg); }
+    58% { transform: translateY(1px) scale(0.98, 1.04) rotate(1deg); }
+    76% { transform: translateY(-4px) scale(1.01); }
+  }
+
+  @keyframes kisara-chibi-drop {
+    0% { transform: translateY(-9px) scale(1.045, 0.96); }
+    38% { transform: translateY(3px) scale(0.94, 1.07); }
+    64% { transform: translateY(-5px) scale(1.025, 0.98); }
+    100% { transform: translateY(0) scale(1); }
+  }
+
+  @keyframes kisara-chibi-shadow-speak {
+    0%, 100% { opacity: 1; transform: scaleX(0.78); }
+    34% { opacity: 0.46; transform: scaleX(0.5); }
+    58% { opacity: 0.9; transform: scaleX(0.88); }
+    76% { opacity: 0.7; transform: scaleX(0.66); }
+  }
+
+  @keyframes kisara-chibi-shadow-drop {
+    0% { opacity: 0.5; transform: scaleX(0.55); }
+    38% { opacity: 1; transform: scaleX(0.94); }
+    64% { opacity: 0.72; transform: scaleX(0.68); }
+    100% { opacity: 1; transform: scaleX(0.78); }
+  }
+
+  @keyframes kisara-chibi-bubble-in {
+    0% { opacity: 0; transform: translate(-50%, 11px) scale(0.62) rotate(-4deg); }
+    62% { opacity: 1; transform: translate(-50%, -3px) scale(1.08) rotate(2deg); }
+    100% { opacity: 1; transform: translate(-50%, 0) scale(1) rotate(0); }
+  }
+
+  @keyframes kisara-chibi-beacon {
+    0%, 100% { opacity: 0.45; transform: translate(-50%, -50%) scale(0.76); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  }
+
+  @keyframes kisara-chibi-beacon-ring {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.36); }
+    28% { opacity: 0.66; }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+  }
+
+  @media (max-width: 720px) {
+    .kisara-chibi-stage {
+      min-height: 610px;
+    }
+
+    .kisara-chibi-stage::after {
+      right: 5%;
+      bottom: 6.8%;
+      left: 5%;
+    }
+
+    .kisara-chibi-floor {
+      right: 2%;
+      bottom: -1%;
+      left: 2%;
+      height: 18%;
+    }
+
+    .kisara-chibi-city { inset: 2% 0 7%; }
+    .kisara-chibi-city-copy { top: 5%; left: 3%; }
+    .kisara-chibi-city-copy b { font-size: clamp(3.8rem, 20vw, 5.8rem); }
+    .kisara-chibi-city-copy small { display: none; }
+    .kisara-chibi-skyline.is-back { height: 23%; }
+    .kisara-chibi-skyline.is-front { height: 16%; }
+    .kisara-chibi-beacon { display: none; }
+
+    .kisara-chibi-reset {
+      top: 10px;
+      right: 8px;
+    }
+
+    .kisara-chibi {
+      width: clamp(110px, 31vw, 142px);
+    }
+
+    .kisara-chibi[data-chibi="ayano"],
+    .kisara-chibi[data-chibi="shu"] { width: clamp(100px, 27vw, 128px); }
+    .kisara-chibi[data-chibi="sharon"] { width: clamp(116px, 33vw, 150px); }
+
+    .kisara-chibi-bubble {
+      top: -18%;
+      font-size: 1.16rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .kisara-chibi,
+    .kisara-chibi-figure,
+    .kisara-chibi-bubble,
+    .kisara-chibi-reset,
+    .kisara-chibi-reset :global(svg),
+    .kisara-apple-cutscene,
+    .kisara-apple-wash,
+    .kisara-apple-speedlines,
+    .kisara-apple-media,
+    .kisara-apple-impact,
+    .kisara-chibi-beacon::before,
+    .kisara-chibi-beacon::after {
+      animation-duration: 1ms !important;
+      transition-duration: 1ms !important;
+    }
+  }
+</style>
+
+<script>
+  const initKisaraChibiStage = () => {
+    const root = document.querySelector("[data-kisara-chibi-stage]");
+    if (!(root instanceof HTMLElement)) return;
+    if (root.dataset.kisaraRuntimeBound === "true") return;
+
+    window.__yuimiKisaraChibiCleanup?.();
+    root.dataset.kisaraRuntimeBound = "true";
+
+    const lifecycle = new AbortController();
+    const nodes = new Map(
+      Array.from(root.querySelectorAll("[data-chibi]"))
+        .filter((node) => node instanceof HTMLElement)
+        .map((node) => [node.dataset.chibi, node])
+    );
+    const resetButton = root.querySelector("[data-chibi-reset]");
+    const liveRegion = root.querySelector("[data-chibi-live]");
+    const appleCutscene = root.querySelector("[data-chibi-apple-cutscene]");
+    const appleVideo = root.querySelector("[data-chibi-apple-video]");
+    const appleFallback = root.querySelector("[data-chibi-apple-fallback]");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const preloadAppleMedia = document.documentElement.dataset.yuimiPerformance === "full"
+      && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    const characterOrder = ["kisara", "ayano", "shu", "sharon"];
+    const nameMap = { kisara: "木更", ayano: "绫乃", shu: "修", sharon: "莎朗" };
+    const soloEmoji = {
+      kisara: ["💗✨", "😤💢", "🍬💗", "👀❓"],
+      ayano: ["😌☕", "📋✨", "😏🍱", "🙃💭"],
+      shu: ["😅💸", "☕😵", "📦❓", "🙂💭"],
+      sharon: ["😐☕", "🧐📏", "⏱️👀", "🙏✨"],
+    };
+
+    const scenes = {
+      "ayano|kisara": [
+        [["kisara", "😤💢"], ["ayano", "😏🍱"], ["kisara", "😡🔪💗"]],
+        [["ayano", "👀💗"], ["kisara", "🙅‍♀️💥"], ["ayano", "😌☕"]],
+        [["kisara", "🧐❓"], ["ayano", "🙂➕🍱"], ["kisara", "😑💢"]],
+      ],
+      "kisara|shu": [
+        [["kisara", "🥰💗✨"], ["shu", "😅💸"], ["kisara", "☕🚫💢"]],
+        [["shu", "🙂👍"], ["kisara", "😳💗💗"], ["shu", "😵‍💫✨"]],
+        [["kisara", "🏠💗❓"], ["shu", "📋😓"], ["kisara", "😤👉🏠"]],
+      ],
+      "kisara|sharon": [
+        [["sharon", "🧐📏"], ["kisara", "😤🛡️💗"], ["sharon", "😐☕"]],
+        [["kisara", "👀🔔❓"], ["sharon", "⏱️😐"], ["kisara", "🍬🤝"]],
+        [["sharon", "🙏✨"], ["kisara", "😑💭"], ["sharon", "☕➕🍬"]],
+      ],
+      "ayano|shu": [
+        [["ayano", "📋✍️"], ["shu", "😵❓"], ["ayano", "😏👉"]],
+        [["shu", "☕🙂"], ["ayano", "😳↩️😌"], ["shu", "👀❓"]],
+        [["ayano", "📞⚡"], ["shu", "😮‍💨💸"], ["ayano", "🚗💨"]],
+      ],
+      "ayano|sharon": [
+        [["ayano", "👀❓"], ["sharon", "👁️👁️"], ["ayano", "😌☕"]],
+        [["sharon", "🕯️⚠️"], ["ayano", "🔧✨"], ["sharon", "🙂👍"]],
+        [["ayano", "🍵❓"], ["sharon", "🤔➕🍬"], ["ayano", "😏✨"]],
+      ],
+      "sharon|shu": [
+        [["sharon", "🧾🤨"], ["shu", "😐🤏"], ["sharon", "📚👉"]],
+        [["shu", "🥪❓"], ["sharon", "🙂🤏"], ["shu", "😮‍💨✨"]],
+        [["sharon", "⏱️3️⃣"], ["shu", "😵‍💫💦"], ["sharon", "😐📌"]],
+      ],
+      "ayano|kisara|shu": [
+        [["kisara", "😤👉💗"], ["ayano", "😏↔️"], ["shu", "😵🥤"], ["kisara", "🥤💗🔒"]],
+        [["ayano", "🍱✨"], ["kisara", "🍱💢"], ["shu", "😅🙏"], ["ayano", "😌✌️"]],
+      ],
+      "kisara|sharon|shu": [
+        [["sharon", "🚪👀"], ["kisara", "✋💥➡️"], ["shu", "😓❓"], ["sharon", "📌😐"]],
+        [["kisara", "🛡️💗"], ["sharon", "📏⚠️"], ["shu", "🙃☕"], ["kisara", "😤✨"]],
+      ],
+      "ayano|sharon|shu": [
+        [["ayano", "📋📋📋"], ["shu", "3️⃣⏱️"], ["sharon", "✂️📄"], ["ayano", "🙂👍"]],
+        [["sharon", "🧐📌"], ["ayano", "🔧📋"], ["shu", "😶☕"], ["sharon", "✅✨"]],
+      ],
+      "ayano|kisara|sharon": [
+        [["kisara", "👀❓"], ["ayano", "🙂🔞❌"], ["sharon", "💸🚪"], ["kisara", "😤📚"]],
+        [["ayano", "☕🤝"], ["sharon", "🍬👍"], ["kisara", "😑💢"], ["ayano", "😏✨"]],
+      ],
+      "ayano|kisara|sharon|shu": [
+        [["shu", "📦4️⃣🍱❓"], ["ayano", "🙂✨"], ["kisara", "😤💗🏆"], ["sharon", "🧐🔢"], ["shu", "😵❓"], ["kisara", "🥄1️⃣💗"], ["ayano", "🙈🎲"]],
+        [["kisara", "💗🍱💥"], ["ayano", "😏🍱✨"], ["sharon", "📋🔍"], ["shu", "😰🙏"], ["kisara", "👑💗"], ["ayano", "🎲👀"], ["sharon", "⏱️▶️"]],
+      ],
+    };
+
+    const state = new Map();
+    const groups = [];
+    const timers = new Set();
+    const bubbleTimers = new Map();
+    let drag = null;
+    let sceneToken = 0;
+    let frame = 0;
+    let lastStageSize = { width: 0, height: 0 };
+    let lastCompactLayout = null;
+    let applePairHits = 0;
+    let lastApplePairAt = 0;
+    let appleCooldownUntil = 0;
+    let appleFallbackToken = 0;
+    let appleActive = false;
+    let applePreloadObserver = null;
+    let cleaned = false;
+
+    const schedule = (callback, delay) => {
+      const timer = window.setTimeout(() => {
+        timers.delete(timer);
+        callback();
+      }, delay);
+      timers.add(timer);
+      return timer;
+    };
+
+    const clearTimerSet = () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+      timers.clear();
+      bubbleTimers.forEach((timer) => window.clearTimeout(timer));
+      bubbleTimers.clear();
+    };
+
+    const randomItem = (items) => items[Math.floor(Math.random() * items.length)];
+    const sceneKey = (ids) => [...ids].sort().join("|");
+
+    const dimensions = (id) => {
+      const node = nodes.get(id);
+      return { width: node?.offsetWidth || 120, height: node?.offsetHeight || 180 };
+    };
+
+    const clampPosition = (id, x, y) => {
+      const { width, height } = dimensions(id);
+      return {
+        x: Math.min(Math.max(8, x), Math.max(8, root.clientWidth - width - 8)),
+        y: Math.min(Math.max(38, y), Math.max(38, root.clientHeight - height - 24)),
+      };
+    };
+
+    const setPosition = (id, x, y, animate = false) => {
+      const node = nodes.get(id);
+      if (!node) return;
+      const next = clampPosition(id, x, y);
+      state.set(id, next);
+      if (animate) {
+        node.classList.add("is-snapping");
+        schedule(() => node.classList.remove("is-snapping"), 580);
+      }
+      node.style.setProperty("--chibi-x", `${next.x}px`);
+      node.style.setProperty("--chibi-y", `${next.y}px`);
+    };
+
+    const centerOf = (id) => {
+      const point = state.get(id) || { x: 0, y: 0 };
+      const { width, height } = dimensions(id);
+      return { x: point.x + width / 2, y: point.y + height / 2 };
+    };
+
+    const boundsOf = (ids) => {
+      const bounds = ids.reduce((result, id) => {
+        const point = state.get(id) || { x: 0, y: 0 };
+        const { width, height } = dimensions(id);
+        result.left = Math.min(result.left, point.x);
+        result.right = Math.max(result.right, point.x + width);
+        result.top = Math.min(result.top, point.y);
+        result.bottom = Math.max(result.bottom, point.y + height);
+        return result;
+      }, { left: Infinity, right: -Infinity, top: Infinity, bottom: -Infinity });
+
+      if (!Number.isFinite(bounds.left)) {
+        return {
+          left: root.clientWidth / 2,
+          right: root.clientWidth / 2,
+          top: root.clientHeight / 2,
+          bottom: root.clientHeight / 2,
+          centerX: root.clientWidth / 2,
+          centerY: root.clientHeight / 2,
+        };
+      }
+
+      return {
+        ...bounds,
+        centerX: (bounds.left + bounds.right) / 2,
+        centerY: (bounds.top + bounds.bottom) / 2,
+      };
+    };
+
+    const removeFromGroups = (id) => {
+      for (let index = groups.length - 1; index >= 0; index -= 1) {
+        const remaining = groups[index].filter((member) => member !== id);
+        if (remaining.length < 2) groups.splice(index, 1);
+        else groups[index] = remaining;
+      }
+    };
+
+    const groupFor = (id) => groups.find((group) => group.includes(id));
+
+    const animateClass = (node, className, duration = 620) => {
+      if (!(node instanceof HTMLElement)) return;
+      node.classList.remove(className);
+      void node.offsetWidth;
+      node.classList.add(className);
+      schedule(() => node.classList.remove(className), duration);
+    };
+
+    const setBubble = (id, emoji, duration = 1180, animateFigure = true) => {
+      const node = nodes.get(id);
+      const bubble = node?.querySelector("[data-chibi-bubble]");
+      if (!(node instanceof HTMLElement) || !(bubble instanceof HTMLElement)) return;
+
+      const previousTimer = bubbleTimers.get(id);
+      if (previousTimer) window.clearTimeout(previousTimer);
+      bubble.textContent = emoji;
+      bubble.setAttribute("aria-hidden", "false");
+      bubble.classList.remove("is-visible");
+      void bubble.offsetWidth;
+      bubble.classList.add("is-visible");
+      if (animateFigure) animateClass(node, "is-speaking", 560);
+      if (liveRegion) liveRegion.textContent = `${nameMap[id] || id} ${emoji}`;
+
+      const timer = window.setTimeout(() => {
+        bubble.classList.remove("is-visible");
+        bubble.setAttribute("aria-hidden", "true");
+        bubbleTimers.delete(id);
+      }, duration);
+      bubbleTimers.set(id, timer);
+    };
+
+    const loadAppleVideo = () => {
+      if (!(appleVideo instanceof HTMLVideoElement)) return false;
+      const source = appleVideo.dataset.src;
+      if (!source || !appleVideo.canPlayType('video/webm; codecs="vp9"')) return false;
+      if (!appleVideo.getAttribute("src")) {
+        appleVideo.preload = "auto";
+        appleVideo.src = source;
+        appleVideo.load();
+      }
+      return true;
+    };
+
+    const startAppleMedia = async () => {
+      if (!(appleCutscene instanceof HTMLElement)) return false;
+
+      if (loadAppleVideo() && appleVideo instanceof HTMLVideoElement) {
+        try {
+          appleVideo.pause();
+          if (appleVideo.readyState > 0) appleVideo.currentTime = 0;
+          appleVideo.playbackRate = 0.82;
+          appleCutscene.dataset.renderer = "video";
+          await appleVideo.play();
+          return true;
+        } catch {
+          appleVideo.pause();
+        }
+      }
+
+      if (!(appleFallback instanceof HTMLImageElement) || !appleFallback.dataset.src) return false;
+      appleFallbackToken += 1;
+      appleFallback.src = `${appleFallback.dataset.src}#play-${appleFallbackToken}`;
+      appleCutscene.dataset.renderer = "fallback";
+      try {
+        await appleFallback.decode();
+      } catch {
+        // The first animated frame can still render even when decode() is unavailable.
+      }
+      return true;
+    };
+
+    const configureAppleScene = () => {
+      if (!(appleCutscene instanceof HTMLElement)) return 1;
+      const kisaraCenter = centerOf("kisara");
+      const ayanoCenter = centerOf("ayano");
+      const direction = ayanoCenter.x >= kisaraCenter.x ? 1 : -1;
+      const midpointX = (kisaraCenter.x + ayanoCenter.x) / 2;
+      const midpointY = (kisaraCenter.y + ayanoCenter.y) / 2;
+      const compactMinimum = Math.min(414, root.clientWidth * 1.08);
+      const mediaWidth = Math.min(830, Math.max(compactMinimum, root.clientWidth * 0.7));
+      const mediaHeight = mediaWidth * 540 / 740;
+      const clampMediaCenter = (value, size, available) => {
+        const margin = size / 2 + 6;
+        if (margin * 2 >= available) return available / 2;
+        return Math.min(Math.max(margin, value), available - margin);
+      };
+      const cutinX = clampMediaCenter(midpointX, mediaWidth, root.clientWidth);
+      const cutinY = clampMediaCenter(midpointY - 12, mediaHeight, root.clientHeight);
+      const impactX = Math.min(Math.max(46, ayanoCenter.x), root.clientWidth - 46);
+      const impactY = Math.min(Math.max(70, ayanoCenter.y), root.clientHeight - 54);
+
+      appleCutscene.style.setProperty("--apple-x", `${cutinX}px`);
+      appleCutscene.style.setProperty("--apple-y", `${cutinY}px`);
+      appleCutscene.style.setProperty("--apple-media-width", `${mediaWidth}px`);
+      appleCutscene.style.setProperty("--apple-direction", `${direction}`);
+      appleCutscene.style.setProperty("--apple-entry-x", `${direction > 0 ? -42 : 42}px`);
+      appleCutscene.style.setProperty("--apple-exit-x", `${direction > 0 ? 24 : -24}px`);
+      appleCutscene.style.setProperty("--apple-impact-x", `${impactX}px`);
+      appleCutscene.style.setProperty("--apple-impact-y", `${impactY}px`);
+
+      root.style.setProperty("--apple-throw-wind", direction > 0 ? "-5deg" : "5deg");
+      root.style.setProperty("--apple-throw-release", direction > 0 ? "7deg" : "-7deg");
+      root.style.setProperty("--apple-throw-settle", direction > 0 ? "-2deg" : "2deg");
+      root.style.setProperty("--apple-hit-far", `${direction * 13}px`);
+      root.style.setProperty("--apple-hit-return", `${direction * -5}px`);
+      root.style.setProperty("--apple-hit-settle", `${direction * 3}px`);
+      root.style.setProperty("--apple-hit-tilt", `${direction * 7}deg`);
+      root.style.setProperty("--apple-hit-return-tilt", `${direction * -4}deg`);
+      root.style.setProperty("--apple-hit-settle-tilt", `${direction * 2}deg`);
+      return direction;
+    };
+
+    const clearAppleScene = () => {
+      appleActive = false;
+      root.removeAttribute("data-apple-playing");
+      root.classList.remove("is-apple-impact");
+      appleCutscene?.classList.remove("is-active");
+      appleCutscene?.removeAttribute("data-renderer");
+      nodes.forEach((node) => node.classList.remove("is-apple-focus", "is-apple-throw", "is-apple-hit"));
+      if (appleVideo instanceof HTMLVideoElement) {
+        appleVideo.pause();
+        if (appleVideo.readyState > 0) appleVideo.currentTime = 0;
+      }
+    };
+
+    const cancelScene = (hideBubbles = true) => {
+      sceneToken += 1;
+      if (appleActive) clearAppleScene();
+      timers.forEach((timer) => window.clearTimeout(timer));
+      timers.clear();
+      if (!hideBubbles) return;
+      bubbleTimers.forEach((timer) => window.clearTimeout(timer));
+      bubbleTimers.clear();
+      nodes.forEach((node) => {
+        node.classList.remove("is-speaking", "is-dropped", "is-snapping");
+        const bubble = node.querySelector("[data-chibi-bubble]");
+        bubble?.classList.remove("is-visible");
+        bubble?.setAttribute("aria-hidden", "true");
+      });
+    };
+
+    const playSolo = (id) => {
+      cancelScene();
+      setBubble(id, randomItem(soloEmoji[id] || ["✨"]));
+    };
+
+    const playScene = (ids) => {
+      cancelScene();
+      const key = sceneKey(ids);
+      const variants = scenes[key];
+      if (!variants?.length) {
+        ids.forEach((id, index) => schedule(() => setBubble(id, randomItem(soloEmoji[id])), index * 220));
+        return;
+      }
+
+      const token = sceneToken;
+      const beats = randomItem(variants);
+      root.style.setProperty("--scene-accent", key.includes("kisara") ? "255, 91, 126" : key.includes("sharon") ? "145, 132, 255" : "112, 164, 255");
+      beats.forEach(([speaker, emoji], index) => {
+        schedule(() => {
+          if (token !== sceneToken) return;
+          setBubble(speaker, emoji, index === beats.length - 1 ? 1450 : 1120);
+        }, 160 + index * 610);
+      });
+    };
+
+    const playApplePrelude = () => {
+      cancelScene();
+      const token = sceneToken;
+      const beats = [["kisara", "😤💢"], ["ayano", "😏🍎"], ["kisara", "👀🍎❓"]];
+      root.style.setProperty("--scene-accent", "255, 91, 126");
+      beats.forEach(([speaker, emoji], index) => {
+        schedule(() => {
+          if (token !== sceneToken) return;
+          setBubble(speaker, emoji, index === beats.length - 1 ? 1380 : 1040);
+        }, 120 + index * 520);
+      });
+    };
+
+    const playAppleScene = () => {
+      cancelScene();
+      const token = sceneToken;
+      appleActive = true;
+      configureAppleScene();
+      const kisaraNode = nodes.get("kisara");
+      const ayanoNode = nodes.get("ayano");
+
+      root.dataset.applePlaying = "true";
+      root.style.setProperty("--scene-accent", "255, 73, 105");
+      kisaraNode?.classList.add("is-apple-focus");
+      ayanoNode?.classList.add("is-apple-focus");
+      setBubble("kisara", "😡🍎", 760, false);
+      schedule(() => {
+        if (token !== sceneToken) return;
+        setBubble("ayano", "😳❗", 720, false);
+      }, 120);
+
+      const playImpact = () => {
+        if (token !== sceneToken || !appleActive) return;
+        root.classList.remove("is-apple-impact");
+        void root.offsetWidth;
+        root.classList.add("is-apple-impact");
+        animateClass(ayanoNode, "is-apple-hit", 700);
+        setBubble("ayano", "🍎💫😵‍💫", 1420, false);
+        schedule(() => {
+          if (token !== sceneToken) return;
+          setBubble("kisara", "😤💢", 1240, false);
+        }, 210);
+      };
+
+      if (reducedMotion.matches) {
+        animateClass(kisaraNode, "is-apple-throw", 1);
+        schedule(playImpact, 180);
+        schedule(() => {
+          if (token === sceneToken) clearAppleScene();
+        }, 900);
+        return;
+      }
+
+      schedule(async () => {
+        const mediaReady = await startAppleMedia();
+        if (token !== sceneToken || !appleActive) return;
+
+        if (mediaReady && appleCutscene instanceof HTMLElement) {
+          appleCutscene.classList.remove("is-active");
+          void appleCutscene.offsetWidth;
+          appleCutscene.classList.add("is-active");
+        }
+
+        animateClass(kisaraNode, "is-apple-throw", 760);
+        schedule(playImpact, mediaReady ? 430 : 220);
+        schedule(() => appleCutscene?.classList.remove("is-active"), mediaReady ? 900 : 520);
+        schedule(() => {
+          if (token !== sceneToken) return;
+          clearAppleScene();
+          root.style.setProperty("--scene-accent", "255, 91, 126");
+        }, mediaReady ? 1320 : 920);
+      }, 180);
+    };
+
+    const appleInteractionMode = (actorId, ids) => {
+      const isApplePair = actorId === "kisara" && sceneKey(ids) === "ayano|kisara";
+      if (!isApplePair) {
+        if (actorId === "kisara") applePairHits = 0;
+        return "normal";
+      }
+
+      const now = performance.now();
+      if (now < appleCooldownUntil) return "normal";
+      if (now - lastApplePairAt > 9000) applePairHits = 0;
+      lastApplePairAt = now;
+      applePairHits += 1;
+
+      if (applePairHits < 2) return "prelude";
+      applePairHits = 0;
+      appleCooldownUntil = now + 12000;
+      return "cutscene";
+    };
+
+    const initialLayout = (animate = false) => {
+      cancelScene();
+      groups.splice(0, groups.length);
+      const width = root.clientWidth;
+      const height = root.clientHeight;
+      const compact = width < 620;
+      lastCompactLayout = compact;
+
+      if (compact) {
+        const placements = {
+          kisara: [0.08, 0.16],
+          ayano: [0.58, 0.18],
+          shu: [0.12, 0.57],
+          sharon: [0.55, 0.54],
+        };
+        characterOrder.forEach((id) => {
+          const { width: itemWidth } = dimensions(id);
+          const [ratioX, ratioY] = placements[id];
+          setPosition(id, Math.min(width - itemWidth - 10, width * ratioX), height * ratioY, animate);
+        });
+      } else {
+        const ratios = { kisara: 0.06, ayano: 0.31, shu: 0.58, sharon: 0.79 };
+        characterOrder.forEach((id, index) => {
+          const { height: itemHeight } = dimensions(id);
+          const y = height - itemHeight - (index % 2 ? 42 : 34);
+          setPosition(id, width * ratios[id], y, animate);
+        });
+      }
+
+      root.style.setProperty("--scene-accent", "255, 91, 126");
+      root.dataset.ready = "true";
+      lastStageSize = { width, height };
+    };
+
+    const layoutGroup = (ids, placement) => {
+      const ordered = [...new Set(ids)].filter((id) => nodes.has(id));
+      const items = ordered.map((id) => ({ id, ...dimensions(id) }));
+      const stageWidth = root.clientWidth;
+      const stageHeight = root.clientHeight;
+      const maxWidth = Math.max(...items.map((item) => item.width));
+      const maxHeight = Math.max(...items.map((item) => item.height));
+      const anchor = placement.anchor;
+      const useGrid =
+        (stageWidth < 660 && items.length >= 3) ||
+        (stageWidth < 760 && items.length >= 4);
+
+      if (!useGrid) {
+        const gap = 14;
+        const totalWidth = items.reduce((sum, item) => sum + item.width, 0) + gap * (items.length - 1);
+        const preferredStartX = Number.isFinite(placement.startX)
+          ? placement.startX
+          : anchor.x - totalWidth / 2;
+        const startX = Math.min(
+          Math.max(12, preferredStartX),
+          Math.max(12, stageWidth - totalWidth - 12)
+        );
+        const preferredBaseline = Number.isFinite(placement.baseline)
+          ? placement.baseline
+          : anchor.y + maxHeight * 0.47;
+        const baseline = Math.min(
+          Math.max(maxHeight + 54, preferredBaseline),
+          stageHeight - 30
+        );
+        let cursor = startX;
+        items.forEach((item, index) => {
+          setPosition(item.id, cursor, baseline - item.height + (index % 2 ? 3 : 0), true);
+          cursor += item.width + gap;
+        });
+        return;
+      }
+
+      const columns = 2;
+      const cellWidth = Math.min(maxWidth + 15, (stageWidth - 34) / columns);
+      const rowGap = Math.max(102, maxHeight * 0.63);
+      const rows = Math.ceil(items.length / columns);
+      const totalWidth = cellWidth * columns;
+      const startX = Math.min(Math.max(12, anchor.x - totalWidth / 2), Math.max(12, stageWidth - totalWidth - 12));
+      const blockHeight = maxHeight + rowGap * (rows - 1);
+      const startY = Math.min(Math.max(48, anchor.y - blockHeight / 2), Math.max(48, stageHeight - blockHeight - 26));
+
+      items.forEach((item, index) => {
+        const row = Math.floor(index / columns);
+        const column = index % columns;
+        const rowCount = Math.min(columns, items.length - row * columns);
+        const rowOffset = rowCount === 1 ? cellWidth / 2 : 0;
+        setPosition(
+          item.id,
+          startX + column * cellWidth + rowOffset + (cellWidth - item.width) / 2,
+          startY + row * rowGap + (maxHeight - item.height),
+          true
+        );
+      });
+    };
+
+    const nearestTarget = (actorId) => {
+      const actorCenter = centerOf(actorId);
+      const actorSize = dimensions(actorId);
+      let winner = null;
+
+      nodes.forEach((node, id) => {
+        if (id === actorId) return;
+        const targetCenter = centerOf(id);
+        const targetSize = dimensions(id);
+        const distance = Math.hypot(actorCenter.x - targetCenter.x, actorCenter.y - targetCenter.y);
+        const threshold = Math.min(210, (actorSize.width + targetSize.width) * 0.72);
+        if (distance <= threshold && (!winner || distance < winner.distance)) {
+          winner = { id, distance, center: targetCenter };
+        }
+      });
+      return winner;
+    };
+
+    const settleCharacter = (id) => {
+      const node = nodes.get(id);
+      if (!node) return;
+      animateClass(node, "is-dropped", 620);
+      const target = nearestTarget(id);
+      if (!target) {
+        if (id === "kisara") applePairHits = 0;
+        playSolo(id);
+        return;
+      }
+
+      const existing = groupFor(target.id) || [target.id];
+      const existingBounds = boundsOf(existing);
+      const actorCenter = centerOf(id);
+      const horizontalDelta = actorCenter.x - existingBounds.centerX;
+      const leftRoom = existingBounds.left - 12;
+      const rightRoom = root.clientWidth - existingBounds.right - 12;
+      const placeOnLeft = Math.abs(horizontalDelta) < 12
+        ? leftRoom > rightRoom
+        : horizontalDelta < 0;
+      const members = placeOnLeft ? [id, ...existing] : [...existing, id];
+      const preferredStartX = placeOnLeft
+        ? existingBounds.left - dimensions(id).width - 14
+        : existingBounds.left;
+      groups.splice(0, groups.length, ...groups.filter((group) => !group.some((member) => members.includes(member))));
+      groups.push(members);
+      layoutGroup(members, {
+        anchor: {
+          x: existingBounds.centerX,
+          y: existingBounds.centerY,
+        },
+        startX: preferredStartX,
+        baseline: existingBounds.bottom,
+      });
+      const appleMode = appleInteractionMode(id, members);
+      schedule(() => {
+        if (appleMode === "cutscene") playAppleScene();
+        else if (appleMode === "prelude") playApplePrelude();
+        else playScene(members);
+      }, 360);
+    };
+
+    const beginDrag = (event, id) => {
+      if (event.button !== 0 && event.pointerType !== "touch") return;
+      const node = nodes.get(id);
+      if (!node) return;
+      event.preventDefault();
+      cancelScene();
+      removeFromGroups(id);
+      const rect = node.getBoundingClientRect();
+      drag = {
+        id,
+        pointerId: event.pointerId,
+        offsetX: event.clientX - rect.left,
+        offsetY: event.clientY - rect.top,
+        lastX: event.clientX,
+        moved: false,
+      };
+      node.setPointerCapture?.(event.pointerId);
+      node.classList.remove("is-snapping", "is-dropped");
+      node.classList.add("is-dragging");
+      root.dataset.dragging = "true";
+    };
+
+    const moveDrag = (event) => {
+      if (!drag || event.pointerId !== drag.pointerId) return;
+      event.preventDefault();
+      const stageRect = root.getBoundingClientRect();
+      const nextX = event.clientX - stageRect.left - drag.offsetX;
+      const nextY = event.clientY - stageRect.top - drag.offsetY;
+      const deltaX = event.clientX - drag.lastX;
+      drag.lastX = event.clientX;
+      drag.moved ||= Math.abs(deltaX) > 2 || Math.abs(event.movementY || 0) > 2;
+      const node = nodes.get(drag.id);
+      node?.style.setProperty("--drag-tilt", `${Math.max(-7, Math.min(7, deltaX * 0.55))}deg`);
+      if (frame) cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        if (drag) setPosition(drag.id, nextX, nextY);
+      });
+    };
+
+    const endDrag = (event, cancelled = false) => {
+      if (!drag || event.pointerId !== drag.pointerId) return;
+      const current = drag;
+      drag = null;
+      const node = nodes.get(current.id);
+      node?.releasePointerCapture?.(event.pointerId);
+      node?.classList.remove("is-dragging");
+      node?.style.setProperty("--drag-tilt", "0deg");
+      root.removeAttribute("data-dragging");
+      if (!cancelled) settleCharacter(current.id);
+    };
+
+    nodes.forEach((node, id) => {
+      node.addEventListener("pointerdown", (event) => beginDrag(event, id), { signal: lifecycle.signal });
+      node.addEventListener("pointermove", moveDrag, { signal: lifecycle.signal });
+      node.addEventListener("pointerup", (event) => endDrag(event), { signal: lifecycle.signal });
+      node.addEventListener("pointercancel", (event) => endDrag(event, true), { signal: lifecycle.signal });
+      node.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          playSolo(id);
+        }
+      }, { signal: lifecycle.signal });
+    });
+
+    resetButton?.addEventListener("click", () => {
+      applePairHits = 0;
+      lastApplePairAt = 0;
+      appleCooldownUntil = 0;
+      initialLayout(true);
+    }, { signal: lifecycle.signal });
+
+    const resizeObserver = new ResizeObserver(() => {
+      const width = root.clientWidth;
+      const height = root.clientHeight;
+      if (!width || !height) return;
+      const compact = width < 620;
+      if (!lastStageSize.width || !lastStageSize.height) {
+        initialLayout(false);
+        return;
+      }
+      if (lastCompactLayout !== compact) {
+        initialLayout(false);
+        return;
+      }
+      const scaleX = width / lastStageSize.width;
+      const scaleY = height / lastStageSize.height;
+      state.forEach((point, id) => setPosition(id, point.x * scaleX, point.y * scaleY));
+      lastStageSize = { width, height };
+    });
+    resizeObserver.observe(root);
+
+    if (preloadAppleMedia && appleVideo instanceof HTMLVideoElement && "IntersectionObserver" in window) {
+      applePreloadObserver = new IntersectionObserver((entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        loadAppleVideo();
+        applePreloadObserver?.disconnect();
+        applePreloadObserver = null;
+      }, { rootMargin: "600px 0px" });
+      applePreloadObserver.observe(root);
+    }
+
+    const cleanup = () => {
+      if (cleaned) return;
+      cleaned = true;
+      if (frame) cancelAnimationFrame(frame);
+      clearTimerSet();
+      clearAppleScene();
+      applePreloadObserver?.disconnect();
+      applePreloadObserver = null;
+      resizeObserver.disconnect();
+      lifecycle.abort();
+      if (appleVideo instanceof HTMLVideoElement) {
+        appleVideo.removeAttribute("src");
+        appleVideo.load();
+      }
+      appleFallback?.removeAttribute("src");
+      delete root.dataset.kisaraRuntimeBound;
+      if (window.__yuimiKisaraChibiCleanup === cleanup) delete window.__yuimiKisaraChibiCleanup;
+    };
+
+    window.__yuimiKisaraChibiCleanup = cleanup;
+    document.addEventListener("astro:before-swap", cleanup, { once: true, signal: lifecycle.signal });
+    requestAnimationFrame(() => initialLayout(false));
+  };
+
+  document.addEventListener("astro:page-load", initKisaraChibiStage);
+  initKisaraChibiStage();
+</script>

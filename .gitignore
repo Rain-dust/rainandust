@@ -1,40 +1,27 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# Astro
-/.astro/
-/.vite-cache/
-
-# legacy local build caches
-/.vinext/
-/.wrangler/
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
+node_modules/
+dist/
+.astro/
+.vite-cache/
+.vinext/
+.wrangler/
+artifacts/
+outputs/
+work/
 .env*
+.DS_Store
+Thumbs.db
+*.log
+*.pem
+__pycache__/
+*.pyc
 
-# typescript
-/dist/
-/outputs/
-/work/
+# Local source materials already copied/processed into public assets or content.
+/Profile.jpg
+!/public/themes/fuyukawa-kagari/assets/profile.jpg
+fuyukawa_kagari_static_2400x1700.png
+矮脚猪.png
+astrbot_plugin_dev_experience.md
+roleplay_persona_prompt_experience.md
+astrbot教学/
+技能/
+文章封面/

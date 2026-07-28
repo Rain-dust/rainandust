@@ -1,0 +1,763 @@
+---
+import "../styles/theme.css";
+import { Icon } from "astro-icon/components";
+import { ClientRouter } from "astro:transitions";
+import ThemePreferenceGate from "@/core/themes/ThemePreferenceGate.astro";
+import ThemeLongPressMenu from "@/core/themes/ThemeLongPressMenu.astro";
+import ConsoleEasterEgg from "@/core/ConsoleEasterEgg.astro";
+import PerformanceProfile from "@/core/PerformanceProfile.astro";
+import { profileIdentity } from "@/core/data/profile";
+import { getCanonicalPath, getThemePath, themes } from "@/core/themes/registry";
+import { site } from "@/lib/site";
+import KisaraAudioControl from "../components/KisaraAudioControl.astro";
+import KisaraChibiStage from "../components/KisaraChibiStage.astro";
+import {
+  KISARA_AUDIO_LEGACY_STORAGE_KEY,
+  KISARA_AUDIO_STORAGE_KEY,
+  KISARA_SECRET_AUDIO_SESSION_KEY,
+  KISARA_AUDIO_VOLUME,
+  kisaraAudioTracks,
+  kisaraSecretAudioTracks
+} from "../lib/audio";
+
+interface Props {
+  title?: string;
+  description?: string;
+  isArticlePage?: boolean;
+  stylesheets?: string[];
+}
+
+const {
+  title = `${site.title} | Kisara`,
+  description = site.description,
+  isArticlePage = false,
+  stylesheets = []
+} = Astro.props;
+const canonicalPath = getCanonicalPath(Astro.url.pathname);
+const canonical = new URL(canonicalPath, Astro.site ?? Astro.url);
+const isHome = canonicalPath === "/";
+const pageKey = canonicalPath.split("/").filter(Boolean)[0] ?? "home";
+const navItems = site.nav.map((item) => {
+  const active = item.href === "/" ? isHome : canonicalPath.startsWith(item.href);
+  const homeExitRoute = isHome && item.href !== "/";
+  return {
+    ...item,
+    href: getThemePath("kisara", item.href),
+    active,
+    warmup: import.meta.env.PROD && !active ? (homeExitRoute ? "load" : "hover") : undefined
+  };
+});
+const themeOptions = themes.map((theme) => ({
+  ...theme,
+  href: getThemePath(theme.id, canonicalPath)
+}));
+const contextThemeLabels: Record<string, string> = {
+  "fuyukawa-kagari": "KAGARI",
+  blank: "BLANK",
+  kisara: "KISARA"
+};
+const audioConfig = {
+  tracks: kisaraAudioTracks,
+  secretTracks: kisaraSecretAudioTracks,
+  storageKey: KISARA_AUDIO_STORAGE_KEY,
+  legacyStorageKey: KISARA_AUDIO_LEGACY_STORAGE_KEY,
+  secretSessionKey: KISARA_SECRET_AUDIO_SESSION_KEY,
+  volume: KISARA_AUDIO_VOLUME
+};
+---
+
+<!doctype html>
+<html lang="zh-CN" data-theme="kisara">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <PerformanceProfile />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#111636" />
+    <meta name="robots" content="noindex,follow" />
+    <link rel="icon" type="image/x-icon" href="/themes/kisara/favicon.ico?v=keyheart" />
+    <link rel="canonical" href={canonical} />
+    {stylesheets.map((href) => <link rel="stylesheet" href={href} />)}
+    <ThemePreferenceGate currentTheme="kisara" />
+    <ClientRouter fallback="swap" />
+    <ConsoleEasterEgg />
+    <script>
+      import { initKisaraRouteWarmup } from "../lib/routeWarmup";
+
+      initKisaraRouteWarmup();
+    </script>
+    <script is:inline define:vars={{ isHome }}>
+      (() => {
+        window.__yuimiKisaraHomeBootController?.dispose?.();
+        const html = document.documentElement;
+        let timer = 0;
+
+        const clearTimer = () => {
+          if (timer) window.clearTimeout(timer);
+          timer = 0;
+        };
+
+        const isHomeDocument = (documentLike) => Boolean(
+          documentLike?.body?.classList.contains("kisara-home-page")
+        );
+
+        const clear = () => {
+          clearTimer();
+          html.removeAttribute("data-kisara-home-boot");
+          html.removeAttribute("data-kisara-home-ready");
+        };
+
+        const arm = () => {
+          clearTimer();
+          html.setAttribute("data-kisara-home-boot", "pending");
+          html.removeAttribute("data-kisara-home-ready");
+          timer = window.setTimeout(() => {
+            timer = 0;
+            if (!html.hasAttribute("data-kisara-home-ready")) {
+              html.removeAttribute("data-kisara-home-boot");
+            }
+          }, 4500);
+        };
+
+        const markReady = () => {
+          if (!isHomeDocument(document)) return;
+          clearTimer();
+          html.setAttribute("data-kisara-home-ready", "true");
+          html.removeAttribute("data-kisara-home-boot");
+        };
+
+        const handleBeforeSwap = (event) => {
+          if (isHomeDocument(event.newDocument)) arm();
+          else clear();
+        };
+        const handleAfterSwap = () => {
+          if (isHomeDocument(document)) arm();
+          else clear();
+        };
+
+        document.addEventListener("astro:before-swap", handleBeforeSwap);
+        document.addEventListener("astro:after-swap", handleAfterSwap);
+        window.__yuimiKisaraHomeBootController = {
+          arm,
+          clear,
+          markReady,
+          dispose: () => {
+            clearTimer();
+            document.removeEventListener("astro:before-swap", handleBeforeSwap);
+            document.removeEventListener("astro:after-swap", handleAfterSwap);
+          }
+        };
+
+        if (isHome) arm();
+        else clear();
+      })();
+    </script>
+    <script is:inline define:vars={{ audioConfig, isHome }}>
+      (() => {
+        if (window.__yuimiKisaraAudioBootstrap?.audio instanceof HTMLAudioElement) return;
+
+        const bootstrap = {
+          audio: null,
+          tracks: audioConfig.tracks,
+          trackId: audioConfig.tracks[0]?.id ?? "",
+          enabled: true,
+          persistedResumeIntent: false,
+          restoredFromStorage: false,
+          restoreTime: 0,
+          playPromise: null,
+          blocked: false,
+          settled: false,
+          claimed: false
+        };
+        window.__yuimiKisaraAudioBootstrap = bootstrap;
+        if (!Array.isArray(audioConfig.tracks) || audioConfig.tracks.length === 0) return;
+
+        let storedState = null;
+        try {
+          const stored = JSON.parse(localStorage.getItem(audioConfig.storageKey) ?? "null");
+          if (stored && typeof stored === "object") {
+            storedState = stored;
+            bootstrap.restoredFromStorage = true;
+          }
+        } catch {}
+
+        if (!storedState) {
+          try {
+            const legacy = JSON.parse(sessionStorage.getItem(audioConfig.legacyStorageKey) ?? "null");
+            if (legacy && typeof legacy === "object") {
+              storedState = legacy;
+              bootstrap.restoredFromStorage = true;
+            }
+          } catch {}
+        }
+
+        if (typeof storedState?.enabled === "boolean") {
+          bootstrap.enabled = storedState.enabled;
+          bootstrap.persistedResumeIntent = storedState.enabled;
+        }
+        if (Number.isFinite(storedState?.currentTime)) {
+          bootstrap.restoreTime = Math.max(0, storedState.currentTime);
+        }
+
+        let storedSecretSession = null;
+        try {
+          const stored = JSON.parse(sessionStorage.getItem(audioConfig.secretSessionKey) ?? "null");
+          if (stored && typeof stored === "object") storedSecretSession = stored;
+        } catch {}
+        if (storedSecretSession) window.__yuimiKisaraSecretAudioSession = storedSecretSession;
+
+        const unlockedSecretIds = new Set(
+          Array.isArray(storedSecretSession?.unlockedIds) ? storedSecretSession.unlockedIds : []
+        );
+        const unlockedSecretTracks = audioConfig.secretTracks.filter((candidate) => unlockedSecretIds.has(candidate.id));
+        bootstrap.tracks = [...audioConfig.tracks, ...unlockedSecretTracks];
+
+        const storedTrackId = typeof storedState?.trackId === "string" ? storedState.trackId : "";
+        let track = audioConfig.tracks.find((candidate) => candidate.id === storedTrackId)
+          ?? audioConfig.tracks[0];
+        const activeSecretTrack = storedSecretSession?.active
+          ? unlockedSecretTracks.find((candidate) => candidate.id === storedSecretSession.activeTrackId)
+          : null;
+        if (activeSecretTrack) {
+          track = activeSecretTrack;
+          bootstrap.enabled = storedSecretSession.secretEnabled !== false;
+          bootstrap.persistedResumeIntent = storedSecretSession.normalEnabled !== false;
+          bootstrap.restoreTime = Math.max(0, Number(storedSecretSession.secretTime) || 0);
+          bootstrap.restoredFromStorage = true;
+        }
+        bootstrap.trackId = track.id;
+
+        try {
+          const audio = new Audio();
+          audio.dataset.kisaraThemeAudio = "";
+          audio.dataset.kisaraAudioBootstrap = "head";
+          audio.preload = isHome ? "none" : "auto";
+          audio.playsInline = true;
+          audio.setAttribute("playsinline", "");
+          audio.volume = audioConfig.volume;
+          bootstrap.audio = audio;
+          let audioStarted = false;
+
+          const restorePosition = () => {
+            const time = bootstrap.restoreTime;
+            if (!(time > 0)) return;
+            try {
+              if (Number.isFinite(audio.duration) && audio.duration > 0) {
+                audio.currentTime = time >= audio.duration - 0.5
+                  ? 0
+                  : Math.min(time, audio.duration - 0.25);
+              } else {
+                audio.currentTime = time;
+              }
+            } catch {}
+          };
+
+          audio.addEventListener("loadedmetadata", restorePosition, { once: true });
+          const startAudio = () => {
+            if (audioStarted) return bootstrap.playPromise ?? Promise.resolve(!audio.paused);
+            audioStarted = true;
+            audio.preload = "auto";
+            audio.src = track.src;
+            audio.load();
+
+            if (!bootstrap.enabled) {
+              bootstrap.settled = true;
+              return Promise.resolve(false);
+            }
+
+            return Promise.resolve(audio.play())
+              .then(() => {
+                bootstrap.blocked = false;
+                return true;
+              })
+              .catch(() => {
+                bootstrap.blocked = !audio.error;
+                return false;
+              })
+              .finally(() => {
+                bootstrap.settled = true;
+              });
+          };
+
+          bootstrap.playPromise = isHome && document.readyState === "loading"
+            ? new Promise((resolve) => {
+                document.addEventListener("DOMContentLoaded", () => resolve(startAudio()), { once: true });
+              })
+            : startAudio();
+        } catch {
+          bootstrap.settled = true;
+        }
+      })();
+    </script>
+    <title>{title}</title>
+  </head>
+  <body
+    class:list={[isHome ? "kisara-home-page" : "kisara-inner-page"]}
+    data-kisara-page={pageKey}
+    data-yuimi-selection-lock={isArticlePage ? undefined : "true"}
+    data-yuimi-article-page={isArticlePage ? "true" : undefined}
+    data-pagefind-ignore
+    transition:animate="none"
+  >
+    <a class="kisara-skip-link" href="#kisara-main">跳到正文</a>
+    <header class:list={["kisara-header", isHome ? "is-home-header" : "is-inner-header"]}>
+      <a class="kisara-brand" href={getThemePath("kisara", "/")} aria-label="Kisara 主题首页">
+        <span class="kisara-brand-mark" aria-hidden="true"></span>
+        <span><strong>RAIN_DUST</strong><small>KISARA / 03</small></span>
+      </a>
+      <nav class="kisara-nav" aria-label="Kisara theme navigation">
+        {navItems.map((item) => (
+          <a
+            href={item.href}
+            aria-current={item.active ? "page" : undefined}
+            data-astro-prefetch={item.active ? undefined : item.warmup === "load" ? "false" : item.warmup}
+            data-kisara-route-warmup={item.warmup === "load" ? "load" : undefined}
+          >
+            <Icon name={item.icon} aria-hidden="true" />
+            <span>{item.label}</span>
+          </a>
+        ))}
+      </nav>
+      <button class="kisara-theme-button" type="button" data-kisara-theme-button aria-label="选择主题" title="选择主题" aria-expanded="false">
+        <Icon name="tabler:palette" aria-hidden="true" />
+      </button>
+    </header>
+
+    <div class="kisara-theme-panel" data-kisara-theme-panel hidden>
+      <div class="kisara-panel-heading">
+        <span>SELECT THEME</span>
+        <button type="button" data-kisara-panel-close aria-label="关闭主题选择器" title="关闭">
+          <Icon name="tabler:x" aria-hidden="true" />
+        </button>
+      </div>
+      {themeOptions.map((theme) => (
+        <button type="button" data-theme-select={theme.id} aria-pressed={theme.id === "kisara" ? "true" : "false"}>
+          <i aria-hidden="true"></i>
+          {theme.label}
+        </button>
+      ))}
+    </div>
+
+    <KisaraAudioControl />
+
+    <main id="kisara-main" class="kisara-main">
+      <slot />
+    </main>
+
+    <footer class="kisara-footer">
+      <KisaraChibiStage />
+      <div class="kisara-footer-wave" aria-hidden="true"><span></span><i></i><i></i><i></i><i></i><i></i><span></span></div>
+      <div class="kisara-footer-meta">
+        <span class="kisara-footer-signal"><i aria-hidden="true"></i>CONTRACT CHANNEL 03 / ONLINE</span>
+        <div>
+          <a href={profileIdentity.github} target="_blank" rel="noreferrer"><Icon name="tabler:brand-github" aria-hidden="true" />GITHUB</a>
+          <a href={profileIdentity.email}><Icon name="tabler:mail" aria-hidden="true" />EMAIL</a>
+        </div>
+        <span>© 2026 寻辰沐雨 / RAIN_DUST</span>
+      </div>
+    </footer>
+
+    <div
+      class="kisara-scrollbar is-idle"
+      data-kisara-scrollbar
+      role="progressbar"
+      aria-label="页面滚动进度"
+      aria-controls="kisara-main"
+      aria-orientation="vertical"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-valuenow="0"
+    >
+      <span class="kisara-scrollbar-progress" aria-hidden="true"></span>
+      <span class="kisara-scrollbar-thumb" data-kisara-scrollbar-thumb aria-hidden="true"><i></i></span>
+      <span class="kisara-scrollbar-guide" aria-hidden="true"><i></i><i></i></span>
+    </div>
+
+    <nav class="kisara-context-menu" data-kisara-context-menu hidden aria-label="Kisara 主题快捷菜单">
+      <header class="kisara-context-head">
+        <span class="kisara-context-emblem" aria-hidden="true"><Icon name="tabler:heart" /></span>
+        <span class="kisara-context-identity">
+          <strong>KISARA</strong>
+          <small>QUICK ACCESS</small>
+        </span>
+        <button class="kisara-context-close" type="button" data-kisara-action="close" aria-label="关闭快捷菜单" title="关闭">
+          <Icon name="tabler:x" aria-hidden="true" />
+        </button>
+      </header>
+
+      <div class="kisara-context-command-strip" aria-label="浏览器操作">
+        <button type="button" data-kisara-action="back" aria-label="后退" title="后退">
+          <Icon name="tabler:arrow-left" aria-hidden="true" /><span>后退</span>
+        </button>
+        <button type="button" data-kisara-action="forward" aria-label="前进" title="前进">
+          <Icon name="tabler:arrow-right" aria-hidden="true" /><span>前进</span>
+        </button>
+        <button type="button" data-kisara-action="refresh" aria-label="刷新" title="刷新">
+          <Icon name="tabler:refresh" aria-hidden="true" /><span>刷新</span>
+        </button>
+        <button type="button" data-kisara-action="top" aria-label="回到顶部" title="回到顶部">
+          <Icon name="tabler:arrow-up" aria-hidden="true" /><span>顶部</span>
+        </button>
+      </div>
+
+      <div class="kisara-context-page-actions" aria-label="页面操作">
+        <button type="button" data-kisara-action="home">
+          <Icon name="tabler:home" aria-hidden="true" /><span>主题首页</span>
+        </button>
+        <button type="button" data-kisara-action="copy" data-kisara-default-label="复制链接">
+          <Icon name="tabler:link" aria-hidden="true" /><span>复制链接</span>
+        </button>
+      </div>
+
+      <div class="kisara-context-theme-switch">
+        <span>THEME</span>
+        <div aria-label="切换主题">
+          {themeOptions.map((theme) => (
+            <button
+              type="button"
+              data-theme-select={theme.id}
+              aria-pressed={theme.id === "kisara" ? "true" : "false"}
+              aria-label={`切换到 ${theme.label} 主题`}
+              title={theme.label}
+            >
+              <i aria-hidden="true"></i>
+              <span>{contextThemeLabels[theme.id] ?? theme.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <span class="kisara-context-live" data-kisara-context-status aria-live="polite"><span></span></span>
+    </nav>
+
+    <ThemeLongPressMenu />
+
+    <script is:inline data-astro-rerun>
+      (() => {
+        window.__yuimiKisaraLayoutCleanup?.();
+        const lifecycle = new AbortController();
+        const signal = lifecycle.signal;
+        const panel = document.querySelector("[data-kisara-theme-panel]");
+        const panelButton = document.querySelector("[data-kisara-theme-button]");
+        const panelClose = document.querySelector("[data-kisara-panel-close]");
+        const menu = document.querySelector("[data-kisara-context-menu]");
+        const menuStatus = menu?.querySelector("[data-kisara-context-status]");
+        const scrollbar = document.querySelector("[data-kisara-scrollbar]");
+        let returnFocus = null;
+        let scrollbarFrame = 0;
+        let scrollbarResizeObserver = null;
+        let gateRailActive = false;
+        let gateRailProgress = 0;
+        let gateRailStage = "document";
+        let gateRailGuided = false;
+        let gateRailTransitioning = false;
+        let gateRailPlaybackRate = 1;
+        let gateRailPressure = 0;
+        let gateRailReleaseMode = "manual";
+
+        const gateStageLabels = {
+          awakening: "锁链唤醒",
+          "outer-bind": "外环缠绕",
+          "inner-bind": "内层交织",
+          "maximum-tension": "封印拉满",
+          glitch: "封印过载",
+          rupture: "锁链崩断",
+          enchant: "契约附魔",
+          blade: "刀光蓄势",
+          warning: "爆发预警",
+          singularity: "黑洞成形",
+          collapse: "引力塌缩",
+          detonation: "能量爆发",
+          reconstruction: "数据重构",
+          complete: "契约释放",
+          returning: "信号回收"
+        };
+
+        const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+        const getScrollbarMetrics = () => {
+          if (!(scrollbar instanceof HTMLElement)) return null;
+          const root = document.scrollingElement ?? document.documentElement;
+          const trackRect = scrollbar.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+          const scrollHeight = Math.max(root.scrollHeight, document.body.scrollHeight);
+          const scrollRange = Math.max(0, scrollHeight - viewportHeight);
+          const minimumThumbSize = window.innerWidth <= 600 ? 34 : 46;
+          const thumbSize = clamp(trackRect.height * (viewportHeight / Math.max(scrollHeight, 1)), minimumThumbSize, 82);
+          const thumbTravel = Math.max(0, trackRect.height - thumbSize);
+          return { root, trackRect, scrollRange, thumbSize, thumbTravel };
+        };
+
+        const updateScrollbar = () => {
+          scrollbarFrame = 0;
+          if (!(scrollbar instanceof HTMLElement)) return;
+          const metrics = getScrollbarMetrics();
+          if (!metrics) return;
+          const gateMode = gateRailActive && (window.scrollY <= 2 || gateRailTransitioning);
+          const pageProgress = metrics.scrollRange > 0 ? clamp(window.scrollY / metrics.scrollRange, 0, 1) : 0;
+          const progress = gateMode ? gateRailProgress : pageProgress;
+          const thumbSize = gateMode ? (window.innerWidth <= 600 ? 34 : 46) : metrics.thumbSize;
+          const thumbTravel = Math.max(0, metrics.trackRect.height - thumbSize);
+          scrollbar.classList.toggle("is-idle", metrics.scrollRange <= 1 || metrics.trackRect.height <= 0);
+          scrollbar.classList.toggle("is-gate-progress", gateMode);
+          scrollbar.classList.toggle("is-scroll-guided", gateMode && gateRailGuided);
+          scrollbar.classList.toggle("is-returning", gateMode && gateRailTransitioning);
+          scrollbar.classList.toggle(
+            "is-release-boosted",
+            gateMode && gateRailReleaseMode === "forward" && gateRailPressure > 0.08
+          );
+          scrollbar.dataset.stage = gateMode ? gateRailStage : "document";
+          scrollbar.dataset.releaseMode = gateMode ? gateRailReleaseMode : "document";
+          scrollbar.style.setProperty("--kisara-scroll-progress", String(progress));
+          scrollbar.style.setProperty("--kisara-scroll-thumb-size", `${thumbSize}px`);
+          scrollbar.style.setProperty("--kisara-scroll-thumb-y", `${thumbTravel * progress}px`);
+          scrollbar.style.setProperty("--kisara-scroll-energy", String(gateMode ? progress : 0));
+          scrollbar.style.setProperty("--kisara-scroll-boost", String(gateMode ? gateRailPressure : 0));
+          scrollbar.style.setProperty(
+            "--kisara-scroll-boost-scale",
+            String(1 + (gateMode ? gateRailPressure : 0) * 0.16)
+          );
+          scrollbar.style.setProperty(
+            "--kisara-scroll-boost-glow",
+            `${8 + (gateMode ? gateRailPressure : 0) * 20}px`
+          );
+          scrollbar.style.setProperty(
+            "--kisara-scroll-boost-duration",
+            `${Math.round(820 - (gateMode ? gateRailPlaybackRate - 1 : 0) * 420)}ms`
+          );
+          scrollbar.setAttribute("aria-label", gateMode ? "Kisara 契约演出进度" : "页面滚动进度");
+          scrollbar.setAttribute("aria-valuenow", String(Math.round(progress * 100)));
+          scrollbar.setAttribute(
+            "aria-valuetext",
+            gateMode
+              ? `${gateStageLabels[gateRailStage] ?? "契约演出"} ${Math.round(progress * 100)}%`
+              : `页面 ${Math.round(progress * 100)}%`
+          );
+        };
+
+        const scheduleScrollbarUpdate = () => {
+          if (scrollbarFrame) return;
+          scrollbarFrame = requestAnimationFrame(updateScrollbar);
+        };
+
+        const applyGateRailState = (detail) => {
+          if (!detail || typeof detail !== "object") return;
+          gateRailActive = Boolean(detail.active);
+          gateRailProgress = clamp(Number(detail.progress) || 0, 0, 1);
+          gateRailStage = typeof detail.stage === "string" ? detail.stage : "awakening";
+          gateRailGuided = Boolean(detail.guided);
+          gateRailTransitioning = Boolean(detail.transitioning);
+          gateRailPlaybackRate = clamp(Number(detail.playbackRate) || 1, 0.1, 2);
+          gateRailPressure = clamp(Number(detail.pressure) || 0, 0, 1);
+          gateRailReleaseMode = typeof detail.releaseMode === "string"
+            ? detail.releaseMode
+            : "manual";
+          scheduleScrollbarUpdate();
+        };
+
+        const syncGateRailFromDom = () => {
+          const gateProgressSource = document.querySelector("[data-kisara-gate]");
+          if (!(gateProgressSource instanceof HTMLElement)) return;
+          applyGateRailState({
+            active: gateProgressSource.dataset.kisaraScrollActive === "true",
+            progress: gateProgressSource.dataset.kisaraScrollProgress,
+            stage: gateProgressSource.dataset.kisaraScrollStage,
+            guided: gateProgressSource.dataset.kisaraScrollGuided === "true",
+            transitioning: gateProgressSource.dataset.kisaraScrollTransitioning === "true",
+            playbackRate: gateProgressSource.dataset.kisaraScrollPlaybackRate,
+            pressure: gateProgressSource.dataset.kisaraScrollPressure,
+            releaseMode: gateProgressSource.dataset.kisaraScrollReleaseMode
+          });
+        };
+
+        const isSelectionLocked = () => document.body?.dataset.yuimiSelectionLock === "true";
+        if (isSelectionLocked()) {
+          document.querySelectorAll("img, video").forEach((asset) => asset.setAttribute("draggable", "false"));
+        }
+
+        document.addEventListener("dragstart", (event) => {
+          if (!isSelectionLocked()) return;
+          const target = event.target instanceof Element ? event.target : null;
+          if (target?.closest("img, picture, canvas, video, svg, .kisara-title, .kisara-gate-visual")) event.preventDefault();
+        }, { capture: true, signal });
+
+        document.addEventListener("selectstart", (event) => {
+          if (!isSelectionLocked()) return;
+          const target = event.target instanceof Element ? event.target : null;
+          if (target?.closest(".kisara-gate, img, picture, canvas, video, svg")) event.preventDefault();
+        }, { capture: true, signal });
+
+        window.addEventListener("scroll", scheduleScrollbarUpdate, { passive: true, signal });
+        window.addEventListener("resize", scheduleScrollbarUpdate, { passive: true, signal });
+        window.addEventListener("kisara:gate-progress", (event) => {
+          if (event instanceof CustomEvent) applyGateRailState(event.detail);
+        }, { signal });
+        window.addEventListener("pageshow", () => {
+          syncGateRailFromDom();
+          scheduleScrollbarUpdate();
+        }, { signal });
+        scrollbarResizeObserver = typeof ResizeObserver === "function"
+          ? new ResizeObserver(scheduleScrollbarUpdate)
+          : null;
+        scrollbarResizeObserver?.observe(document.body);
+        syncGateRailFromDom();
+        scheduleScrollbarUpdate();
+
+        const closePanel = () => {
+          if (panel) panel.hidden = true;
+          panelButton?.setAttribute("aria-expanded", "false");
+        };
+
+        const setMenuStatus = (label = "", tone = "") => {
+          if (!(menuStatus instanceof HTMLElement)) return;
+          const text = menuStatus.querySelector("span");
+          if (text) text.textContent = label;
+          menuStatus.dataset.tone = tone;
+        };
+
+        const copyText = async (value) => {
+          try {
+            if (navigator.clipboard?.writeText) {
+              await navigator.clipboard.writeText(value);
+              return true;
+            }
+          } catch {}
+
+          try {
+            const field = document.createElement("textarea");
+            field.value = value;
+            field.setAttribute("readonly", "");
+            field.style.position = "fixed";
+            field.style.opacity = "0";
+            document.body.append(field);
+            field.select();
+            const copied = document.execCommand("copy");
+            field.remove();
+            return copied;
+          } catch {
+            return false;
+          }
+        };
+
+        const showActionFeedback = (button, label, success) => {
+          if (!(button instanceof HTMLButtonElement)) return;
+          const text = button.querySelector(":scope > span");
+          const defaultLabel = button.dataset.kisaraDefaultLabel ?? text?.textContent ?? "";
+          if (text) text.textContent = label;
+          button.classList.toggle("is-success", success);
+          setMenuStatus(label, success ? "success" : "error");
+          window.setTimeout(() => {
+            if (text) text.textContent = defaultLabel;
+            button.classList.remove("is-success");
+            setMenuStatus();
+          }, 1100);
+        };
+
+        const closeMenu = () => {
+          if (!menu || menu.hidden) return;
+          const restore = menu.contains(document.activeElement);
+          menu.hidden = true;
+          setMenuStatus();
+          if (restore && returnFocus instanceof HTMLElement) returnFocus.focus({ preventScroll: true });
+        };
+
+        const showMenu = (x, y, focusFirst = false) => {
+          if (!menu) return;
+          returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : panelButton;
+          menu.hidden = false;
+          menu.style.left = "0px";
+          menu.style.top = "0px";
+          const menuWidth = menu.offsetWidth;
+          const menuHeight = menu.offsetHeight;
+          menu.style.left = `${Math.max(12, Math.min(x, window.innerWidth - menuWidth - 12))}px`;
+          menu.style.top = `${Math.max(12, Math.min(y, window.innerHeight - menuHeight - 12))}px`;
+          setMenuStatus();
+          if (focusFirst) menu.querySelector('[data-kisara-action="back"]')?.focus({ preventScroll: true });
+        };
+
+        panelButton?.addEventListener("click", () => {
+          if (!panel) return;
+          const opening = panel.hidden;
+          panel.hidden = !opening;
+          panelButton.setAttribute("aria-expanded", String(opening));
+        }, { signal });
+        panelClose?.addEventListener("click", closePanel, { signal });
+
+        window.addEventListener("contextmenu", (event) => {
+          event.preventDefault();
+          closePanel();
+          showMenu(event.clientX, event.clientY);
+        }, { signal });
+        window.addEventListener("yuimi:context-menu-request", (event) => {
+          if (!(event instanceof CustomEvent)) return;
+          const x = Number(event.detail?.clientX);
+          const y = Number(event.detail?.clientY);
+          closePanel();
+          showMenu(
+            Number.isFinite(x) ? x : window.innerWidth / 2,
+            Number.isFinite(y) ? y : window.innerHeight / 2
+          );
+        }, { signal });
+
+        window.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            closePanel();
+            closeMenu();
+          }
+          if (event.key === "ContextMenu" || (event.key === "F10" && event.shiftKey)) {
+            event.preventDefault();
+            const rect = document.activeElement?.getBoundingClientRect?.();
+            showMenu(rect ? rect.left + 24 : window.innerWidth / 2, rect ? rect.top + 24 : window.innerHeight / 2, true);
+          }
+        }, { signal });
+
+        document.addEventListener("click", async (event) => {
+          const target = event.target instanceof Element ? event.target : null;
+          const themeButton = target?.closest("[data-theme-select]");
+          if (themeButton) {
+            closePanel();
+            closeMenu();
+            window.__yuimiTheme?.select(themeButton.dataset.themeSelect);
+            return;
+          }
+
+          const actionButton = target?.closest("[data-kisara-action]");
+          const action = actionButton?.dataset.kisaraAction;
+          if (action === "top") window.scrollTo({ top: 0, behavior: "smooth" });
+          if (action === "refresh") window.location.reload();
+          if (action === "home") {
+            const homeLink = document.querySelector("a.kisara-brand[href]");
+            if (homeLink instanceof HTMLAnchorElement) homeLink.click();
+          }
+          if (action === "back") history.back();
+          if (action === "forward") history.forward();
+          if (action === "close") {
+            closeMenu();
+            return;
+          }
+          if (action === "copy") {
+            const copied = await copyText(window.location.href);
+            showActionFeedback(actionButton, copied ? "链接已复制" : "复制失败", copied);
+            return;
+          }
+          if (action) closeMenu();
+
+          if (!target?.closest("[data-kisara-theme-panel]") && !target?.closest("[data-kisara-theme-button]")) closePanel();
+          if (!target?.closest("[data-kisara-context-menu]")) closeMenu();
+        }, { signal });
+
+        const cleanup = () => {
+          lifecycle.abort();
+          if (scrollbarFrame) cancelAnimationFrame(scrollbarFrame);
+          scrollbarFrame = 0;
+          scrollbarResizeObserver?.disconnect();
+          if (window.__yuimiKisaraLayoutCleanup === cleanup) {
+            window.__yuimiKisaraLayoutCleanup = null;
+          }
+        };
+        window.__yuimiKisaraLayoutCleanup = cleanup;
+        document.addEventListener("astro:before-swap", cleanup, { once: true, signal });
+      })();
+    </script>
+  </body>
+</html>

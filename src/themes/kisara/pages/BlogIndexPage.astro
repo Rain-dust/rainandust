@@ -1,0 +1,344 @@
+---
+import KisaraLayout from "../layouts/KisaraLayout.astro";
+import blogStylesheet from "../styles/blog.css?url";
+import { Icon } from "astro-icon/components";
+import { getPublishedPosts } from "@/core/content/blog";
+import { getThemePath } from "@/core/themes/registry";
+import { categoryLabel } from "@/lib/site";
+import { getKisaraCoverPresentation } from "../lib/coverPresentation";
+
+const posts = await getPublishedPosts();
+const categories = Array.from(new Set(posts.map((post) => post.data.category)));
+const dateFormatter = new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit" });
+const timelineDateFormatter = new Intl.DateTimeFormat("zh-CN", { month: "2-digit", day: "2-digit" });
+const timelineYears = posts.reduce((groups, post) => {
+  const year = (post.data.updatedDate ?? post.data.pubDate).getFullYear();
+  let group = groups.find((item) => item.year === year);
+  if (!group) {
+    group = { year, posts: [] as typeof posts };
+    groups.push(group);
+  }
+  group.posts.push(post);
+  return groups;
+}, [] as Array<{ year: number; posts: typeof posts }>);
+
+const coverPresentation = await getKisaraCoverPresentation(posts);
+---
+
+<KisaraLayout title="Blog | Kisara" description="Rain_dust 的文章记录。" stylesheets={[blogStylesheet]}>
+  <section class="kisara-blog-hero" data-kisara-blog-hero data-intro-state="idle">
+    <div class="kisara-blog-scene" aria-hidden="true">
+      <img
+        class="kisara-blog-scene-bg"
+        src="/themes/kisara/assets/blog/engage-kiss-scene.webp"
+        alt=""
+        width="1440"
+        height="975"
+        decoding="async"
+        fetchpriority="high"
+      />
+      <div class="kisara-blog-character-stage">
+        <img class="kisara-blog-character is-sharon" src="/themes/kisara/assets/blog/sharon-back-solo-v1.webp" alt="" width="1440" height="975" decoding="async" fetchpriority="low" />
+        <img class="kisara-blog-character is-ayano" src="/themes/kisara/assets/blog/ayano-middle-solo-v1.webp" alt="" width="1440" height="975" decoding="async" fetchpriority="low" />
+        <img class="kisara-blog-character is-shu" src="/themes/kisara/assets/blog/shu-middle-solo-v1.webp" alt="" width="1440" height="975" decoding="async" fetchpriority="auto" />
+        <img class="kisara-blog-character is-kisara" src="/themes/kisara/assets/blog/kisara-front-solo-v1.webp" alt="" width="1440" height="975" decoding="async" fetchpriority="high" />
+        <span class="kisara-blog-pair-sync" aria-hidden="true"></span>
+      </div>
+      <div class="kisara-blog-scene-veil"></div>
+      <div class="kisara-blog-scanline"></div>
+    </div>
+
+    <div class="kisara-blog-hero-copy">
+      <p class="kisara-blog-kicker"><span>03</span> TRANSMISSION ARCHIVE</p>
+      <h1><span>Every signal</span><strong>leaves a trace.</strong></h1>
+      <p>开发记录、部署笔记和兴趣电波。这里不负责把灵感整理得太规矩，只负责让它们还能被再次找到。</p>
+      <dl>
+        <div><dt>LOGS</dt><dd>{String(posts.length).padStart(2, "0")}</dd></div>
+        <div><dt>CHANNELS</dt><dd>{String(categories.length).padStart(2, "0")}</dd></div>
+        <div><dt>STATUS</dt><dd>ONLINE</dd></div>
+      </dl>
+    </div>
+
+    <div class="kisara-blog-intro-controls" aria-label="头图演出控制">
+      <button type="button" data-blog-replay aria-label="重新播放头图演出" title="重新播放">
+        <Icon name="tabler:refresh" aria-hidden="true" />
+      </button>
+      <button type="button" data-blog-skip aria-label="跳过头图演出" title="跳过演出">
+        <Icon name="tabler:player-skip-forward" aria-hidden="true" />
+      </button>
+    </div>
+
+    <a class="kisara-blog-enter" href="#kisara-blog-archive">
+      <span>OPEN ARCHIVE</span>
+      <Icon name="tabler:arrow-down" aria-hidden="true" />
+    </a>
+  </section>
+
+  <section id="kisara-blog-archive" class="kisara-blog-archive" data-kisara-archive>
+    <header class="kisara-blog-archive-heading">
+      <div>
+        <p>ARCHIVE DIRECTORY / {String(posts.length).padStart(2, "0")}</p>
+        <h2>Find a useful signal.</h2>
+      </div>
+      <p>按标题、标签或频道检索。每条记录仍然保留它被写下时的日期和情绪。</p>
+    </header>
+
+    <div class="kisara-blog-view-switch" role="tablist" aria-label="博客归档视图">
+      <button id="kisara-blog-view-stream" type="button" role="tab" aria-selected="true" aria-controls="kisara-blog-panel-stream" data-kisara-view="stream">
+        <Icon name="tabler:book-2" aria-hidden="true" />
+        <span><strong>文章</strong><small>ARTICLE INDEX</small></span>
+      </button>
+      <button id="kisara-blog-view-timeline" type="button" role="tab" aria-selected="false" aria-controls="kisara-blog-panel-timeline" tabindex="-1" data-kisara-view="timeline">
+        <Icon name="tabler:activity-heartbeat" aria-hidden="true" />
+        <span><strong>时间轴</strong><small>CHRONOLOGY</small></span>
+      </button>
+    </div>
+
+    <div class="kisara-blog-toolbar">
+      <label>
+        <Icon name="tabler:search" aria-hidden="true" />
+        <input type="search" data-kisara-archive-search placeholder="SEARCH TITLE / TAG / SIGNAL" autocomplete="off" />
+      </label>
+      <div class="kisara-blog-filters" aria-label="文章频道筛选">
+        <button type="button" data-kisara-filter="all" aria-pressed="true">ALL</button>
+        {categories.map((category) => <button type="button" data-kisara-filter={category} aria-pressed="false">{categoryLabel[category]}</button>)}
+      </div>
+      <output data-kisara-result-count>{posts.length} SIGNALS</output>
+    </div>
+
+    <div id="kisara-blog-panel-stream" class="kisara-blog-view-panel" role="tabpanel" aria-labelledby="kisara-blog-view-stream" data-kisara-view-panel="stream">
+    <div class="kisara-blog-stream" data-kisara-archive-list>
+      {posts.map((post, index) => {
+        const cover = coverPresentation.get(post.id);
+        return (
+        <a
+          class="kisara-blog-record"
+          href={getThemePath("kisara", `/blog/${post.id}/`)}
+          data-kisara-record
+          data-post-id={post.id}
+          data-category={post.data.category}
+          data-search={[post.data.title, post.data.description, ...post.data.tags].join(" ").toLowerCase()}
+          style={`--archive-order: ${index}; --archive-cover: ${post.data.cover ? `url("${post.data.cover}")` : "none"}; --archive-cover-position: ${cover?.position ?? "50% 32%"};`}
+        >
+          <figure data-cover-fit={cover?.fit ?? "portrait"}>
+            {post.data.cover ? (
+              <img
+                src={post.data.cover}
+                alt=""
+                width={cover?.width ?? 700}
+                height={cover?.height ?? 990}
+                loading={index === 0 ? "eager" : "lazy"}
+                fetchpriority={index === 0 ? "high" : "low"}
+                decoding="async"
+              />
+            ) : (
+              <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+            )}
+            <figcaption><span>{String(index + 1).padStart(2, "0")}</span><small>{cover?.fit === "crop" ? "CROPPED LOG" : "PORTRAIT LOG"}</small></figcaption>
+          </figure>
+          <div class="kisara-blog-record-body">
+            <div class="kisara-blog-record-meta">
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <small>{categoryLabel[post.data.category]}</small>
+              <time datetime={(post.data.updatedDate ?? post.data.pubDate).toISOString()}>{dateFormatter.format(post.data.updatedDate ?? post.data.pubDate)}</time>
+            </div>
+            <h3>{post.data.title}</h3>
+            <p>{post.data.description}</p>
+            <div class="kisara-blog-record-tags">{post.data.tags.slice(0, 4).map((tag) => <em>#{tag}</em>)}</div>
+            <span class="kisara-blog-record-action">READ TRANSMISSION <i aria-hidden="true">↗</i></span>
+          </div>
+        </a>
+        );
+      })}
+    </div>
+    </div>
+
+    <div id="kisara-blog-panel-timeline" class="kisara-blog-view-panel" role="tabpanel" aria-labelledby="kisara-blog-view-timeline" data-kisara-view-panel="timeline" hidden>
+      <div class="kisara-blog-timeline" data-kisara-timeline>
+        {timelineYears.map((group) => (
+          <section class="kisara-blog-timeline-year" data-kisara-timeline-year>
+            <header>
+              <span>{group.year}</span>
+              <small>{String(group.posts.length).padStart(2, "0")} LOGS</small>
+            </header>
+            <div class="kisara-blog-timeline-track">
+              {group.posts.map((post, index) => {
+                const cover = coverPresentation.get(post.id);
+                const postDate = post.data.updatedDate ?? post.data.pubDate;
+                const [month, day] = timelineDateFormatter.format(postDate).split("/");
+                return (
+                  <a
+                    class="kisara-blog-timeline-record"
+                    href={getThemePath("kisara", `/blog/${post.id}/`)}
+                    data-kisara-record
+                    data-post-id={post.id}
+                    data-category={post.data.category}
+                    data-search={[post.data.title, post.data.description, ...post.data.tags].join(" ").toLowerCase()}
+                    style={`--timeline-order: ${index}; --timeline-cover-position: ${cover?.position ?? "50% 32%"};`}
+                  >
+                    <time datetime={postDate.toISOString()}>
+                      <strong>{month}.{day}</strong>
+                      <span>{categoryLabel[post.data.category]}</span>
+                    </time>
+                    <i class="kisara-blog-timeline-node" aria-hidden="true"></i>
+                    <div class="kisara-blog-timeline-copy">
+                      <div>
+                        <p>{post.data.description}</p>
+                        <h3>{post.data.title}</h3>
+                        <div>{post.data.tags.slice(0, 4).map((tag) => <em>#{tag}</em>)}</div>
+                      </div>
+                      {post.data.cover && (
+                        <figure>
+                          <img src={post.data.cover} alt="" width={cover?.width ?? 700} height={cover?.height ?? 990} loading="lazy" fetchpriority="low" decoding="async" />
+                        </figure>
+                      )}
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+    <p class="kisara-blog-empty" data-kisara-empty hidden>NO MATCHED SIGNAL / 换一个关键词试试。</p>
+  </section>
+
+  <script is:inline data-astro-rerun>
+    (() => {
+      window.__yuimiKisaraInnerCleanup?.();
+      const lifecycle = new AbortController();
+      const signal = lifecycle.signal;
+      const hero = document.querySelector("[data-kisara-blog-hero]");
+      const archive = document.querySelector("[data-kisara-archive]");
+      let introTimer = 0;
+
+      const cleanup = () => {
+        lifecycle.abort();
+        window.clearTimeout(introTimer);
+        if (window.__yuimiKisaraInnerCleanup === cleanup) window.__yuimiKisaraInnerCleanup = null;
+      };
+      window.__yuimiKisaraInnerCleanup = cleanup;
+      document.addEventListener("astro:before-swap", cleanup, { once: true, signal });
+
+      const finishIntro = () => {
+        if (!(hero instanceof HTMLElement)) return;
+        window.clearTimeout(introTimer);
+        hero.dataset.introState = "complete";
+      };
+
+      const playIntro = async () => {
+        if (!(hero instanceof HTMLElement)) return;
+        window.clearTimeout(introTimer);
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          finishIntro();
+          return;
+        }
+
+        hero.dataset.introState = "idle";
+        const images = Array.from(hero.querySelectorAll(".kisara-blog-character"));
+        await Promise.all(images.map((image) => {
+          if (!(image instanceof HTMLImageElement) || image.complete) return Promise.resolve();
+          return image.decode().catch(() => undefined);
+        }));
+        if (signal.aborted) return;
+        void hero.offsetWidth;
+        requestAnimationFrame(() => {
+          if (signal.aborted) return;
+          hero.dataset.introState = "playing";
+          introTimer = window.setTimeout(finishIntro, 2050);
+        });
+      };
+
+      hero?.querySelector("[data-blog-replay]")?.addEventListener("click", playIntro, { signal });
+      hero?.querySelector("[data-blog-skip]")?.addEventListener("click", finishIntro, { signal });
+      window.addEventListener("pageshow", (event) => {
+        if (!event.persisted) return;
+        if (document.documentElement.dataset.yuimiPerformance === "full") playIntro();
+        else finishIntro();
+      }, { signal });
+      playIntro();
+
+      if (!archive) return;
+      const input = archive.querySelector("[data-kisara-archive-search]");
+      const buttons = Array.from(archive.querySelectorAll("[data-kisara-filter]"));
+      const records = Array.from(archive.querySelectorAll("[data-kisara-record]"));
+      const count = archive.querySelector("[data-kisara-result-count]");
+      const empty = archive.querySelector("[data-kisara-empty]");
+      const viewButtons = Array.from(archive.querySelectorAll("[data-kisara-view]"));
+      const viewPanels = Array.from(archive.querySelectorAll("[data-kisara-view-panel]"));
+      const timelineYears = Array.from(archive.querySelectorAll("[data-kisara-timeline-year]"));
+      let activeFilter = "all";
+
+      const setActiveView = (nextView, persist = true) => {
+        if (nextView !== "stream" && nextView !== "timeline") return;
+        archive.dataset.activeView = nextView;
+        viewButtons.forEach((button) => {
+          const selected = button instanceof HTMLElement && button.dataset.kisaraView === nextView;
+          button.setAttribute("aria-selected", String(selected));
+          if (button instanceof HTMLElement) button.tabIndex = selected ? 0 : -1;
+        });
+        viewPanels.forEach((panel) => {
+          if (!(panel instanceof HTMLElement)) return;
+          panel.hidden = panel.dataset.kisaraViewPanel !== nextView;
+        });
+        if (persist) {
+          try { window.sessionStorage.setItem("yuimi:kisara:blog-view", nextView); } catch {}
+        }
+      };
+
+      const refresh = () => {
+        const query = input instanceof HTMLInputElement ? input.value.trim().toLowerCase() : "";
+        const visiblePosts = new Set();
+        records.forEach((record) => {
+          if (!(record instanceof HTMLElement)) return;
+          const categoryMatch = activeFilter === "all" || record.dataset.category === activeFilter;
+          const queryMatch = !query || record.dataset.search?.includes(query);
+          const visible = Boolean(categoryMatch && queryMatch);
+          record.hidden = !visible;
+          if (visible && record.dataset.postId) visiblePosts.add(record.dataset.postId);
+        });
+        timelineYears.forEach((year) => {
+          if (!(year instanceof HTMLElement)) return;
+          year.hidden = !year.querySelector("[data-kisara-record]:not([hidden])");
+        });
+        const visibleCount = visiblePosts.size;
+        if (count) count.textContent = `${visibleCount} SIGNALS`;
+        if (empty instanceof HTMLElement) empty.hidden = visibleCount !== 0;
+      };
+
+      input?.addEventListener("input", refresh, { signal });
+      buttons.forEach((button) => button.addEventListener("click", () => {
+        if (!(button instanceof HTMLElement)) return;
+        activeFilter = button.dataset.kisaraFilter ?? "all";
+        buttons.forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+        refresh();
+      }, { signal }));
+      viewButtons.forEach((button, index) => {
+        button.addEventListener("click", () => {
+          if (button instanceof HTMLElement) setActiveView(button.dataset.kisaraView ?? "stream");
+        }, { signal });
+        button.addEventListener("keydown", (event) => {
+          if (!(event instanceof KeyboardEvent) || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+          event.preventDefault();
+          let nextIndex = index;
+          if (event.key === "ArrowLeft") nextIndex = (index - 1 + viewButtons.length) % viewButtons.length;
+          if (event.key === "ArrowRight") nextIndex = (index + 1) % viewButtons.length;
+          if (event.key === "Home") nextIndex = 0;
+          if (event.key === "End") nextIndex = viewButtons.length - 1;
+          const nextButton = viewButtons[nextIndex];
+          if (nextButton instanceof HTMLElement) {
+            setActiveView(nextButton.dataset.kisaraView ?? "stream");
+            nextButton.focus();
+          }
+        }, { signal });
+      });
+
+      try {
+        const storedView = window.sessionStorage.getItem("yuimi:kisara:blog-view");
+        if (storedView) setActiveView(storedView, false);
+      } catch {}
+      refresh();
+    })();
+  </script>
+</KisaraLayout>
