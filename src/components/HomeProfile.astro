@@ -1,0 +1,97 @@
+<button
+  class="home-profile-trigger"
+  type="button"
+  aria-expanded="false"
+  aria-controls="home-profile-layer"
+  data-home-profile-trigger
+>
+  <span aria-hidden="true">↗</span>
+  <span>
+    <strong>PROFILE</strong>
+    <small>展开个人档案</small>
+  </span>
+</button>
+
+<div
+  class="home-profile-layer"
+  id="home-profile-layer"
+  aria-hidden="true"
+  data-home-profile-layer
+>
+  <button
+    class="home-profile-layer__backdrop"
+    type="button"
+    aria-label="关闭个人档案"
+    data-home-profile-close
+  ></button>
+
+  <section
+    class="home-profile-card"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="home-profile-title"
+  >
+    <button
+      class="home-profile-card__close"
+      type="button"
+      aria-label="关闭个人档案"
+      data-home-profile-close
+    >
+      ×
+    </button>
+
+    <button
+      class="home-profile-avatar"
+      type="button"
+      aria-label="点击头像"
+      data-home-profile-avatar
+    >
+      <span class="home-profile-avatar__orbit" aria-hidden="true"></span>
+      <img
+        src="/rain-dust/me/rain-dust-avatar.jpg"
+        alt="Rain_dust 的头像"
+        width="1262"
+        height="1246"
+      />
+      <span
+        class="home-profile-avatar__reply"
+        role="status"
+        data-home-profile-reply
+      >
+        别戳了，在写代码。
+      </span>
+    </button>
+
+    <div class="home-profile-terminal">
+      <div class="home-profile-terminal__bar">
+        <span aria-hidden="true"><i></i><i></i><i></i></span>
+        <strong>rain-profile.exe</strong>
+      </div>
+      <p class="home-profile-terminal__path">C:\Users\Rain_dust\profile</p>
+      <p class="home-profile-terminal__command">
+        <span>profile@rain:~$</span>
+        <strong
+          id="home-profile-title"
+          data-home-profile-text="Rain_dust"
+          data-home-profile-typing
+        ></strong>
+        <i aria-hidden="true"></i>
+      </p>
+      <p class="home-profile-terminal__name">寻辰沐雨 / Rain_dust</p>
+      <p class="home-profile-terminal__role">
+        Vibe Coder · INTP · 白羊座
+      </p>
+      <nav class="home-profile-terminal__links" aria-label="个人链接">
+        <a
+          href="https://github.com/Rain-dust"
+          target="_blank"
+          rel="noreferrer"
+        >
+          GitHub
+        </a>
+        <a href="mailto:1223451146@qq.com">Email</a>
+        <a href="/me">完整档案 →</a>
+      </nav>
+    </div>
+  </section>
+</div>

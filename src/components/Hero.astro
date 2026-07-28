@@ -1,3 +1,7 @@
+---
+import HomeProfile from "./HomeProfile.astro";
+---
+
 <section
   class="home-hero is-identity-visible"
   id="top"
@@ -39,6 +43,8 @@
     </p>
   </div>
 
+  <HomeProfile />
+
   <button
     class="home-motion-toggle"
     type="button"
@@ -65,6 +71,23 @@
   );
   const terminalTyping = hero?.querySelector<HTMLElement>(
     ".home-terminal__typing",
+  );
+  const profileTrigger = hero?.querySelector<HTMLButtonElement>(
+    "[data-home-profile-trigger]",
+  );
+  const profileLayer = hero?.querySelector<HTMLElement>(
+    "[data-home-profile-layer]",
+  );
+  const profileCloseButtons =
+    hero?.querySelectorAll<HTMLButtonElement>("[data-home-profile-close]");
+  const profileAvatar = hero?.querySelector<HTMLButtonElement>(
+    "[data-home-profile-avatar]",
+  );
+  const profileReply = hero?.querySelector<HTMLElement>(
+    "[data-home-profile-reply]",
+  );
+  const profileTyping = hero?.querySelector<HTMLElement>(
+    "[data-home-profile-typing]",
   );
   const reduceMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
@@ -238,5 +261,82 @@
         { once: true },
       );
     }
+  }
+
+  if (
+    hero &&
+    profileTrigger &&
+    profileLayer &&
+    profileCloseButtons &&
+    profileAvatar &&
+    profileReply &&
+    profileTyping
+  ) {
+    let lastFocusedElement: HTMLElement | null = null;
+    let typingTimer = 0;
+    let replyTimer = 0;
+
+    const typeProfileName = () => {
+      const finalText = profileTyping.dataset.homeProfileText ?? "Rain_dust";
+      window.clearTimeout(typingTimer);
+      profileTyping.textContent = "";
+
+      if (reduceMotion) {
+        profileTyping.textContent = finalText;
+        return;
+      }
+
+      let index = 0;
+      const typeNext = () => {
+        index += 1;
+        profileTyping.textContent = finalText.slice(0, index);
+        if (index < finalText.length) {
+          typingTimer = window.setTimeout(typeNext, 82);
+        }
+      };
+      typingTimer = window.setTimeout(typeNext, 410);
+    };
+
+    const openProfile = () => {
+      lastFocusedElement = document.activeElement as HTMLElement;
+      hero.classList.add("is-profile-open");
+      profileLayer.setAttribute("aria-hidden", "false");
+      profileTrigger.setAttribute("aria-expanded", "true");
+      typeProfileName();
+      window.setTimeout(() => {
+        profileLayer
+          .querySelector<HTMLButtonElement>(".home-profile-card__close")
+          ?.focus();
+      }, reduceMotion ? 0 : 360);
+    };
+
+    const closeProfile = () => {
+      hero.classList.remove("is-profile-open");
+      profileLayer.setAttribute("aria-hidden", "true");
+      profileTrigger.setAttribute("aria-expanded", "false");
+      window.clearTimeout(typingTimer);
+      lastFocusedElement?.focus();
+    };
+
+    profileTrigger.addEventListener("click", openProfile);
+    profileCloseButtons.forEach((button) =>
+      button.addEventListener("click", closeProfile),
+    );
+    profileAvatar.addEventListener("click", () => {
+      profileAvatar.classList.remove("is-poked");
+      void profileAvatar.offsetWidth;
+      profileAvatar.classList.add("is-poked");
+      profileReply.classList.add("is-visible");
+      window.clearTimeout(replyTimer);
+      replyTimer = window.setTimeout(
+        () => profileReply.classList.remove("is-visible"),
+        1600,
+      );
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && hero.classList.contains("is-profile-open")) {
+        closeProfile();
+      }
+    });
   }
 </script>
