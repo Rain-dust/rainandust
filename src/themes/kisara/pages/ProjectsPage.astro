@@ -247,6 +247,13 @@ const kitchenCatalog = {
             </button>
           ))}
         </div>
+        <nav class="kisara-project-repository-links" aria-label="项目仓库链接">
+          {kitchenIngredients.map((ingredient) => (
+            <a href={ingredient.project.url} target="_blank" rel="noreferrer">
+              {ingredient.project.title}<span aria-hidden="true"> ↗</span>
+            </a>
+          ))}
+        </nav>
       </aside>
 
       <div class="kisara-kitchen-prep">
@@ -1065,4 +1072,21 @@ const kitchenCatalog = {
       renderAll();
     })();
   </script>
+
+  <style>
+    .kisara-project-repository-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .kisara-project-repository-links a {
+      color: inherit;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-underline-offset: 4px;
+    }
+  </style>
 </KisaraLayout>

@@ -32,8 +32,21 @@ import { projectEntries, projectTechLines } from "@/core/data/projects";
         <div class="blank-project-details">
           {project.details.map((detail) => <span>{detail}</span>)}
         </div>
+        <a class="blank-project-repository" href={project.url} target="_blank" rel="noreferrer">
+          GitHub ↗
+        </a>
       </article>
     ))}
   </section>
 </BlankLayout>
+
+<style>
+  .blank-project-repository {
+    display: inline-flex;
+    margin-top: 16px;
+    color: inherit;
+    font-weight: 700;
+    text-underline-offset: 4px;
+  }
+</style>
 

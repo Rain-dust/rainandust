@@ -91,6 +91,9 @@ const projectCards = projectEntries.map((project) => ({
           <div class="works-card-panel" data-card-panel>
             <strong>{project.status}</strong>
             <p>下一步会把相关笔记、截图或可玩的 demo 慢慢补到这里。</p>
+            <a class="works-card-repository" href={project.url} target="_blank" rel="noreferrer">
+              打开 GitHub ↗
+            </a>
           </div>
         </article>
       ))}
@@ -132,6 +135,13 @@ const projectCards = projectEntries.map((project) => ({
   </script>
 
   <style>
+    .works-card-repository {
+      display: inline-flex;
+      margin-top: 8px;
+      color: inherit;
+      font-weight: 800;
+      text-underline-offset: 4px;
+    }
     .works-shell {
       width: min(1280px, calc(100% - 32px));
       margin: 0 auto;
