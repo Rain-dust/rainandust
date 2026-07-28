@@ -11,6 +11,8 @@ test("Astro emits the video-led HOME and four route entrances", async () => {
   assert.match(html, /Rain_dust/);
   assert.match(html, /Vibe Coder/);
   assert.match(html, /shadow-home-loop\.mp4/);
+  assert.match(html, /shadow-home-poster\.jpg/);
+  assert.match(html, /data-loop-end="10"/);
   assert.match(html, /home-hero__stage/);
   assert.match(html, /home-hero__dust/);
   assert.match(html, /npx vibe --build/);
@@ -26,7 +28,7 @@ test("each top-level room is emitted as an independent page", async () => {
   const rooms = [
     ["blog", /笔记暂时留白/],
     ["works", /塔罗牌桌/],
-    ["me", /个人设定集/],
+    ["me", /rain-profile\.exe/],
   ];
 
   for (const [route, content] of rooms) {
@@ -38,6 +40,13 @@ test("each top-level room is emitted as an independent page", async () => {
     assert.match(html, content);
     assert.match(html, /data-portal-shell/);
     assert.match(html, /scene-curtain/);
+
+    if (route === "me") {
+      assert.match(html, /rain-dust-avatar\.jpg/);
+      assert.match(html, /profile@rain:~\$/);
+      assert.match(html, /https:\/\/github\.com\/Rain-dust/);
+      assert.match(html, /mailto:1223451146@qq\.com/);
+    }
   }
 });
 
@@ -77,6 +86,8 @@ test("the compiled site keeps motion, navigation, and accessibility fallbacks", 
   assert.match(css, /object-fit:\s*contain/);
   assert.match(css, /\.home-motion-toggle/);
   assert.match(css, /\.home-terminal/);
+  assert.match(css, /\.me-terminal/);
+  assert.match(css, /\.me-avatar/);
   assert.doesNotMatch(css, /\.home-hero__backdrop|blur\(28px\)|mask-image/);
   assert.doesNotMatch(css, /\.card\b|glassmorphism|#6366f1/i);
 });

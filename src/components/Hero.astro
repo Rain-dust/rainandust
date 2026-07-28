@@ -11,7 +11,9 @@
       autoplay
       playsinline
       preload="auto"
-      poster="/rain-dust/home/shadow-home-poster.webp"
+      poster="/rain-dust/home/shadow-home-poster.jpg"
+      data-loop-start="0"
+      data-loop-end="10"
     >
       <source src="/rain-dust/home/shadow-home-loop.mp4" type="video/mp4" />
     </video>
@@ -76,6 +78,9 @@
     motionLabel &&
     terminalTyping
   ) {
+    const loopStart = Number(video.dataset.loopStart ?? 0);
+    const loopEnd = Number(video.dataset.loopEnd ?? 10);
+
     const syncIdentity = () => {
       const showIdentity = video.currentTime < 3.15;
       hero.classList.toggle("is-identity-visible", showIdentity);
@@ -133,7 +138,15 @@
 
     video.addEventListener("play", syncMotionControl);
     video.addEventListener("pause", syncMotionControl);
-    video.addEventListener("timeupdate", syncIdentity);
+    video.addEventListener("timeupdate", () => {
+      if (video.currentTime >= loopEnd) {
+        video.currentTime = loopStart;
+        if (!hero.classList.contains("is-user-paused")) {
+          void playVideo();
+        }
+      }
+      syncIdentity();
+    });
     video.addEventListener("error", () => {
       hero.classList.add("is-media-ready", "is-media-static");
       syncMotionControl();

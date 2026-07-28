@@ -1,11 +1,145 @@
 ---
-import RoomPreview from "../components/RoomPreview.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout
   title="ME / Rain_dust"
-  description="关于寻辰沐雨。"
+  description="寻辰沐雨 / Rain_dust 的个人资料。"
 >
-  <RoomPreview kind="me" label="ME / profile" note="个人设定集，下一步展开。" />
+  <main class="me-profile" id="main" data-me-profile>
+    <div class="me-profile__field" aria-hidden="true">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <section class="me-identity" aria-labelledby="me-title">
+      <button
+        class="me-avatar"
+        type="button"
+        aria-label="点击头像"
+        data-me-avatar
+      >
+        <span class="me-avatar__flower" aria-hidden="true">
+          <span></span>
+        </span>
+        <img
+          src="/rain-dust/me/rain-dust-avatar.jpg"
+          alt="Rain_dust 的头像"
+          width="1262"
+          height="1246"
+        />
+        <span class="me-avatar__reply" role="status" data-me-reply>
+          别戳了，在写代码。
+        </span>
+      </button>
+
+      <div class="me-terminal">
+        <div class="me-terminal__bar">
+          <span class="me-terminal__dots" aria-hidden="true">
+            <i></i><i></i><i></i>
+          </span>
+          <span>rain-profile.exe</span>
+        </div>
+
+        <p class="me-terminal__path">C:\Users\Rain_dust\profile</p>
+        <p class="me-terminal__command">
+          <span>profile@rain:~$</span>
+          <strong
+            id="me-title"
+            data-profile-text="Rain_dust"
+            data-profile-typing
+          ></strong>
+          <i aria-hidden="true"></i>
+        </p>
+
+        <p class="me-terminal__name">寻辰沐雨 / Rain_dust</p>
+        <p class="me-terminal__role">VibeCoder · INTP · 白羊座</p>
+
+        <nav class="me-terminal__links" aria-label="个人链接">
+          <a
+            href="https://github.com/Rain-dust"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .7A11.3 11.3 0 0 0 8.4 22.72c.57.1.78-.25.78-.55v-2.13c-3.19.69-3.86-1.36-3.86-1.36-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.68 1.24 3.33.95.1-.74.4-1.24.72-1.53-2.54-.29-5.22-1.27-5.22-5.66 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18A10.9 10.9 0 0 1 12 6.07c.97 0 1.94.13 2.85.39 2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.08 0 4.4-2.68 5.37-5.23 5.66.41.36.77 1.06.77 2.13v2.98c0 .3.21.66.79.55A11.3 11.3 0 0 0 12 .7Z"
+              ></path>
+            </svg>
+            GitHub
+          </a>
+          <a href="mailto:1223451146@qq.com">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M3.75 5.25h16.5A1.75 1.75 0 0 1 22 7v10a1.75 1.75 0 0 1-1.75 1.75H3.75A1.75 1.75 0 0 1 2 17V7a1.75 1.75 0 0 1 1.75-1.75Zm.23 2 8.02 5.6 8.02-5.6H3.98Zm16.02 9.5V9.18l-7.43 5.18a1 1 0 0 1-1.14 0L4 9.18v7.57h16Z"
+              ></path>
+            </svg>
+            Email
+          </a>
+        </nav>
+      </div>
+    </section>
+
+    <p class="me-profile__hint" aria-hidden="true">
+      README.md / profile
+    </p>
+  </main>
 </BaseLayout>
+
+<script>
+  const profile = document.querySelector<HTMLElement>("[data-me-profile]");
+  const avatar = profile?.querySelector<HTMLButtonElement>("[data-me-avatar]");
+  const reply = profile?.querySelector<HTMLElement>("[data-me-reply]");
+  const typingTarget = profile?.querySelector<HTMLElement>(
+    "[data-profile-typing]",
+  );
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+
+  if (profile && avatar && reply && typingTarget) {
+    const finalText = typingTarget.dataset.profileText ?? "Rain_dust";
+    let replyTimer = 0;
+
+    const reveal = () => {
+      profile.classList.add("is-ready");
+
+      if (reduceMotion) {
+        typingTarget.textContent = finalText;
+        return;
+      }
+
+      let index = 0;
+      const typeNext = () => {
+        index += 1;
+        typingTarget.textContent = finalText.slice(0, index);
+        if (index < finalText.length) {
+          window.setTimeout(typeNext, 82);
+        }
+      };
+
+      window.setTimeout(typeNext, 620);
+    };
+
+    avatar.addEventListener("click", () => {
+      avatar.classList.remove("is-poked");
+      void avatar.offsetWidth;
+      avatar.classList.add("is-poked");
+      reply.classList.add("is-visible");
+      window.clearTimeout(replyTimer);
+      replyTimer = window.setTimeout(
+        () => reply.classList.remove("is-visible"),
+        1700,
+      );
+    });
+
+    if (reduceMotion) {
+      reveal();
+    } else {
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(reveal);
+      });
+    }
+  }
+</script>
