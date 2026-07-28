@@ -3,18 +3,21 @@
   id="top"
   aria-labelledby="home-title"
 >
-  <video
-    class="home-hero__video"
-    muted
-    loop
-    autoplay
-    playsinline
-    preload="auto"
-    poster="/rain-dust/home/shadow-home-poster.webp"
-    aria-hidden="true"
-  >
-    <source src="/rain-dust/home/shadow-home-loop.mp4" type="video/mp4" />
-  </video>
+  <div class="home-hero__backdrop" aria-hidden="true"></div>
+
+  <div class="home-hero__stage" aria-hidden="true">
+    <video
+      class="home-hero__video"
+      muted
+      loop
+      autoplay
+      playsinline
+      preload="auto"
+      poster="/rain-dust/home/shadow-home-poster.webp"
+    >
+      <source src="/rain-dust/home/shadow-home-loop.mp4" type="video/mp4" />
+    </video>
+  </div>
 
   <div class="home-hero__wash" aria-hidden="true"></div>
 
@@ -26,44 +29,119 @@
       Vibe Coder
     </p>
   </div>
+
+  <button
+    class="home-motion-toggle"
+    type="button"
+    aria-pressed="false"
+    aria-label="播放动态背景"
+  >
+    <span class="home-motion-toggle__mark" aria-hidden="true">▶</span>
+    <span class="home-motion-toggle__label">播放动态</span>
+  </button>
 </section>
 
 <script>
   const hero = document.querySelector<HTMLElement>(".home-hero");
   const video = hero?.querySelector<HTMLVideoElement>(".home-hero__video");
+  const motionToggle = hero?.querySelector<HTMLButtonElement>(
+    ".home-motion-toggle",
+  );
+  const motionMark = motionToggle?.querySelector<HTMLElement>(
+    ".home-motion-toggle__mark",
+  );
+  const motionLabel = motionToggle?.querySelector<HTMLElement>(
+    ".home-motion-toggle__label",
+  );
   const reduceMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
   ).matches;
 
-  if (hero && video) {
+  if (hero && video && motionToggle && motionMark && motionLabel) {
     const syncIdentity = () => {
       const showIdentity = video.currentTime < 2.05;
       hero.classList.toggle("is-identity-visible", showIdentity);
       hero.classList.toggle("is-identity-hidden", !showIdentity);
     };
 
-    if (reduceMotion) {
+    const syncMotionControl = () => {
+      const isPlaying = !video.paused && !video.ended;
+      hero.classList.toggle("is-motion-active", isPlaying);
+      hero.classList.toggle("is-motion-paused", !isPlaying);
+      motionToggle.setAttribute("aria-pressed", String(isPlaying));
+      motionToggle.setAttribute(
+        "aria-label",
+        isPlaying ? "暂停动态背景" : "播放动态背景",
+      );
+      motionMark.textContent = isPlaying ? "Ⅱ" : "▶";
+      motionLabel.textContent = isPlaying ? "暂停动态" : "播放动态";
+    };
+
+    const showStaticFrame = () => {
       video.pause();
-      video.currentTime = 0.9;
-      hero.classList.add("is-media-static");
-    } else {
-      const revealVideo = () => {
-        hero.classList.add("is-media-ready");
-        void video.play().catch(() => {
-          hero.classList.add("is-media-static");
-        });
+
+      const seekToPosterFrame = () => {
+        if (Number.isFinite(video.duration) && video.duration > 0.9) {
+          video.currentTime = 0.9;
+        }
+        hero.classList.add("is-media-ready", "is-media-static");
+        syncIdentity();
+        syncMotionControl();
       };
 
-      if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-        revealVideo();
+      if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
+        seekToPosterFrame();
       } else {
-        video.addEventListener("canplay", revealVideo, { once: true });
+        video.addEventListener("loadedmetadata", seekToPosterFrame, {
+          once: true,
+        });
       }
+    };
 
-      video.addEventListener("timeupdate", syncIdentity);
-      video.addEventListener("error", () => {
+    const playVideo = async () => {
+      try {
+        await video.play();
+        hero.classList.add("is-media-ready");
+        hero.classList.remove("is-media-static");
+      } catch {
         hero.classList.add("is-media-static");
-      });
+      }
+      syncMotionControl();
+    };
+
+    const revealVideo = () => {
+      hero.classList.add("is-media-ready");
+
+      if (reduceMotion) {
+        showStaticFrame();
+      } else {
+        void playVideo();
+      }
+    };
+
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      revealVideo();
+    } else {
+      video.addEventListener("loadeddata", revealVideo, { once: true });
     }
+
+    motionToggle.addEventListener("click", () => {
+      if (video.paused) {
+        void playVideo();
+      } else {
+        video.pause();
+        syncMotionControl();
+      }
+    });
+
+    video.addEventListener("play", syncMotionControl);
+    video.addEventListener("pause", syncMotionControl);
+    video.addEventListener("timeupdate", syncIdentity);
+    video.addEventListener("error", () => {
+      hero.classList.add("is-media-ready", "is-media-static");
+      syncMotionControl();
+    });
+
+    syncMotionControl();
   }
 </script>
