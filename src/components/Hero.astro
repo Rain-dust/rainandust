@@ -1,34 +1,69 @@
-<section id="top" class="hero" aria-labelledby="hero-title">
-  <div class="hero__grid" aria-hidden="true"></div>
+<section
+  class="home-hero is-identity-visible"
+  id="top"
+  aria-labelledby="home-title"
+>
+  <video
+    class="home-hero__video"
+    muted
+    loop
+    autoplay
+    playsinline
+    preload="auto"
+    poster="/rain-dust/home/shadow-home-poster.webp"
+    aria-hidden="true"
+  >
+    <source src="/rain-dust/home/shadow-home-loop.mp4" type="video/mp4" />
+  </video>
 
-  <div class="hero__copy">
-    <p class="hero__role">Independent builder / AI-native creator</p>
-    <h1 id="hero-title">
-      <span>寻辰沐雨</span>
-      <small>RAIN DUST</small>
-    </h1>
-    <p class="hero__statement">
-      把想法做成可以被看见、使用和记住的东西。
+  <div class="home-hero__wash" aria-hidden="true"></div>
+
+  <div class="home-identity">
+    <h1 id="home-title">寻辰沐雨</h1>
+    <p class="home-identity__name">Rain_dust</p>
+    <p class="home-identity__role">
+      <span aria-hidden="true"></span>
+      Vibe Coder
     </p>
   </div>
-
-  <figure class="hero__portrait" aria-hidden="true">
-    <img
-      src="/rain-dust/hero/hero-girl-crop-v2.webp"
-      alt=""
-      width="650"
-      height="760"
-      fetchpriority="high"
-    />
-  </figure>
-
-  <div class="hero__shadow" aria-hidden="true">
-    <span class="hero__shadow-index">SELECTED WORK / 2026</span>
-    <span class="hero__signal"></span>
-  </div>
-
-  <a class="hero__enter" href="#works">
-    <span>作品</span>
-    <i aria-hidden="true"></i>
-  </a>
 </section>
+
+<script>
+  const hero = document.querySelector<HTMLElement>(".home-hero");
+  const video = hero?.querySelector<HTMLVideoElement>(".home-hero__video");
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+
+  if (hero && video) {
+    const syncIdentity = () => {
+      const showIdentity = video.currentTime < 2.05;
+      hero.classList.toggle("is-identity-visible", showIdentity);
+      hero.classList.toggle("is-identity-hidden", !showIdentity);
+    };
+
+    if (reduceMotion) {
+      video.pause();
+      video.currentTime = 0.9;
+      hero.classList.add("is-media-static");
+    } else {
+      const revealVideo = () => {
+        hero.classList.add("is-media-ready");
+        void video.play().catch(() => {
+          hero.classList.add("is-media-static");
+        });
+      };
+
+      if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+        revealVideo();
+      } else {
+        video.addEventListener("canplay", revealVideo, { once: true });
+      }
+
+      video.addEventListener("timeupdate", syncIdentity);
+      video.addEventListener("error", () => {
+        hero.classList.add("is-media-static");
+      });
+    }
+  }
+</script>

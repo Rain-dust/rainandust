@@ -4,16 +4,37 @@ import test from "node:test";
 
 const indexUrl = new URL("../dist/client/index.html", import.meta.url);
 
-test("Astro emits the Rain Dust portfolio as content-first HTML", async () => {
+test("Astro emits the video-led HOME and four route entrances", async () => {
   const html = await readFile(indexUrl, "utf8");
 
   assert.match(html, /寻辰沐雨/);
-  assert.match(html, /Earth Online/);
-  assert.match(html, /浮生录/);
-  assert.match(html, /知微/);
-  assert.match(html, /Campus Reimburse Kit/);
-  assert.match(html, /data-project-field/);
-  assert.doesNotMatch(html, /SOUND OFF|girl-reveal|Three things I chose/);
+  assert.match(html, /Rain_dust/);
+  assert.match(html, /Vibe Coder/);
+  assert.match(html, /shadow-home-loop\.mp4/);
+  assert.match(html, /HOME/);
+  assert.match(html, /BLOG/);
+  assert.match(html, /WORKS/);
+  assert.match(html, /ME/);
+  assert.doesNotMatch(html, /hero-girl|data-project-field|向下滚动/);
+});
+
+test("each top-level room is emitted as an independent page", async () => {
+  const rooms = [
+    ["blog", /笔记暂时留白/],
+    ["works", /塔罗牌桌/],
+    ["me", /个人设定集/],
+  ];
+
+  for (const [route, content] of rooms) {
+    const html = await readFile(
+      new URL(`../dist/client/${route}/index.html`, import.meta.url),
+      "utf8",
+    );
+
+    assert.match(html, content);
+    assert.match(html, /data-portal-shell/);
+    assert.match(html, /scene-curtain/);
+  }
 });
 
 test("the Sites worker delegates requests to the static asset binding", async () => {
@@ -33,10 +54,10 @@ test("the Sites worker delegates requests to the static asset binding", async ()
   });
 
   assert.equal(response.status, 200);
-  assert.match(await response.text(), /RAIN_DUST/);
+  assert.match(await response.text(), /Rain_dust/);
 });
 
-test("the compiled page keeps motion and accessibility fallbacks", async () => {
+test("the compiled site keeps motion, navigation, and accessibility fallbacks", async () => {
   const html = await readFile(indexUrl, "utf8");
   const stylesheet = html.match(/href="([^"]+\.css)"/)?.[1];
   assert.ok(stylesheet, "expected a compiled stylesheet");
@@ -46,6 +67,8 @@ test("the compiled page keeps motion and accessibility fallbacks", async () => {
 
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /\.skip-link/);
-  assert.match(css, /\.project-field__signal/);
+  assert.match(css, /\.portal-pull/);
+  assert.match(css, /\.scene-curtain/);
+  assert.match(css, /\.home-hero__video/);
   assert.doesNotMatch(css, /\.card\b|glassmorphism|#6366f1/i);
 });

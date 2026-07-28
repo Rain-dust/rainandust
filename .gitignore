@@ -15,6 +15,7 @@
 
 # Astro
 /.astro/
+/.vite-cache/
 
 # legacy local build caches
 /.vinext/
