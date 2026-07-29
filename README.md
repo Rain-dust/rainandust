@@ -16,7 +16,7 @@ npm install
 npm run dev
 ```
 
-当前项目已带 `.npmrc`，默认使用 `https://registry.npmmirror.com/`。
+当前项目已带 `.npmrc`，默认使用 `https://registry.npmjs.org/`。
 
 ## 构建
 
