@@ -103,3 +103,9 @@ test("Sites worker serves the custom 404 document without redirecting", () => {
   assert.match(worker, /status:\s*404/);
   assert.doesNotMatch(worker, /redirect/i);
 });
+
+test("Sites package excludes inherited assets that are no longer public", () => {
+  const packaging = read("scripts/prepare-sites.mjs");
+  assert.match(packaging, /dist\/client\/blog-covers/);
+  assert.match(packaging, /dist\/client\/themes\/kisara/);
+});
