@@ -109,3 +109,7 @@ test("Sites package excludes inherited assets that are no longer public", () => 
   assert.match(packaging, /dist\/client\/blog-covers/);
   assert.match(packaging, /dist\/client\/themes\/kisara/);
 });
+
+test("static asset routing falls back to the custom 404 document", () => {
+  assert.equal(read("public/_redirects").trim(), "/* /404.html 404");
+});
