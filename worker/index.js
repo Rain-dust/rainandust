@@ -10,7 +10,7 @@ export default {
     }
 
     const fallbackUrl = new URL("/404.html", request.url);
-    const fallback = await env.ASSETS.fetch(new Request(fallbackUrl, request));
+    const fallback = await env.ASSETS.fetch(new Request(fallbackUrl));
     if (!fallback.ok) return response;
 
     return new Response(request.method === "HEAD" ? null : fallback.body, {

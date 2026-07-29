@@ -100,6 +100,7 @@ test("BLOG renders an intentional empty state without fake posts", () => {
 test("Sites worker serves the custom 404 document without redirecting", () => {
   const worker = read("worker/index.js");
   assert.match(worker, /new URL\("\/404\.html", request\.url\)/);
+  assert.match(worker, /ASSETS\.fetch\(new Request\(fallbackUrl\)\)/);
   assert.match(worker, /status:\s*404/);
   assert.doesNotMatch(worker, /redirect/i);
 });
