@@ -1,7 +1,7 @@
 export const site = {
   name: "Rain_dust",
   title: "Rain_dust | Vibe Coder",
-  description: "寻辰沐雨的个人作品与兴趣记录。",
+  description: "寻辰沐雨 / Rain_dust 的个人站点。Vibe Coder，记录想法、代码与动漫。",
   author: "寻辰沐雨",
   nav: [
     { href: "/", label: "HOME", icon: "tabler:home-heart", hint: "front page" },

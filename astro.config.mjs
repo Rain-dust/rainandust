@@ -152,7 +152,16 @@ export default defineConfig({
           "hand-finger",
           "hand-grab",
           "tools-kitchen-2",
-          "trash"
+          "trash",
+          "books",
+          "eye",
+          "shoe-off",
+          "moon-stars",
+          "book",
+          "bookmark",
+          "bulb",
+          "receipt",
+          "world"
         ],
         "simple-icons": [
           "unity",
@@ -161,7 +170,12 @@ export default defineConfig({
           "github",
           "bilibili",
           "steam",
-          "thefinals"
+          "thefinals",
+          "threedotjs",
+          "pwa",
+          "python",
+          "nextdotjs",
+          "javascript"
         ]
       }
     }),

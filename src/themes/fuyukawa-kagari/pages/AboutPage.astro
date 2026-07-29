@@ -1,11 +1,11 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { Icon } from "astro-icon/components";
-import { kagariAsset, kagariAssets } from "../assets";
+import { kagariAssets } from "../assets";
 import {
   animeFavorites,
   currentSignals,
-  favoriteGames,
+  favoriteReading,
   profileIdentity,
   profileStatus,
   profileTech,
@@ -14,32 +14,16 @@ import {
 
 const statusItems = profileStatus;
 const techPresentation = {
-  unity: { icon: "simple-icons:unity", tone: "blue" },
-  blender: { icon: "simple-icons:blender", tone: "orange" },
-  ue5: { icon: "simple-icons:unrealengine", tone: "ink" },
-  mmd: { icon: "tabler:sparkles", tone: "pink" },
-  astrbot: { icon: "tabler:terminal-2", tone: "mint" }
+  threejs: { icon: "simple-icons:threedotjs", tone: "blue" },
+  pwa: { icon: "simple-icons:pwa", tone: "orange" },
+  python: { icon: "simple-icons:python", tone: "ink" },
+  nextjs: { icon: "simple-icons:nextdotjs", tone: "pink" },
+  javascript: { icon: "simple-icons:javascript", tone: "mint" }
 } as const;
 const techStack = profileTech.map((tech) => ({ ...tech, ...techPresentation[tech.key] }));
-const animeShelf = animeFavorites.map((item) => ({
-  ...item,
-  image: kagariAsset(`about/${item.key}.webp`)
-}));
-const xpTags = xpFavorites.map((item) => ({
-  ...item,
-  image: kagariAsset(`about/xp-${item.key}.webp`)
-}));
-const gameIcons = {
-  "cyberpunk-2077": "simple-icons:steam",
-  "the-finals": "simple-icons:thefinals",
-  kovaaks: "tabler:device-gamepad",
-  aimlabs: "tabler:device-gamepad"
-} as const;
-const gameShelf = favoriteGames.map((item) => ({
-  ...item,
-  image: kagariAsset(`about/${item.key}.webp`),
-  icon: gameIcons[item.key]
-}));
+const animeShelf = animeFavorites;
+const xpTags = xpFavorites;
+const readingShelf = favoriteReading;
 const nowDoing = currentSignals;
 ---
 
@@ -89,8 +73,9 @@ const nowDoing = currentSignals;
           <p class="section-kicker">README.md</p>
           <h2>Hi, I am Rain_dust</h2>
           <p>
-            小说、动漫、玄学，什么都看一点。
-            偶尔把脑洞做成东西。
+            INTP / 白羊座。<br />
+            小说、网文、动漫、玄学都看一点。<br />
+            想到什么，就做点什么。
           </p>
         </div>
         <div class="about-readme-badge" aria-hidden="true">
@@ -135,7 +120,7 @@ const nowDoing = currentSignals;
         <div class="about-media-grid about-media-grid--anime">
           {animeShelf.map((item) => (
             <article class="about-media-card">
-              <img src={item.image} alt={`${item.title} 官方视觉缩略图`} loading="lazy" width="900" height="506" />
+              <img src={item.image} alt={`${item.title} 视觉海报`} loading="lazy" width="900" height="506" />
               <div>
                 <h3>{item.title}</h3>
                 <p>{item.subtitle}</p>
@@ -145,7 +130,7 @@ const nowDoing = currentSignals;
         </div>
       </section>
 
-      <section class="about-section about-section--split" aria-label="XP and games">
+      <section class="about-section about-section--split" aria-label="XP and reading">
         <div>
           <div class="about-section-heading">
             <Icon name="tabler:heart" aria-hidden="true" />
@@ -158,7 +143,9 @@ const nowDoing = currentSignals;
           <div class="about-xp-grid">
             {xpTags.map((item) => (
               <article class="about-xp-card">
-                <img src={item.image} alt={`${item.title} 泛化视觉贴纸`} loading="lazy" width="900" height="506" />
+                <span class="about-xp-symbol" aria-hidden="true">
+                  <Icon name={item.icon} />
+                </span>
                 <div>
                   <h3>{item.title}</h3>
                   <p>{item.subtitle}</p>
@@ -170,20 +157,22 @@ const nowDoing = currentSignals;
 
         <div>
           <div class="about-section-heading">
-            <Icon name="tabler:device-gamepad" aria-hidden="true" />
+            <Icon name="tabler:book-2" aria-hidden="true" />
             <div>
-              <p>Game shelf</p>
-              <h2>喜欢的游戏</h2>
+              <p>Reading</p>
+              <h2>阅读</h2>
             </div>
           </div>
 
           <div class="about-game-list">
-            {gameShelf.map((item) => (
+            {readingShelf.map((item) => (
               <article class="about-game-card">
-                <img src={item.image} alt={`${item.title} 官方视觉缩略图`} loading="lazy" width="900" height="506" />
+                <span class="about-reading-cover" aria-hidden="true">
+                  <Icon name={item.icon} />
+                </span>
                 <div>
                   <span aria-hidden="true">
-                    <Icon name={item.icon} />
+                    <Icon name="tabler:bookmark" />
                   </span>
                   <h3>{item.title}</h3>
                   <p>{item.subtitle}</p>
@@ -224,27 +213,6 @@ const nowDoing = currentSignals;
       grid-template-columns: minmax(250px, 288px) minmax(0, 1fr);
       gap: 22px;
       align-items: start;
-    }
-
-    :global(.waifu-local-fallback) {
-      left: 6px;
-      width: 112px;
-      opacity: 0.72;
-    }
-
-    :global(.waifu-local-bubble) {
-      display: none;
-    }
-
-    :global(.waifu-local-character) {
-      width: 92px;
-      height: 92px;
-      margin-left: 0;
-    }
-
-    :global(.waifu-local-character img) {
-      width: 72px;
-      height: 72px;
     }
 
     .about-sidebar {
@@ -399,7 +367,7 @@ const nowDoing = currentSignals;
     .about-link-row svg,
     .about-section-heading svg,
     .about-tech-icon svg,
-    .about-game-card span svg {
+    .about-game-card div > span svg {
       width: 1.2em;
       height: 1.2em;
     }
@@ -609,12 +577,11 @@ const nowDoing = currentSignals;
     }
 
     .about-media-card img,
-    .about-xp-card img,
-    .about-game-card img {
+    .about-xp-symbol,
+    .about-reading-cover {
       display: block;
       width: 100%;
       aspect-ratio: 16 / 9;
-      object-fit: cover;
       background: var(--paper-soft);
     }
 
@@ -627,10 +594,20 @@ const nowDoing = currentSignals;
         linear-gradient(135deg, rgba(255, 250, 241, 0.72), rgba(220, 238, 250, 0.38));
     }
 
-    .about-xp-card img {
+    .about-xp-symbol {
+      display: grid;
+      place-items: center;
       aspect-ratio: 4 / 3;
-      height: auto;
-      object-fit: cover;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 42% 32%, rgba(255, 226, 234, 0.7), transparent 38%),
+        linear-gradient(135deg, rgba(255, 250, 241, 0.88), rgba(220, 238, 250, 0.58));
+    }
+
+    .about-xp-symbol svg,
+    .about-reading-cover svg {
+      width: 42px;
+      height: 42px;
     }
 
     .about-media-card div,
@@ -671,10 +648,14 @@ const nowDoing = currentSignals;
       min-height: 0;
     }
 
-    .about-game-card img {
+    .about-reading-cover {
+      display: grid;
+      place-items: center;
       aspect-ratio: 16 / 9;
-      height: auto;
-      object-fit: cover;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(255, 226, 234, 0.54), rgba(220, 238, 250, 0.52)),
+        rgba(255, 255, 255, 0.5);
     }
 
     .about-game-card div {
@@ -686,7 +667,7 @@ const nowDoing = currentSignals;
       padding: 10px 12px 12px;
     }
 
-    .about-game-card span {
+    .about-game-card div > span {
       display: inline-grid;
       place-items: center;
       width: 28px;
@@ -820,10 +801,6 @@ const nowDoing = currentSignals;
       .about-xp-grid,
       .about-media-grid {
         grid-template-columns: 1fr;
-      }
-
-      .about-game-card img {
-        aspect-ratio: 16 / 9;
       }
 
       .about-id-card h1 {

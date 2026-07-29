@@ -7,18 +7,6 @@ export const themes = [
     label: "Fuyukawa Kagari",
     description: "现有的 Fuyukawa Kagari 二次元手账主题",
     routePrefix: ""
-  },
-  {
-    id: "blank",
-    label: "Blank",
-    description: "独立、轻量的空白主题骨架",
-    routePrefix: "/themes/blank"
-  },
-  {
-    id: "kisara",
-    label: "Kisara",
-    description: "以木更为角色核心的视觉交互实验主题",
-    routePrefix: "/themes/kisara"
   }
 ] as const;
 

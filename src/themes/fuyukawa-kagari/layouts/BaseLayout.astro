@@ -13,7 +13,6 @@ interface Props {
   title?: string;
   description?: string;
   honorThemePreference?: boolean;
-  redirectThemedNotFound?: boolean;
   isArticlePage?: boolean;
 }
 
@@ -21,19 +20,9 @@ const {
   title = site.title,
   description = site.description,
   honorThemePreference = true,
-  redirectThemedNotFound = false,
   isArticlePage = false
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
-const themedNotFoundRedirectScript = `(() => {
-  const themeMatch = window.location.pathname.match(/^\\/themes\\/(blank|kisara)(?:\\/|$)/);
-  if (!themeMatch) return;
-  const themeId = themeMatch[1];
-  const notFoundPath = "/themes/" + themeId + "/404/";
-  if (window.location.pathname === notFoundPath) return;
-  const original = window.location.pathname + window.location.search + window.location.hash;
-  window.location.replace(notFoundPath + "?from=" + encodeURIComponent(original));
-})();`;
 ---
 
 <!doctype html>
@@ -44,11 +33,6 @@ const themedNotFoundRedirectScript = `(() => {
     <PerformanceProfile />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#fff8ec" />
-    {
-      redirectThemedNotFound && (
-        <script is:inline set:html={themedNotFoundRedirectScript}></script>
-      )
-    }
     <link rel="canonical" href={canonical} />
     <ThemePreferenceGate currentTheme="fuyukawa-kagari" honorPreference={honorThemePreference} />
     <link rel="icon" type="image/png" href={kagariAssets.favicon} />
@@ -78,20 +62,6 @@ const themedNotFoundRedirectScript = `(() => {
         <span>TOOLS</span>
       </button>
       <div class="toy-dock-panel">
-        <section class="toy-widget live2d-control-widget" aria-label="Live2D 看板娘控制">
-          <div class="toy-widget-title">
-            <span>✦</span>
-            <strong>Live2D 控制台</strong>
-          </div>
-          <p class="live2d-status" data-live2d-status>正在唤醒看板娘...</p>
-          <div class="live2d-controls">
-            <button type="button" data-live2d-toggle>隐藏看板娘</button>
-            <button type="button" data-live2d-message>说句话</button>
-            <button type="button" data-live2d-model>换模型</button>
-            <button type="button" data-live2d-texture>换衣服</button>
-          </div>
-        </section>
-
         <section class="toy-widget music-widget" aria-label="音乐播放器">
           <div class="toy-widget-title">
             <span>♫</span>
@@ -150,31 +120,7 @@ const themedNotFoundRedirectScript = `(() => {
       <button type="button" data-context-action="title">T &#x590D;&#x5236;&#x6807;&#x9898;</button>
       <button type="button" data-context-action="sakura" aria-pressed="true">&#x273F; 樱花雨：开</button>
       <button type="button" data-context-action="music-autoplay" aria-pressed="false">♫ 进站续播：关</button>
-      <div class="context-theme-group" aria-label="选择前端主题">
-        <span class="context-theme-label">THEME</span>
-        <button type="button" data-theme-select="fuyukawa-kagari" aria-pressed="true">
-          <span class="context-theme-mark" aria-hidden="true">●</span>
-          Fuyukawa Kagari
-        </button>
-        <button type="button" data-theme-select="blank" aria-pressed="false">
-          <span class="context-theme-mark" aria-hidden="true">○</span>
-          Blank
-        </button>
-        <button type="button" data-theme-select="kisara" aria-pressed="false">
-          <span class="context-theme-mark" aria-hidden="true">○</span>
-          Kisara
-        </button>
-      </div>
     </nav>
-    <button
-      class="theme-quick-switch"
-      type="button"
-      data-theme-select="kisara"
-      aria-label="切换到 Kisara 主题"
-      title="切换到 Kisara 主题"
-    >
-      <Icon name="tabler:palette" aria-hidden="true" />
-    </button>
     <div class="site-shell">
       <header class="site-header" aria-label="Primary">
         <a class="brand" href="/" aria-label={`${site.name} home`}>
@@ -203,7 +149,6 @@ const themedNotFoundRedirectScript = `(() => {
           <p>🛰️ 旅行者一号：<time data-elapsed-from="1977-09-05T12:56:00Z" data-elapsed-mode="minute">计算中...</time> 仍在远航</p>
           <p>🛰️ 旅行者二号：<time data-elapsed-from="1977-08-20T14:29:00Z" data-elapsed-mode="minute">计算中...</time> 仍在远航</p>
           <p>🌸 Rain_dust 已落地：<time data-elapsed-from="2026-05-18T00:00:00+08:00" data-elapsed-mode="second">计算中...</time></p>
-          <p>💍 契约之吻：<time data-elapsed-from="2022-09-24T00:00:00+08:00" data-elapsed-mode="days">计算中...</time>，第二季仍未响应</p>
           <p class="footer-status-line">sakura: falling / pig: on duty / tea: warm</p>
         </div>
       </footer>
@@ -332,287 +277,6 @@ const themedNotFoundRedirectScript = `(() => {
         if (event.key !== "Escape" || !toyDock) return;
         toyDock.classList.remove("is-pinned");
         toyDock.querySelector(":focus")?.blur();
-      });
-
-      const live2dBase = "https://fastly.jsdelivr.net/npm/live2d-widgets@1.0.0-rc.6/dist/";
-      const live2dStatus = document.querySelector("[data-live2d-status]");
-      const live2dToggle = document.querySelector("[data-live2d-toggle]");
-      const live2dMessage = document.querySelector("[data-live2d-message]");
-      const live2dModel = document.querySelector("[data-live2d-model]");
-      const live2dTexture = document.querySelector("[data-live2d-texture]");
-      const live2dWidget = live2dStatus?.closest(".live2d-control-widget");
-      const live2dControls = [live2dToggle, live2dMessage, live2dModel, live2dTexture].filter(Boolean);
-      let live2dVisible = true;
-      let live2dReady = false;
-      let live2dInitStarted = false;
-
-      const setLive2dStatus = (text) => {
-        if (live2dStatus) live2dStatus.textContent = text;
-      };
-
-      const isHomeRoute = () => {
-        const path = window.location.pathname.replace(/\/index\.html$/, "/");
-        return path === "/";
-      };
-
-      const setLive2dControlsLocked = (locked) => {
-        live2dWidget?.classList.toggle("is-route-locked", locked);
-        live2dControls.forEach((button) => {
-          button.disabled = locked;
-          button.setAttribute("aria-disabled", String(locked));
-        });
-        if (locked) {
-          if (live2dToggle) live2dToggle.textContent = "仅首页可用";
-          setLive2dStatus("看板娘只在首页出现，阅读页先让出视野。");
-        }
-      };
-
-      const hasLive2dWidget = () => {
-        const waifu = document.getElementById("waifu");
-        const canvas = document.getElementById("live2d");
-        if (!waifu || !canvas) return false;
-        const canvasRect = canvas.getBoundingClientRect();
-        return canvasRect.width > 80 && canvasRect.height > 80;
-      };
-
-      const removeLive2dWidget = () => {
-        removeLocalWaifuFallback();
-        document.getElementById("waifu")?.remove();
-        document.getElementById("waifu-toggle")?.remove();
-        document.getElementById("waifu-tool")?.remove();
-        live2dReady = false;
-        live2dInitStarted = false;
-        live2dVisible = false;
-      };
-
-      const resetLive2dStorage = () => {
-        localStorage.removeItem("waifu-display");
-        localStorage.setItem("modelId", "0");
-        localStorage.setItem("modelTexturesId", "0");
-      };
-
-      const loadExternalResource = (url, type) => new Promise((resolve, reject) => {
-        const tag = type === "css" ? document.createElement("link") : document.createElement("script");
-        if (type === "css") {
-          tag.rel = "stylesheet";
-          tag.href = url;
-        } else {
-          tag.type = "module";
-          tag.src = url;
-        }
-        tag.onload = () => resolve(url);
-        tag.onerror = () => reject(url);
-        document.head.appendChild(tag);
-      });
-
-      const setWaifuVisibility = (visible, options = {}) => {
-        const { persist = true } = options;
-        const waifu = document.getElementById("waifu");
-        live2dVisible = visible;
-        if (live2dToggle) live2dToggle.textContent = visible ? "隐藏看板娘" : "显示看板娘";
-        setLive2dStatus(visible ? "看板娘正在左下角待机。" : "看板娘已收起。");
-        if (visible) {
-          if (persist) localStorage.removeItem("waifu-display");
-        }
-        if (!waifu) return;
-
-        if (visible) {
-          waifu.classList.remove("waifu-hidden");
-          window.setTimeout(() => waifu.classList.add("waifu-active"), 0);
-        } else {
-          waifu.classList.remove("waifu-active");
-          if (persist) localStorage.setItem("waifu-display", Date.now().toString());
-          window.setTimeout(() => waifu.classList.add("waifu-hidden"), 320);
-        }
-      };
-
-      const showWaifuMessage = (message) => {
-        const tips = document.getElementById("waifu-tips");
-        if (!tips) return;
-        tips.innerHTML = message;
-        tips.classList.add("waifu-tips-active");
-        window.setTimeout(() => tips.classList.remove("waifu-tips-active"), 4200);
-      };
-
-      const waitForWaifu = (callback, retries = 30) => {
-        const waifu = document.getElementById("waifu");
-        if (waifu) {
-          callback(waifu);
-          return;
-        }
-        if (retries <= 0) return;
-        window.setTimeout(() => waitForWaifu(callback, retries - 1), 300);
-      };
-
-      const ensureLocalWaifuFallback = () => {
-        if (!isHomeRoute()) return;
-        if (document.querySelector(".waifu-local-fallback")) return;
-        const fallback = document.createElement("div");
-        fallback.className = "waifu-local-fallback";
-        fallback.setAttribute("aria-label", "Rain_dust fallback 看板娘");
-        fallback.innerHTML = `
-          <div class="waifu-local-bubble">Live2D 加载有点害羞，先由我值班。</div>
-          <div class="waifu-local-character">
-            <img src="/themes/fuyukawa-kagari/assets/profile.webp" alt="" width="128" height="128" />
-          </div>
-        `;
-        document.body.appendChild(fallback);
-      };
-
-      const removeLocalWaifuFallback = () => {
-        document.querySelector(".waifu-local-fallback")?.remove();
-      };
-
-      const activateWaifuFallbackIfBlank = () => {
-        if (!isHomeRoute()) {
-          removeLocalWaifuFallback();
-          return;
-        }
-        const waifu = document.getElementById("waifu");
-        const canvas = document.getElementById("live2d");
-        if (!waifu || !canvas || waifu.classList.contains("waifu-hidden")) return;
-        const canvasRect = canvas.getBoundingClientRect();
-        const hasUsableCanvas = canvasRect.width > 80 && canvasRect.height > 80;
-        const hasWidgetTools = Boolean(document.getElementById("waifu-tool"));
-        if (hasUsableCanvas && hasWidgetTools) {
-          removeLocalWaifuFallback();
-          setLive2dStatus("看板娘正在左下角待机。");
-          return;
-        }
-        ensureLocalWaifuFallback();
-        setLive2dStatus("Live2D 本体加载不稳定，已启用本地看板娘备用显示。");
-      };
-
-      const reconcileWaifuFallback = () => {
-        if (!isHomeRoute()) {
-          removeLocalWaifuFallback();
-          return;
-        }
-        const waifu = document.getElementById("waifu");
-        const canvas = document.getElementById("live2d");
-        if (!waifu || !canvas || waifu.classList.contains("waifu-hidden")) return;
-        const canvasRect = canvas.getBoundingClientRect();
-        if (canvasRect.width > 80 && canvasRect.height > 80) {
-          removeLocalWaifuFallback();
-          setLive2dStatus("看板娘正在左下角待机。");
-        }
-      };
-
-      const initLive2dWidget = async () => {
-        if (!isHomeRoute()) return;
-        if (hasLive2dWidget()) {
-          live2dReady = true;
-          live2dInitStarted = false;
-          setWaifuVisibility(true, { persist: false });
-          return;
-        }
-        if (live2dInitStarted) return;
-        live2dInitStarted = true;
-        try {
-          resetLive2dStorage();
-          setLive2dControlsLocked(false);
-          await Promise.all([
-            loadExternalResource(`${live2dBase}waifu.css`, "css"),
-            loadExternalResource(`${live2dBase}waifu-tips.js`, "js")
-          ]);
-          window.initWidget({
-            waifuPath: `${live2dBase}waifu-tips.json`,
-            cdnPath: "https://fastly.jsdelivr.net/gh/fghrsh/live2d_api/",
-            cubism2Path: `${live2dBase}live2d.min.js`,
-            cubism5Path: "https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js",
-            tools: ["photo", "quit"],
-            logLevel: "warn",
-            drag: true
-          });
-          live2dReady = true;
-          live2dVisible = true;
-          if (live2dToggle) live2dToggle.textContent = "隐藏看板娘";
-          setLive2dStatus("看板娘正在左下角待机。");
-          waitForWaifu((waifu) => {
-            waifu.classList.remove("waifu-hidden");
-            waifu.classList.add("waifu-active");
-            window.setTimeout(() => showWaifuMessage("欢迎来到 Rain_dust，今天也要开心写代码。"), 900);
-            window.setTimeout(reconcileWaifuFallback, 4200);
-            window.setTimeout(activateWaifuFallbackIfBlank, 12000);
-          });
-        } catch (error) {
-          live2dInitStarted = false;
-          ensureLocalWaifuFallback();
-          setLive2dStatus("看板娘加载失败，请检查网络。");
-        }
-      };
-
-      const hardReloadLive2d = () => {
-        if (!isHomeRoute()) return;
-        removeLive2dWidget();
-        resetLive2dStorage();
-        initLive2dWidget();
-      };
-
-      const hideLive2dForRoute = () => {
-        removeLocalWaifuFallback();
-        const waifu = document.getElementById("waifu");
-        if (waifu) {
-          waifu.classList.remove("waifu-active");
-          waifu.classList.add("waifu-hidden");
-        }
-        live2dInitStarted = false;
-        live2dVisible = false;
-      };
-
-      const syncLive2dRouteState = () => {
-        if (!isHomeRoute()) {
-          hideLive2dForRoute();
-          setLive2dControlsLocked(true);
-          return;
-        }
-
-        setLive2dControlsLocked(false);
-        if (hasLive2dWidget()) {
-          setWaifuVisibility(true, { persist: false });
-          window.setTimeout(reconcileWaifuFallback, 800);
-          return;
-        }
-        if (document.getElementById("waifu")) {
-          hardReloadLive2d();
-          return;
-        }
-        live2dReady = false;
-        live2dInitStarted = false;
-        initLive2dWidget();
-      };
-
-      syncLive2dRouteState();
-      document.addEventListener("astro:page-load", syncLive2dRouteState);
-      document.addEventListener("astro:after-swap", syncLive2dRouteState);
-      window.addEventListener("pageshow", syncLive2dRouteState);
-
-      live2dToggle?.addEventListener("click", () => {
-        if (!isHomeRoute()) return;
-        if (!live2dReady && !document.getElementById("waifu")) {
-          initLive2dWidget();
-          return;
-        }
-        if (live2dVisible && document.getElementById("waifu") && !document.getElementById("live2d")) {
-          hardReloadLive2d();
-          return;
-        }
-        setWaifuVisibility(!live2dVisible);
-      });
-      live2dMessage?.addEventListener("click", () => {
-        if (!isHomeRoute()) return;
-        setWaifuVisibility(true);
-        waitForWaifu((waifu) => waifu.classList.add("waifu-active"));
-        window.setTimeout(reconcileWaifuFallback, 800);
-        showWaifuMessage("我在这里。要不要继续给博客堆一点可爱的功能？");
-      });
-      live2dModel?.addEventListener("click", () => {
-        if (!isHomeRoute()) return;
-        hardReloadLive2d();
-      });
-      live2dTexture?.addEventListener("click", () => {
-        if (!isHomeRoute()) return;
-        hardReloadLive2d();
       });
 
       const musicCacheKey = "yuimi-radio-state-v1";
@@ -922,7 +586,6 @@ const themedNotFoundRedirectScript = `(() => {
         const contextMenu = getContextMenu();
         const sakuraButton = contextMenu?.querySelector('[data-context-action="sakura"]');
         const musicAutoplayButton = contextMenu?.querySelector('[data-context-action="music-autoplay"]');
-        const currentTheme = window.__yuimiTheme?.current ?? "fuyukawa-kagari";
         const sakuraEnabled = isSakuraEnabled();
         const musicAutoplayEnabled = window.__yuimiRadio?.isAutoplayEnabled?.() ?? false;
         if (sakuraButton) {
@@ -933,12 +596,6 @@ const themedNotFoundRedirectScript = `(() => {
           musicAutoplayButton.textContent = musicAutoplayEnabled ? "♫ 进站续播：开" : "♫ 进站续播：关";
           musicAutoplayButton.setAttribute("aria-pressed", String(musicAutoplayEnabled));
         }
-        contextMenu?.querySelectorAll("[data-theme-select]").forEach((button) => {
-          const isCurrent = button.dataset.themeSelect === currentTheme;
-          button.setAttribute("aria-pressed", String(isCurrent));
-          const mark = button.querySelector(".context-theme-mark");
-          if (mark) mark.textContent = isCurrent ? "●" : "○";
-        });
       };
 
       setSakuraEnabled(isSakuraEnabled());
@@ -952,7 +609,7 @@ const themedNotFoundRedirectScript = `(() => {
           const activeElement = document.activeElement;
           contextMenuReturnFocus = activeElement instanceof HTMLElement && activeElement !== document.body
             ? activeElement
-            : document.querySelector(".theme-quick-switch");
+            : null;
         }
         updateContextToggleLabels();
         const menuWidth = contextMenu.offsetWidth;
@@ -992,14 +649,6 @@ const themedNotFoundRedirectScript = `(() => {
       window.addEventListener("click", async (event) => {
         const contextMenu = getContextMenu();
         const target = event.target instanceof Element ? event.target : null;
-        const themeButton = target?.closest("[data-theme-select]");
-        if (themeButton) {
-          event.stopPropagation();
-          hideContextMenu();
-          window.__yuimiTheme?.select(themeButton.dataset.themeSelect);
-          return;
-        }
-
         const button = target?.closest("[data-context-action]");
         if (!button || !contextMenu?.contains(button)) {
           hideContextMenu();

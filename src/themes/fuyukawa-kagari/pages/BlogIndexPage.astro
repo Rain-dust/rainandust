@@ -21,6 +21,7 @@ const posts = (await getPublishedPosts())
       cover: post.data.cover ?? kagariAssets.heroWallpaper
     };
   });
+const hasPosts = posts.length > 0;
 
 const formatter = new Intl.DateTimeFormat("zh-CN", {
   year: "numeric",
@@ -36,11 +37,11 @@ const coverFocus: Record<string, string> = {
 };
 ---
 
-<BaseLayout title="Blog | Rain_dust" description="技术笔记、二次元随笔与个人记录。">
+<BaseLayout title="Blog | Rain_dust" description="Rain_dust 的文章与笔记。">
   <section class="page-title blog-hero-card">
     <p class="section-kicker">Archive</p>
     <h1>Blog</h1>
-    <p>开发经验、站点折腾、兴趣记录都会先夹在这里。每篇文章像一张贴进手账的照片，隔一阵回来，也能看见当时为什么这么想。</p>
+    <p>这里暂时没有文章。有想写的再写。</p>
   </section>
 
   <section class="blog-search-card" data-pagefind-ignore>
@@ -53,12 +54,28 @@ const coverFocus: Record<string, string> = {
     </div>
     <label class="blog-search-box">
       <span>关键词</span>
-      <input type="search" data-blog-search placeholder="输入 AstrBot、插件、部署..." autocomplete="off" />
+      <input
+        type="search"
+        data-blog-search
+        placeholder={hasPosts ? "输入关键词..." : "暂无文章"}
+        autocomplete="off"
+        disabled={!hasPosts}
+      />
     </label>
     <div class="blog-search-results" data-blog-search-results aria-live="polite"></div>
   </section>
 
-  <section class="blog-timeline" aria-label="Blog timeline">
+  {
+    !hasPosts && (
+      <section class="blog-empty-state" aria-label="Blog empty state">
+        <p>NO NOTES YET</p>
+        <h2>这里暂时没有文章。</h2>
+        <span>有想写的再写。</span>
+      </section>
+    )
+  }
+
+  {hasPosts && <section class="blog-timeline" aria-label="Blog timeline">
     {
       posts.map((post) => (
         <article class="blog-timeline-item">
@@ -87,9 +104,9 @@ const coverFocus: Record<string, string> = {
         </article>
       ))
     }
-  </section>
+  </section>}
 
-  <section class="post-list">
+  {hasPosts && <section class="post-list">
     {
       posts.map((post) => (
         <a class="post-row compact-post-row" href={`/blog/${post.id}/`}>
@@ -108,7 +125,7 @@ const coverFocus: Record<string, string> = {
         </a>
       ))
     }
-  </section>
+  </section>}
 
   <script>
     const searchInput = document.querySelector("[data-blog-search]");
@@ -203,4 +220,43 @@ const coverFocus: Record<string, string> = {
       }, 180);
     });
   </script>
+  <style>
+    .blog-empty-state {
+      width: min(1180px, calc(100% - 32px));
+      min-height: 260px;
+      margin: 20px auto 72px;
+      padding: clamp(32px, 7vw, 72px);
+      text-align: center;
+      background: rgba(255, 255, 255, 0.42);
+      border: 2px dashed var(--glass-line);
+      border-radius: 8px;
+      box-shadow: var(--glass-shadow);
+    }
+
+    .blog-empty-state p,
+    .blog-empty-state h2,
+    .blog-empty-state span {
+      display: block;
+      margin: 0;
+    }
+
+    .blog-empty-state p {
+      color: var(--pink);
+      font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+    }
+
+    .blog-empty-state h2 {
+      margin-top: 14px;
+      color: var(--ink);
+      font-size: clamp(1.8rem, 4vw, 3.2rem);
+    }
+
+    .blog-empty-state span {
+      margin-top: 10px;
+      color: var(--ink-soft);
+    }
+  </style>
 </BaseLayout>
