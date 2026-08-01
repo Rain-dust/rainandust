@@ -1,483 +1,658 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { Icon } from "astro-icon/components";
-import { projectEntries, projectTechLines } from "@/core/data/projects";
+import { projectEntries } from "@/core/data/projects";
 
-const techIcons = {
-  threejs: "simple-icons:threedotjs",
-  pwa: "simple-icons:pwa",
-  python: "simple-icons:python",
-  nextjs: "simple-icons:nextdotjs",
-  javascript: "simple-icons:javascript"
-} as const;
-const techLines = projectTechLines.map((item) => ({ ...item, icon: techIcons[item.key] }));
-const projectPresentation = {
-  "earth-online": { icon: "tabler:world", accent: "mint" },
-  fushenglu: { icon: "tabler:book", accent: "blue" },
-  mindcache: { icon: "tabler:bulb", accent: "orange" },
-  "campus-reimburse-kit": { icon: "tabler:receipt", accent: "ink" },
-  "zhi-wei": { icon: "tabler:book-2", accent: "pink" },
-  "more-projects": { icon: "simple-icons:github", accent: "lavender" }
-} as const;
-const projectCards = projectEntries.map((project) => ({
-  ...project,
-  ...projectPresentation[project.id]
-}));
+const projectOrder = [
+  "earth-online",
+  "fushenglu",
+  "zhi-wei",
+  "campus-reimburse-kit",
+  "mindcache"
+] as const;
 
+const projects = projectOrder.flatMap((id) => {
+  const project = projectEntries.find((entry) => entry.id === id);
+  return project ? [project] : [];
+});
+const archive = projectEntries.find((entry) => entry.id === "more-projects");
 ---
 
-<BaseLayout title="Projects | Rain_dust" description="Rain_dust 的项目、技术线和个人实验收藏架。">
-  <section class="works-shell" aria-labelledby="works-title">
-    <div class="works-hero">
-      <div>
-        <p class="section-kicker">Works README</p>
-        <h1 id="works-title">Projects</h1>
-        <p>
-          这里不是严肃作品集，更像一张正在更新的技术收藏桌。
-          WebGL、PWA、Python、Next.js 和 JavaScript，都来自真实做过的小项目。
+<BaseLayout title="Projects | Rain_dust" description="Rain_dust 持续维护的个人项目与技术实验档案。">
+  <section class="projects-archive" aria-labelledby="projects-title">
+    <div class="projects-content">
+      <header class="projects-heading">
+        <h1 id="projects-title">Projects</h1>
+        <p class="projects-subtitle">项目档案</p>
+        <span class="projects-signal" aria-hidden="true"></span>
+        <p class="projects-intro">
+          这里不是严肃作品集，而是一份持续更新的个人技术档案。
+          每个条目都连接到仍然真实存在的项目仓库。
         </p>
-      </div>
-      <div class="works-hero-orbit" aria-hidden="true">
-        {techLines.slice(0, 4).map((item) => (
-          <span>
-            <Icon name={item.icon} />
-          </span>
-        ))}
-      </div>
+      </header>
+
+      <ol class="project-index" aria-label="项目仓库">
+        {
+          projects.map((project) => (
+            <li class="project-item">
+              <a
+                class="project-row"
+                href={project.url}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`访问 ${project.title} 的 GitHub 仓库（新标签页）`}
+              >
+                <span class="project-name">{project.title}</span>
+                <span class="project-summary">{project.summary}</span>
+                <span class="project-tech">{project.details.join(" / ")}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+
+      {
+        archive && (
+          <a
+            class="archive-link"
+            href={archive.url}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="访问 Rain_dust 的 GitHub 仓库归档（新标签页）"
+          >
+            GitHub Archive <span aria-hidden="true">→</span>
+          </a>
+        )
+      }
     </div>
-
-    <div class="works-filter" data-works-filter aria-label="Project filters">
-      <button type="button" class="is-active" data-filter="all">ALL</button>
-      {techLines.map((item) => (
-        <button type="button" data-filter={item.key}>
-          <Icon name={item.icon} aria-hidden="true" />
-          {item.label}
-        </button>
-      ))}
-    </div>
-
-    <section class="works-tech-board" aria-label="Tech lines">
-      {techLines.map((item) => (
-        <article data-line-card={item.key}>
-          <Icon name={item.icon} aria-hidden="true" />
-          <strong>{item.label}</strong>
-          <span>{item.note}</span>
-        </article>
-      ))}
-    </section>
-
-    <section class="works-grid" aria-label="Project cards">
-      {projectCards.map((project) => (
-        <article class={`works-card works-card--${project.accent}`} data-project-line={project.line}>
-          <div class="works-card-head">
-            <span class="works-card-icon" aria-hidden="true">
-              <Icon name={project.icon} />
-            </span>
-            <div>
-              <p>{project.type}</p>
-              <h2>{project.title}</h2>
-            </div>
-          </div>
-          <p class="works-card-summary">{project.summary}</p>
-          <div class="works-card-tags">
-            {project.details.map((detail) => (
-              <span>{detail}</span>
-            ))}
-          </div>
-          <button type="button" class="works-card-toggle" data-card-toggle aria-expanded="false">
-            <Icon name="tabler:chevron-down" aria-hidden="true" />
-            查看状态
-          </button>
-          <div class="works-card-panel" data-card-panel>
-            <strong>{project.status}</strong>
-            <p>下一步会把相关笔记、截图或可玩的 demo 慢慢补到这里。</p>
-            <a class="works-card-repository" href={project.url} target="_blank" rel="noreferrer">
-              打开 GitHub ↗
-            </a>
-          </div>
-        </article>
-      ))}
-    </section>
-
   </section>
 
   <script>
-    const filterRoot = document.querySelector("[data-works-filter]");
-    const filterButtons = filterRoot ? Array.from(filterRoot.querySelectorAll("button")) : [];
-    const cards = Array.from(document.querySelectorAll("[data-project-line]"));
-    const lineCards = Array.from(document.querySelectorAll("[data-line-card]"));
+    const projectInteractionStates = new WeakMap();
 
-    filterButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        const filter = button.dataset.filter || "all";
+    const initProjectsArchive = () => {
+      const root = document.querySelector(".projects-archive");
+      if (!(root instanceof HTMLElement) || projectInteractionStates.has(root)) return;
 
-        filterButtons.forEach((item) => item.classList.toggle("is-active", item === button));
-        cards.forEach((card) => {
-          const isMatch = filter === "all" || card.dataset.projectLine === filter;
-          card.classList.toggle("is-dimmed", !isMatch);
-        });
-        lineCards.forEach((card) => {
-          const isMatch = filter === "all" || card.dataset.lineCard === filter;
-          card.classList.toggle("is-highlighted", isMatch && filter !== "all");
-        });
-      });
-    });
+      const controller = new AbortController();
+      const { signal } = controller;
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const precisePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+      const canTrackLight = precisePointer;
+      let frame = 0;
+      let nextLightX = 76;
+      let nextLightY = 28;
+      let nextReflectionX = 68;
+      let nextReflectionY = 48;
+      let nextLightStrength = 0.25;
+      let nextReflectionStrength = 0.12;
+      let pointerInside = false;
 
-    document.querySelectorAll("[data-card-toggle]").forEach((button) => {
-      button.addEventListener("click", () => {
-        const card = button.closest(".works-card");
-        if (!card) return;
+      const writeLightPosition = () => {
+        frame = 0;
+        root.style.setProperty("--archive-light-x", `${nextLightX}%`);
+        root.style.setProperty("--archive-light-y", `${nextLightY}%`);
+        root.style.setProperty("--archive-reflection-x", `${nextReflectionX}%`);
+        root.style.setProperty("--archive-reflection-y", `${nextReflectionY}%`);
+        root.style.setProperty("--archive-light-strength", String(nextLightStrength));
+        root.style.setProperty("--archive-reflection-strength", String(nextReflectionStrength));
+      };
 
-        const isOpen = card.classList.toggle("is-open");
-        button.setAttribute("aria-expanded", String(isOpen));
-      });
-    });
+      const scheduleLightPosition = () => {
+        if (frame) return;
+        frame = window.requestAnimationFrame(writeLightPosition);
+      };
+
+      const resetLightPosition = () => {
+        root.classList.add("is-light-returning");
+        nextLightX = 76;
+        nextLightY = 28;
+        nextReflectionX = 68;
+        nextReflectionY = 48;
+        nextLightStrength = 0.25;
+        nextReflectionStrength = 0.12;
+        scheduleLightPosition();
+      };
+
+      const handlePointerMove = (event) => {
+        if (!(event.target instanceof Node) || !root.contains(event.target)) {
+          if (pointerInside) resetLightPosition();
+          pointerInside = false;
+          return;
+        }
+
+        pointerInside = true;
+        const rect = root.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+
+        const horizontal = Math.min(1, Math.max(-1, ((event.clientX - rect.left) / rect.width - 0.5) * 2));
+        const vertical = Math.min(1, Math.max(-1, ((event.clientY - rect.top) / rect.height - 0.5) * 2));
+
+        root.classList.remove("is-light-returning");
+        if (reducedMotion) {
+          const horizontalProgress = (horizontal + 1) / 2;
+          nextLightStrength = 0.08 + horizontalProgress * 0.46;
+          nextReflectionStrength = 0.03 + horizontalProgress * 0.2;
+        } else {
+          nextLightX = 76 + horizontal * 6;
+          nextLightY = 28 + vertical * 4;
+          nextReflectionX = 68 + horizontal * 3.5;
+          nextReflectionY = 48 + vertical * 2.5;
+        }
+        scheduleLightPosition();
+      };
+
+      const cleanup = () => {
+        controller.abort();
+        if (frame) window.cancelAnimationFrame(frame);
+        frame = 0;
+        root.classList.remove("is-light-returning");
+        root.removeAttribute("data-light-tracking");
+        root.style.removeProperty("--archive-light-x");
+        root.style.removeProperty("--archive-light-y");
+        root.style.removeProperty("--archive-reflection-x");
+        root.style.removeProperty("--archive-reflection-y");
+        root.style.removeProperty("--archive-light-strength");
+        root.style.removeProperty("--archive-reflection-strength");
+        projectInteractionStates.delete(root);
+      };
+
+      root.dataset.lightTracking = canTrackLight
+        ? reducedMotion
+          ? "reduced"
+          : "active"
+        : "static";
+      projectInteractionStates.set(root, cleanup);
+
+      if (canTrackLight) {
+        document.addEventListener("pointermove", handlePointerMove, { passive: true, signal });
+      }
+
+      document.addEventListener("astro:before-swap", cleanup, { once: true, signal });
+    };
+
+    document.addEventListener("astro:page-load", initProjectsArchive);
+    initProjectsArchive();
   </script>
 
   <style>
-    .works-card-repository {
-      display: inline-flex;
-      margin-top: 8px;
-      color: inherit;
-      font-weight: 800;
-      text-underline-offset: 4px;
-    }
-    .works-shell {
-      width: min(1280px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 96px 0 72px;
-      display: grid;
-      gap: 20px;
+    @property --archive-light-x {
+      syntax: "<percentage>";
+      inherits: true;
+      initial-value: 76%;
     }
 
-    .works-hero,
-    .works-filter,
-    .works-tech-board,
-    .works-card,
-    .works-card {
+    @property --archive-light-y {
+      syntax: "<percentage>";
+      inherits: true;
+      initial-value: 28%;
+    }
+
+    @property --archive-reflection-x {
+      syntax: "<percentage>";
+      inherits: true;
+      initial-value: 68%;
+    }
+
+    @property --archive-reflection-y {
+      syntax: "<percentage>";
+      inherits: true;
+      initial-value: 48%;
+    }
+
+    @property --archive-light-strength {
+      syntax: "<number>";
+      inherits: true;
+      initial-value: 0.25;
+    }
+
+    @property --archive-reflection-strength {
+      syntax: "<number>";
+      inherits: true;
+      initial-value: 0.12;
+    }
+
+    .projects-archive {
+      --archive-bg: #141512;
+      --archive-bg-deep: #10110f;
+      --archive-warm: #8f7a67;
+      --archive-text: #ded9cf;
+      --archive-secondary: #9b968e;
+      --archive-muted: #74716b;
+      --archive-line: rgba(222, 217, 207, 0.16);
+      --archive-signal: #8b3e3c;
+      --archive-light-x: 76%;
+      --archive-light-y: 28%;
+      --archive-reflection-x: 68%;
+      --archive-reflection-y: 48%;
+      --archive-light-strength: 0.25;
+      --archive-reflection-strength: 0.12;
       position: relative;
       isolation: isolate;
-      overflow: visible;
-      border: 2px solid var(--glass-line);
-      border-radius: 8px;
+      min-height: 100dvh;
+      overflow: hidden;
+      color: var(--archive-text);
       background:
-        linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 226, 234, 0.05) 44%, rgba(220, 238, 250, 0.08)),
-        rgba(255, 252, 246, 0.18);
-      box-shadow:
-        inset 0 0 0 1px var(--glass-edge),
-        var(--glass-shadow);
-      backdrop-filter: blur(2px) saturate(1.03);
-      -webkit-backdrop-filter: blur(2px) saturate(1.03);
+        linear-gradient(90deg, rgba(16, 17, 15, 0.99) 0 41%, rgba(19, 20, 18, 0.95) 62%, rgba(25, 24, 21, 0.91) 100%),
+        var(--archive-bg);
     }
 
-    .works-hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 220px;
-      gap: 24px;
-      align-items: center;
-      min-height: 260px;
-      padding: 34px;
-    }
-
-    .works-hero::before,
-    .works-card::before {
+    .projects-archive::before {
       position: absolute;
-      top: -10px;
-      right: 28px;
-      width: 92px;
-      height: 24px;
+      inset: 0;
+      z-index: -2;
       content: "";
       background:
-        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.54) 0 4px, transparent 4px 8px),
-        rgba(255, 222, 139, 0.72);
-      border: 1px solid rgba(255, 255, 255, 0.58);
-      border-radius: 999px;
-      box-shadow: 0 8px 16px rgba(91, 110, 139, 0.12);
-      transform: rotate(-5deg);
+        linear-gradient(90deg, transparent 0 76%, rgba(15, 16, 15, 0.2) 76% 77%, transparent 77%),
+        linear-gradient(0deg, transparent 0 78%, rgba(199, 181, 160, 0.05) 78% 78.3%, transparent 78.3%),
+        linear-gradient(128deg, transparent 0 57%, rgba(163, 139, 116, 0.2) 57.2% 75%, rgba(64, 58, 51, 0.08) 75.2%),
+        radial-gradient(
+          ellipse at var(--archive-light-x) var(--archive-light-y),
+          rgba(159, 135, 112, var(--archive-light-strength)),
+          transparent 36%
+        );
+      opacity: 0.92;
+      transition:
+        --archive-light-x 90ms linear,
+        --archive-light-y 90ms linear,
+        --archive-light-strength 120ms linear;
     }
 
-    .works-hero h1 {
-      margin: 8px 0 0;
-      color: var(--ink);
-      font-size: clamp(3.2rem, 8vw, 6.4rem);
-      line-height: 0.95;
-      letter-spacing: 0;
+    .projects-archive::after {
+      position: absolute;
+      right: -8%;
+      bottom: -20%;
+      z-index: -1;
+      width: 72%;
+      height: 48%;
+      content: "";
+      background:
+        linear-gradient(168deg, transparent 0 38%, rgba(174, 151, 128, 0.12) 39%, rgba(62, 57, 51, 0.06) 61%, transparent 78%),
+        radial-gradient(
+          ellipse at var(--archive-reflection-x) var(--archive-reflection-y),
+          rgba(158, 135, 113, var(--archive-reflection-strength)),
+          transparent 52%
+        );
+      filter: blur(2px);
+      transform: skewX(-12deg);
+      transform-origin: bottom right;
+      transition:
+        --archive-reflection-x 110ms linear,
+        --archive-reflection-y 110ms linear,
+        --archive-reflection-strength 140ms linear;
     }
 
-    .works-hero p:not(.section-kicker) {
-      max-width: 760px;
-      color: var(--ink-soft);
-      font-size: 1.04rem;
+    .projects-archive.is-light-returning::before {
+      transition-duration: 680ms;
+      transition-timing-function: cubic-bezier(0.22, 0.04, 0.36, 1);
+    }
+
+    .projects-archive.is-light-returning::after {
+      transition-duration: 720ms;
+      transition-timing-function: cubic-bezier(0.22, 0.04, 0.36, 1);
+    }
+
+    .projects-archive[data-light-tracking="reduced"].is-light-returning::before,
+    .projects-archive[data-light-tracking="reduced"].is-light-returning::after {
+      transition-duration: 220ms;
+      transition-timing-function: ease-out;
+    }
+
+    .projects-content {
+      width: min(1120px, calc(100% - 96px));
+      margin: 0 auto;
+      padding: clamp(108px, 13vh, 142px) 0 78px;
+    }
+
+    .projects-heading {
+      width: min(660px, 68%);
+      margin-bottom: clamp(42px, 6vh, 64px);
+      animation: projects-heading-reveal 760ms cubic-bezier(0.22, 0.04, 0.36, 1) both;
+    }
+
+    @keyframes projects-heading-reveal {
+      from {
+        opacity: 0.35;
+        filter: blur(4px);
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes projects-heading-reduced-reveal {
+      from {
+        opacity: 0.2;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .projects-heading h1 {
+      margin: 0;
+      color: var(--archive-text);
+      font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", Georgia, serif;
+      font-size: clamp(4rem, 7.4vw, 6.6rem);
+      font-weight: 500;
+      line-height: 0.94;
+      letter-spacing: -0.045em;
+    }
+
+    .projects-subtitle {
+      margin: 16px 0 0;
+      color: var(--archive-secondary);
+      font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+      font-size: 1.08rem;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+    }
+
+    .projects-signal {
+      display: block;
+      width: 44px;
+      height: 1px;
+      margin: 24px 0;
+      background: var(--archive-signal);
+    }
+
+    .projects-intro {
+      max-width: 610px;
+      margin: 0;
+      color: var(--archive-secondary);
+      font-size: 0.96rem;
+      font-weight: 500;
       line-height: 1.9;
     }
 
-    .works-hero-orbit {
+    .project-index {
       position: relative;
-      width: 190px;
-      height: 190px;
-      justify-self: center;
-      border: 2px dashed rgba(93, 113, 145, 0.18);
-      border-radius: 50%;
-      background:
-        radial-gradient(circle at 50% 50%, rgba(255, 226, 234, 0.38), transparent 48%),
-        rgba(255, 255, 255, 0.24);
+      width: min(100%, 1080px);
+      margin: 0;
+      padding: 0 0 0 70px;
+      list-style: none;
     }
 
-    .works-hero-orbit span {
+    .project-index::before {
       position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 1px;
+      content: "";
+      background: var(--archive-line);
+    }
+
+    .project-item {
+      position: relative;
+      margin: 0;
+    }
+
+    .project-item::before {
+      position: absolute;
+      top: 50%;
+      left: -74px;
+      z-index: 1;
+      width: 9px;
+      height: 9px;
+      content: "";
+      background: #70716d;
+      border: 2px solid var(--archive-bg);
+      border-radius: 50%;
+      transform: translateY(-50%);
+      transition:
+        background-color 200ms ease,
+        box-shadow 200ms ease;
+    }
+
+    .project-row {
+      position: relative;
       display: grid;
-      place-items: center;
-      width: 54px;
-      height: 54px;
-      color: var(--ink);
-      background: rgba(255, 255, 255, 0.68);
-      border: 1px solid rgba(93, 113, 145, 0.16);
-      border-radius: 16px;
-      box-shadow: 0 14px 24px rgba(67, 82, 106, 0.12);
-    }
-
-    .works-hero-orbit span:nth-child(1) { top: -4px; left: 68px; }
-    .works-hero-orbit span:nth-child(2) { top: 68px; right: -4px; color: #e2762d; }
-    .works-hero-orbit span:nth-child(3) { bottom: -4px; left: 68px; color: #fffaf1; background: #31425f; }
-    .works-hero-orbit span:nth-child(4) { top: 68px; left: -4px; color: #c85278; }
-
-    .works-hero-orbit svg,
-    .works-card-icon svg,
-    .works-tech-board svg {
-      width: 1.35em;
-      height: 1.35em;
-    }
-
-    .works-filter {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      padding: 14px;
-    }
-
-    .works-filter button,
-    .works-card-toggle {
-      display: inline-flex;
+      grid-template-columns: minmax(190px, 0.82fr) minmax(340px, 1.65fr) minmax(180px, 0.9fr);
+      gap: clamp(24px, 4vw, 52px);
       align-items: center;
-      gap: 8px;
-      min-height: 38px;
-      padding: 8px 13px;
-      color: var(--ink);
-      font: inherit;
-      font-size: 0.88rem;
-      font-weight: 850;
-      cursor: pointer;
-      background: rgba(255, 255, 255, 0.54);
-      border: 1px solid rgba(93, 113, 145, 0.18);
-      border-radius: 999px;
-      box-shadow: 0 10px 20px rgba(67, 82, 106, 0.08);
-      transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
+      min-height: 92px;
+      padding: 20px 6px 20px 0;
+      color: inherit;
+      text-decoration: none;
+      border-top: 1px solid var(--archive-line);
+      transition:
+        border-color 200ms ease,
+        background-color 200ms ease;
     }
 
-    .works-filter button:hover,
-    .works-card-toggle:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--paper-shadow);
+    .project-item:last-child .project-row {
+      border-bottom: 1px solid var(--archive-line);
     }
 
-    .works-filter button.is-active {
-      background: linear-gradient(135deg, var(--pink-soft), var(--blue-soft));
-      border-color: rgba(247, 183, 200, 0.7);
+    .project-name {
+      color: #d6d1c8;
+      font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", Georgia, serif;
+      font-size: clamp(1rem, 1.4vw, 1.18rem);
+      font-weight: 600;
+      line-height: 1.35;
+      letter-spacing: 0.025em;
+      transition: color 200ms ease;
     }
 
-    .works-tech-board {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 12px;
-      padding: 16px;
+    .project-summary {
+      color: var(--archive-secondary);
+      font-size: 0.89rem;
+      font-weight: 500;
+      line-height: 1.72;
+      transition:
+        color 200ms ease,
+        transform 200ms ease;
     }
 
-    .works-tech-board article {
-      display: grid;
-      gap: 8px;
-      min-height: 138px;
-      padding: 16px;
-      color: var(--ink);
-      background: rgba(255, 255, 255, 0.5);
-      border: 1px solid rgba(93, 113, 145, 0.16);
-      border-radius: 8px;
-      box-shadow: 0 12px 24px rgba(67, 82, 106, 0.08);
-      transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
-    }
-
-    .works-tech-board article.is-highlighted {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow);
-    }
-
-    .works-tech-board strong {
-      color: var(--ink);
-      font-size: 1.03rem;
-    }
-
-    .works-tech-board span {
-      color: var(--ink-soft);
-      font-size: 0.86rem;
+    .project-tech {
+      color: var(--archive-muted);
+      font-size: 0.78rem;
+      font-weight: 550;
       line-height: 1.55;
     }
 
-    .works-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
+    .project-item:has(.project-row:hover)::before,
+    .project-item:has(.project-row:focus-visible)::before {
+      background: var(--archive-signal);
+      box-shadow: 0 0 0 5px rgba(139, 62, 60, 0.14);
     }
 
-    .works-card {
-      display: grid;
-      align-content: start;
-      gap: 16px;
-      min-height: 320px;
-      padding: 22px;
-      transition: transform 180ms ease, opacity 180ms ease, box-shadow 180ms ease;
+    .project-row:hover,
+    .project-row:focus-visible {
+      background: linear-gradient(90deg, rgba(139, 62, 60, 0.045), transparent 72%);
+      border-color: rgba(139, 62, 60, 0.45);
+      outline: none;
     }
 
-    .works-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow);
+    .project-row:hover .project-name,
+    .project-row:focus-visible .project-name {
+      color: #f0ece4;
     }
 
-    .works-card.is-dimmed {
-      opacity: 0.38;
-      transform: scale(0.98);
+    .project-row:hover .project-summary,
+    .project-row:focus-visible .project-summary {
+      color: #b9b3a9;
+      transform: translateX(6px);
     }
 
-    .works-card-head {
-      display: flex;
-      gap: 12px;
+    .project-row:focus-visible {
+      box-shadow: inset 3px 0 0 var(--archive-signal);
+    }
+
+    .archive-link {
+      display: inline-flex;
+      gap: 10px;
       align-items: center;
+      margin: 30px 0 0 70px;
+      padding: 8px 0;
+      color: var(--archive-secondary);
+      font-size: 0.83rem;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition:
+        color 200ms ease,
+        border-color 200ms ease;
     }
 
-    .works-card-icon {
-      display: grid;
-      flex: 0 0 auto;
-      place-items: center;
-      width: 48px;
-      height: 48px;
-      color: var(--ink);
-      background: var(--blue-soft);
-      border-radius: 8px;
+    .archive-link:hover,
+    .archive-link:focus-visible {
+      color: var(--archive-text);
+      border-color: var(--archive-signal);
+      outline: none;
     }
 
-    .works-card--orange .works-card-icon { color: #e2762d; background: #ffe8cf; }
-    .works-card--ink .works-card-icon { color: #fffaf1; background: #31425f; }
-    .works-card--pink .works-card-icon { color: #c85278; background: var(--pink-soft); }
-    .works-card--mint .works-card-icon { color: #3c8067; background: rgba(184, 219, 201, 0.58); }
-    .works-card--lavender .works-card-icon { color: #6d63a8; background: rgba(201, 194, 238, 0.52); }
-
-    .works-card-head p {
-      margin: 0;
-      color: var(--pink);
-      font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
-      font-size: 0.74rem;
-      font-weight: 850;
-      letter-spacing: 0;
-      text-transform: uppercase;
+    .archive-link:focus-visible {
+      box-shadow: 0 3px 0 rgba(139, 62, 60, 0.22);
     }
 
-    .works-card h2 {
-      margin: 4px 0 0;
-      color: var(--ink);
-      font-size: 1.32rem;
-      line-height: 1.32;
-      letter-spacing: 0;
+    :global(body:has(.projects-archive) .site-footer) {
+      color: #9b968e;
+      border-top: 1px solid rgba(222, 217, 207, 0.14);
+      background:
+        linear-gradient(128deg, transparent 0 54%, rgba(143, 122, 103, 0.13) 54.5% 72%, transparent 72.5%),
+        radial-gradient(ellipse at 78% 18%, rgba(159, 135, 112, 0.16), transparent 38%),
+        linear-gradient(90deg, #10110f 0 48%, #151512 100%);
     }
 
-    .works-card-summary,
-    .works-card-panel p {
-      margin: 0;
-      color: var(--ink-soft);
-      line-height: 1.78;
+    :global(body:has(.projects-archive) .footer-inner) {
+      border-top: 1px solid rgba(222, 217, 207, 0.15);
+      text-shadow: none;
     }
 
-    .works-card-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+    :global(body:has(.projects-archive) .footer-inner p),
+    :global(body:has(.projects-archive) .footer-signature-line) {
+      color: #a7a198;
+      font-weight: 650;
     }
 
-    .works-card-tags span {
-      padding: 6px 10px;
-      color: var(--ink);
-      font-size: 0.78rem;
-      font-weight: 800;
-      background: rgba(255, 255, 255, 0.58);
-      border: 1px solid rgba(93, 113, 145, 0.14);
-      border-radius: 999px;
-    }
-
-    .works-card-toggle {
-      justify-self: start;
-      margin-top: auto;
-    }
-
-    .works-card-toggle svg {
-      transition: transform 180ms ease;
-    }
-
-    .works-card.is-open .works-card-toggle svg {
-      transform: rotate(180deg);
-    }
-
-    .works-card-panel {
-      display: grid;
-      grid-template-rows: 0fr;
-      opacity: 0;
-      transition: grid-template-rows 220ms ease, opacity 180ms ease;
-    }
-
-    .works-card-panel > * {
-      overflow: hidden;
-    }
-
-    .works-card.is-open .works-card-panel {
-      grid-template-rows: 1fr;
-      opacity: 1;
-    }
-
-    .works-card-panel strong {
-      color: var(--ink);
-    }
-
-    @media (max-width: 1080px) {
-      .works-hero,
-      .works-tech-board,
-      .works-grid {
-        grid-template-columns: 1fr 1fr;
+    @media (max-width: 900px) {
+      .projects-content {
+        width: min(100% - 48px, 760px);
       }
 
-      .works-hero-orbit {
-        width: 160px;
-        height: 160px;
+      .projects-heading {
+        width: min(100%, 620px);
+      }
+
+      .project-row {
+        grid-template-columns: minmax(150px, 0.8fr) minmax(260px, 1.4fr);
+        gap: 10px 30px;
+      }
+
+      .project-tech {
+        grid-column: 2;
       }
     }
 
-    @media (max-width: 720px) {
-      .works-shell {
-        width: min(100% - 24px, 1280px);
-        padding-top: 72px;
+    @media (max-width: 620px) {
+      .projects-archive::before {
+        background:
+          linear-gradient(132deg, transparent 0 60%, rgba(142, 121, 101, 0.12) 60.5% 78%, transparent 78.5%),
+          radial-gradient(ellipse at 92% 18%, rgba(147, 126, 105, 0.16), transparent 40%);
       }
 
-      .works-hero,
-      .works-tech-board,
-      .works-grid {
+      .projects-archive::after {
+        display: none;
+      }
+
+      .projects-content {
+        width: min(100% - 34px, 520px);
+        padding: 88px 0 56px;
+      }
+
+      .projects-heading {
+        margin-bottom: 38px;
+      }
+
+      .projects-heading h1 {
+        font-size: clamp(3.35rem, 17vw, 4.4rem);
+      }
+
+      .projects-subtitle {
+        margin-top: 12px;
+        font-size: 0.96rem;
+      }
+
+      .projects-signal {
+        margin: 20px 0;
+      }
+
+      .projects-intro {
+        font-size: 0.9rem;
+        line-height: 1.75;
+      }
+
+      .project-index {
+        padding-left: 32px;
+      }
+
+      .project-item::before {
+        left: -36px;
+        width: 8px;
+        height: 8px;
+      }
+
+      .project-row {
         grid-template-columns: 1fr;
+        gap: 9px;
+        min-height: 0;
+        padding: 22px 2px 22px 0;
       }
 
-      .works-hero {
-        padding: 24px;
+      .project-name {
+        font-size: 1.08rem;
       }
 
-      .works-hero h1 {
-        font-size: clamp(3rem, 18vw, 4.6rem);
+      .project-summary {
+        font-size: 0.87rem;
+        line-height: 1.65;
       }
 
-      .works-hero-orbit {
-        justify-self: start;
+      .project-tech {
+        grid-column: auto;
+        font-size: 0.75rem;
+      }
+
+      .project-row:hover .project-summary,
+      .project-row:focus-visible .project-summary {
+        transform: translateX(4px);
+      }
+
+      .archive-link {
+        margin: 26px 0 0 32px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .projects-archive::before,
+      .projects-archive::after {
+        transition:
+          --archive-light-strength 120ms linear,
+          --archive-reflection-strength 140ms linear;
+      }
+
+      .projects-heading {
+        animation: projects-heading-reduced-reveal 420ms ease-out both;
+      }
+
+      .project-item::before,
+      .project-row,
+      .project-name,
+      .project-summary,
+      .archive-link {
+        transition: none;
+      }
+
+      .project-row:hover .project-summary,
+      .project-row:focus-visible .project-summary {
+        transform: none;
       }
     }
   </style>

@@ -1,0 +1,265 @@
+<div
+  class="shadow-ink-debug-host"
+  data-shadow-ink-debug-host
+  transition:persist="rain-dust-shadow-ink-debug"
+></div>
+
+<script
+  is:inline
+  type="module"
+  src="/src/themes/fuyukawa-kagari/lib/shadow-ink/bootstrap.ts"
+></script>
+
+<style>
+  .shadow-ink-debug-host {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-debug) {
+    --shadow-ink-opacity: 0.54;
+    position: fixed;
+    inset: 0;
+    z-index: 2147481000;
+    pointer-events: none;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-canvas),
+  .shadow-ink-debug-host :global(.shadow-ink-static) {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100dvh;
+    pointer-events: none;
+    transition: opacity 160ms ease;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-canvas) {
+    opacity: 1;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-static) {
+    opacity: var(--shadow-ink-opacity);
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-debug[data-layer="background"]) {
+    z-index: 1;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-debug[data-layer="overlay"]) {
+    z-index: 2147481000;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-debug[data-blend="normal"] .shadow-ink-canvas) {
+    mix-blend-mode: normal;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-debug[data-blend="multiply"] .shadow-ink-canvas) {
+    mix-blend-mode: multiply;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-debug[data-blend="soft-light"] .shadow-ink-canvas) {
+    mix-blend-mode: soft-light;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-static) {
+    display: none;
+    background:
+      linear-gradient(123deg, transparent 0 38%, rgba(29, 30, 29, 0.24) 53%, transparent 69%),
+      radial-gradient(ellipse at 76% 30%, rgba(123, 115, 105, 0.18), transparent 38%);
+    mix-blend-mode: multiply;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-debug.is-static .shadow-ink-canvas) {
+    display: none;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-debug.is-static .shadow-ink-static) {
+    display: block;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-debug.is-before .shadow-ink-canvas),
+  .shadow-ink-debug-host :global(.shadow-ink-debug.is-before .shadow-ink-static),
+  .shadow-ink-debug-host :global(.shadow-ink-debug.is-disabled .shadow-ink-canvas),
+  .shadow-ink-debug-host :global(.shadow-ink-debug.is-disabled .shadow-ink-static) {
+    opacity: 0;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-panel) {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 2147483600;
+    width: min(320px, calc(100vw - 36px));
+    color: #d5d2cc;
+    font: 500 12px/1.35 "Cascadia Code", "Fira Code", Consolas, monospace;
+    letter-spacing: 0;
+    background: rgba(20, 21, 20, 0.96);
+    border: 1px solid rgba(213, 210, 204, 0.2);
+    border-radius: 2px;
+    box-shadow: 0 18px 54px rgba(9, 10, 9, 0.38);
+    pointer-events: auto;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-panel-toggle) {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 14px;
+    color: #e2ded6;
+    font: inherit;
+    font-weight: 700;
+    background: rgba(35, 36, 34, 0.92);
+    border: 0;
+    border-bottom: 1px solid rgba(213, 210, 204, 0.15);
+    cursor: pointer;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-panel-body) {
+    display: grid;
+    gap: 10px;
+    max-height: min(72dvh, 650px);
+    padding: 12px 14px 14px;
+    overflow: auto;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-panel.is-collapsed .shadow-ink-panel-body) {
+    display: none;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-panel.is-collapsed) {
+    width: auto;
+    min-width: 116px;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-panel.is-collapsed .shadow-ink-panel-toggle) {
+    gap: 16px;
+    border-bottom: 0;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-panel label) {
+    display: grid;
+    gap: 5px;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-panel label > span) {
+    display: flex;
+    justify-content: space-between;
+    color: #aaa7a1;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-panel input[type="range"]) {
+    width: 100%;
+    accent-color: #874542;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-panel select),
+  .shadow-ink-debug-host :global(.shadow-ink-actions button) {
+    min-height: 34px;
+    padding: 6px 8px;
+    color: #d5d2cc;
+    font: inherit;
+    background: #292a28;
+    border: 1px solid rgba(213, 210, 204, 0.16);
+    border-radius: 2px;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-check) {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-check input) {
+    width: 16px;
+    height: 16px;
+    accent-color: #874542;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-select-grid) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-status),
+  .shadow-ink-debug-host :global(.shadow-ink-actions) {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-status strong) {
+    color: #ad6a66;
+    font-size: 11px;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-status span) {
+    color: #8f8c86;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-actions button) {
+    flex: 1;
+    min-height: 40px;
+    cursor: pointer;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-diagnostics) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px 12px;
+    margin: 2px 0 0;
+    padding-top: 10px;
+    border-top: 1px solid rgba(213, 210, 204, 0.12);
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-diagnostics div) {
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-diagnostics dt) {
+    color: #77756f;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-diagnostics dd) {
+    margin: 0;
+    color: #bdb9b2;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-diagnostics .shadow-ink-diagnostic-wide) {
+    grid-column: 1 / -1;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-diagnostic-wide dd) {
+    max-width: 190px;
+    overflow-wrap: anywhere;
+    text-align: right;
+  }
+
+  .shadow-ink-debug-host :global(.shadow-ink-panel :focus-visible) {
+    outline: 2px solid #ad6a66;
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 640px), (pointer: coarse) {
+    .shadow-ink-debug-host :global(.shadow-ink-panel) {
+      right: 10px;
+      bottom: 10px;
+      width: min(292px, calc(100vw - 20px));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shadow-ink-debug-host :global(.shadow-ink-canvas),
+    .shadow-ink-debug-host :global(.shadow-ink-static) {
+      transition: none;
+    }
+  }
+</style>

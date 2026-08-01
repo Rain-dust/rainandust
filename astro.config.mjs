@@ -160,7 +160,12 @@ export default defineConfig({
           "book",
           "bookmark",
           "bulb",
+          "box-model-2",
+          "cube-3d-sphere",
+          "printer",
           "receipt",
+          "ruler-measure-2",
+          "scan",
           "world"
         ],
         "simple-icons": [
@@ -175,6 +180,7 @@ export default defineConfig({
           "pwa",
           "python",
           "nextdotjs",
+          "opencv",
           "javascript"
         ]
       }

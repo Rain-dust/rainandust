@@ -15,10 +15,14 @@ import {
 const statusItems = profileStatus;
 const techPresentation = {
   threejs: { icon: "simple-icons:threedotjs", tone: "blue" },
-  pwa: { icon: "simple-icons:pwa", tone: "orange" },
   python: { icon: "simple-icons:python", tone: "ink" },
   nextjs: { icon: "simple-icons:nextdotjs", tone: "pink" },
-  javascript: { icon: "simple-icons:javascript", tone: "mint" }
+  solidworks: { icon: "tabler:box-model-2", tone: "blue" },
+  creo: { icon: "tabler:cube-3d-sphere", tone: "orange" },
+  autocad: { icon: "tabler:ruler-measure-2", tone: "ink" },
+  bambu3d: { icon: "tabler:printer", tone: "mint" },
+  opencv: { icon: "simple-icons:opencv", tone: "pink" },
+  yolo: { icon: "tabler:scan", tone: "orange" }
 } as const;
 const techStack = profileTech.map((tech) => ({ ...tech, ...techPresentation[tech.key] }));
 const animeShelf = animeFavorites;

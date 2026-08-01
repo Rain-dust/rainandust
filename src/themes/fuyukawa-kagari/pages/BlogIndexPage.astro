@@ -38,94 +38,96 @@ const coverFocus: Record<string, string> = {
 ---
 
 <BaseLayout title="Blog | Rain_dust" description="Rain_dust 的文章与笔记。">
-  <section class="page-title blog-hero-card">
-    <p class="section-kicker">Archive</p>
-    <h1>Blog</h1>
-    <p>这里暂时没有文章。有想写的再写。</p>
-  </section>
+  <div class="blog-archive-page">
+    <section class="page-title blog-hero-card">
+      <p class="section-kicker">Archive</p>
+      <h1>Blog</h1>
+      <p>这里暂时没有文章。有想写的再写。</p>
+    </section>
 
-  <section class="blog-search-card" data-pagefind-ignore>
-    <div class="blog-search-heading">
-      <Icon name="tabler:search" aria-hidden="true" />
-      <div>
-        <p class="section-kicker">Search</p>
-        <h2>翻找笔记</h2>
+    <section class="blog-search-card" data-pagefind-ignore>
+      <div class="blog-search-heading">
+        <Icon name="tabler:search" aria-hidden="true" />
+        <div>
+          <p class="section-kicker">Search</p>
+          <h2>翻找笔记</h2>
+        </div>
       </div>
-    </div>
-    <label class="blog-search-box">
-      <span>关键词</span>
-      <input
-        type="search"
-        data-blog-search
-        placeholder={hasPosts ? "输入关键词..." : "暂无文章"}
-        autocomplete="off"
-        disabled={!hasPosts}
-      />
-    </label>
-    <div class="blog-search-results" data-blog-search-results aria-live="polite"></div>
-  </section>
+      <label class="blog-search-box">
+        <span>关键词</span>
+        <input
+          type="search"
+          data-blog-search
+          placeholder={hasPosts ? "输入关键词..." : "暂无文章"}
+          autocomplete="off"
+          disabled={!hasPosts}
+        />
+      </label>
+      <div class="blog-search-results" data-blog-search-results aria-live="polite"></div>
+    </section>
 
-  {
-    !hasPosts && (
-      <section class="blog-empty-state" aria-label="Blog empty state">
-        <p>NO NOTES YET</p>
-        <h2>这里暂时没有文章。</h2>
-        <span>有想写的再写。</span>
-      </section>
-    )
-  }
-
-  {hasPosts && <section class="blog-timeline" aria-label="Blog timeline">
     {
-      posts.map((post) => (
-        <article class="blog-timeline-item">
-          <div class="timeline-date">
-            <time datetime={post.updatedAt.toISOString()}>{formatter.format(post.updatedAt)}</time>
-            <span>updated</span>
-          </div>
-          <a class="post-row blog-post-row" href={`/blog/${post.id}/`}>
-            <div class="post-cover-frame">
-              <img src={post.cover} alt="" loading="lazy" style={`object-position: ${coverFocus[post.cover] ?? "50% 32%"}`} />
+      !hasPosts && (
+        <section class="blog-empty-state" aria-label="Blog empty state">
+          <p>NO NOTES YET</p>
+          <h2>这里暂时没有文章。</h2>
+          <span>有想写的再写。</span>
+        </section>
+      )
+    }
+
+    {hasPosts && <section class="blog-timeline" aria-label="Blog timeline">
+      {
+        posts.map((post) => (
+          <article class="blog-timeline-item">
+            <div class="timeline-date">
+              <time datetime={post.updatedAt.toISOString()}>{formatter.format(post.updatedAt)}</time>
+              <span>updated</span>
             </div>
-            <div class="blog-post-copy">
+            <a class="post-row blog-post-row" href={`/blog/${post.id}/`}>
+              <div class="post-cover-frame">
+                <img src={post.cover} alt="" loading="lazy" style={`object-position: ${coverFocus[post.cover] ?? "50% 32%"}`} />
+              </div>
+              <div class="blog-post-copy">
+                <div class="meta-row">
+                  <span>{categoryLabel[post.data.category]}</span>
+                  <time datetime={post.data.pubDate.toISOString()}>发布 {formatter.format(post.data.pubDate)}</time>
+                  <time datetime={post.updatedAt.toISOString()}>更新 {formatter.format(post.updatedAt)}</time>
+                  <span>{post.wordCount.toLocaleString("zh-CN")} 字</span>
+                </div>
+                <h2>{post.data.title}</h2>
+                <p>{post.data.description}</p>
+                <div class="tag-row">
+                  {post.data.tags.map((tag) => <span>#{tag}</span>)}
+                </div>
+              </div>
+            </a>
+          </article>
+        ))
+      }
+    </section>}
+
+    {hasPosts && <section class="post-list">
+      {
+        posts.map((post) => (
+          <a class="post-row compact-post-row" href={`/blog/${post.id}/`}>
+            <div>
               <div class="meta-row">
                 <span>{categoryLabel[post.data.category]}</span>
-                <time datetime={post.data.pubDate.toISOString()}>发布 {formatter.format(post.data.pubDate)}</time>
-                <time datetime={post.updatedAt.toISOString()}>更新 {formatter.format(post.updatedAt)}</time>
+                <time datetime={post.data.pubDate.toISOString()}>{formatter.format(post.data.pubDate)}</time>
                 <span>{post.wordCount.toLocaleString("zh-CN")} 字</span>
               </div>
               <h2>{post.data.title}</h2>
               <p>{post.data.description}</p>
-              <div class="tag-row">
-                {post.data.tags.map((tag) => <span>#{tag}</span>)}
-              </div>
+            </div>
+            <div class="tag-row">
+              {post.data.tags.map((tag) => <span>#{tag}</span>)}
             </div>
           </a>
-        </article>
-      ))
-    }
-  </section>}
-
-  {hasPosts && <section class="post-list">
-    {
-      posts.map((post) => (
-        <a class="post-row compact-post-row" href={`/blog/${post.id}/`}>
-          <div>
-            <div class="meta-row">
-              <span>{categoryLabel[post.data.category]}</span>
-              <time datetime={post.data.pubDate.toISOString()}>{formatter.format(post.data.pubDate)}</time>
-              <span>{post.wordCount.toLocaleString("zh-CN")} 字</span>
-            </div>
-            <h2>{post.data.title}</h2>
-            <p>{post.data.description}</p>
-          </div>
-          <div class="tag-row">
-            {post.data.tags.map((tag) => <span>#{tag}</span>)}
-          </div>
-        </a>
-      ))
-    }
-  </section>}
+        ))
+      }
+    </section>}
+  </div>
 
   <script>
     const searchInput = document.querySelector("[data-blog-search]");
@@ -221,16 +223,151 @@ const coverFocus: Record<string, string> = {
     });
   </script>
   <style>
+    .blog-archive-page {
+      --blog-paper: #c7c9c8;
+      --blog-paper-deep: #b9bcbb;
+      --blog-ink: #242827;
+      --blog-muted: #626866;
+      --blog-line: rgba(36, 40, 39, 0.22);
+      --blog-signal: #763b3f;
+      min-height: 100svh;
+      padding: clamp(112px, 13vw, 168px) 0 clamp(76px, 10vw, 120px);
+      color: var(--blog-ink);
+      background: var(--blog-paper);
+    }
+
+    .blog-archive-page :global(.section-kicker) {
+      color: var(--blog-signal);
+      font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+      letter-spacing: 0.16em;
+    }
+
+    .blog-hero-card {
+      display: grid;
+      grid-template-columns: minmax(0, 0.72fr) minmax(280px, 0.28fr);
+      gap: 18px 48px;
+      align-items: end;
+      width: min(1120px, calc(100% - 48px));
+      max-width: none;
+      margin: 0 auto;
+      padding: 0 0 42px;
+      color: var(--blog-ink);
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid var(--blog-line);
+      border-radius: 0;
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    .blog-hero-card .section-kicker,
+    .blog-hero-card h1 {
+      grid-column: 1;
+    }
+
+    .blog-hero-card h1 {
+      margin: 0;
+      color: var(--blog-ink);
+      font-family: Georgia, "Times New Roman", "Noto Serif SC", serif;
+      font-size: clamp(4rem, 8vw, 7.4rem);
+      font-weight: 400;
+      line-height: 0.88;
+      letter-spacing: -0.055em;
+    }
+
+    .blog-hero-card > p:last-child {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      margin: 0 0 4px;
+      color: var(--blog-muted);
+      font-size: 0.98rem;
+      line-height: 1.8;
+    }
+
+    .blog-search-card {
+      display: grid;
+      grid-template-columns: minmax(210px, 0.34fr) minmax(280px, 0.66fr);
+      gap: 28px 48px;
+      align-items: center;
+      width: min(1120px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 30px 0;
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid var(--blog-line);
+      border-radius: 0;
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    .blog-search-heading {
+      gap: 16px;
+    }
+
+    .blog-search-heading svg {
+      width: 30px;
+      height: 30px;
+      padding: 5px;
+      color: var(--blog-signal);
+      background: transparent;
+      border: 1px solid var(--blog-line);
+      border-radius: 0;
+    }
+
+    .blog-search-heading h2,
+    .blog-search-box span {
+      color: var(--blog-ink);
+    }
+
+    .blog-search-box span {
+      font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .blog-search-box input {
+      min-height: 48px;
+      padding: 8px 0;
+      color: var(--blog-ink);
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid rgba(36, 40, 39, 0.38);
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .blog-search-box input:focus {
+      border-color: var(--blog-signal);
+      box-shadow: 0 2px 0 rgba(118, 59, 63, 0.24);
+    }
+
+    .blog-search-result,
+    .blog-search-empty {
+      color: var(--blog-muted);
+      background: rgba(231, 232, 229, 0.32);
+      border: 1px solid var(--blog-line);
+      border-radius: 0;
+    }
+
     .blog-empty-state {
-      width: min(1180px, calc(100% - 32px));
-      min-height: 260px;
-      margin: 20px auto 72px;
-      padding: clamp(32px, 7vw, 72px);
-      text-align: center;
-      background: rgba(255, 255, 255, 0.42);
-      border: 2px dashed var(--glass-line);
-      border-radius: 8px;
-      box-shadow: var(--glass-shadow);
+      display: grid;
+      grid-template-columns: minmax(160px, 0.34fr) minmax(0, 0.66fr);
+      gap: 10px 48px;
+      align-content: center;
+      width: min(1120px, calc(100% - 48px));
+      min-height: 340px;
+      margin: 0 auto;
+      padding: 54px 0;
+      text-align: left;
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid var(--blog-line);
+      border-radius: 0;
+      box-shadow: none;
     }
 
     .blog-empty-state p,
@@ -241,22 +378,136 @@ const coverFocus: Record<string, string> = {
     }
 
     .blog-empty-state p {
-      color: var(--pink);
+      grid-row: 1 / span 2;
+      color: var(--blog-signal);
       font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
-      font-size: 0.78rem;
-      font-weight: 800;
-      letter-spacing: 0.14em;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
     }
 
     .blog-empty-state h2 {
-      margin-top: 14px;
-      color: var(--ink);
-      font-size: clamp(1.8rem, 4vw, 3.2rem);
+      color: var(--blog-ink);
+      font-family: "Noto Serif SC", "Songti SC", SimSun, serif;
+      font-size: clamp(2rem, 4.4vw, 4rem);
+      font-weight: 500;
+      line-height: 1.18;
     }
 
     .blog-empty-state span {
-      margin-top: 10px;
-      color: var(--ink-soft);
+      color: var(--blog-muted);
+    }
+
+    .blog-archive-page :global(.blog-timeline) {
+      width: min(1120px, calc(100% - 48px));
+      padding-top: 38px;
+    }
+
+    .blog-archive-page :global(.blog-timeline::before) {
+      width: 1px;
+      background: var(--blog-line);
+      opacity: 1;
+    }
+
+    .blog-archive-page :global(.blog-timeline-item::before) {
+      width: 11px;
+      height: 11px;
+      background: var(--blog-signal);
+      border: 2px solid var(--blog-paper);
+      box-shadow: 0 0 0 1px var(--blog-line);
+    }
+
+    .blog-archive-page :global(.blog-post-row) {
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid var(--blog-line);
+      border-radius: 0;
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    .blog-archive-page :global(.post-cover-frame img) {
+      filter: grayscale(1) contrast(0.9);
+    }
+
+    .blog-archive-page :global(.tag-row span) {
+      color: var(--blog-muted);
+      background: transparent;
+      border: 0;
+      border-left: 2px solid var(--blog-signal);
+      border-radius: 0;
+    }
+
+    .blog-archive-page :global(.post-list) {
+      display: none;
+    }
+
+    :global(body:has(.blog-archive-page)) {
+      --blog-paper: #c7c9c8;
+      --blog-paper-deep: #b9bcbb;
+      --blog-ink: #242827;
+      --blog-muted: #626866;
+      --blog-line: rgba(36, 40, 39, 0.22);
+      --blog-signal: #763b3f;
+      color: var(--blog-ink);
+      background: var(--blog-paper);
+    }
+
+    :global(body:has(.blog-archive-page)::before) {
+      opacity: 0;
+    }
+
+    :global(body:has(.blog-archive-page) .site-footer) {
+      padding-top: 60px;
+      padding-bottom: 74px;
+      color: #343837;
+      background: var(--blog-paper-deep);
+      border-top: 1px solid var(--blog-line);
+    }
+
+    :global(body:has(.blog-archive-page) .footer-inner) {
+      border-top: 1px solid var(--blog-line);
+    }
+
+    @media (max-width: 760px) {
+      .blog-archive-page {
+        padding-top: 96px;
+      }
+
+      .blog-hero-card,
+      .blog-search-card,
+      .blog-empty-state {
+        grid-template-columns: 1fr;
+        width: min(100% - 32px, 1120px);
+      }
+
+      .blog-hero-card > p:last-child,
+      .blog-hero-card .section-kicker,
+      .blog-hero-card h1,
+      .blog-empty-state p {
+        grid-column: 1;
+        grid-row: auto;
+      }
+
+      .blog-hero-card {
+        padding-bottom: 32px;
+      }
+
+      .blog-search-card {
+        gap: 22px;
+      }
+
+      .blog-empty-state {
+        min-height: 300px;
+        gap: 14px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .blog-archive-page :global(*) {
+        scroll-behavior: auto;
+      }
     }
   </style>
 </BaseLayout>

@@ -16,10 +16,14 @@ const read = (file: string) => readFileSync(new URL(file, root), "utf8");
 test("public profile data contains only the confirmed Rain_dust facts", () => {
   assert.deepEqual(profileTech.map(({ key }) => key), [
     "threejs",
-    "pwa",
     "python",
     "nextjs",
-    "javascript"
+    "solidworks",
+    "creo",
+    "autocad",
+    "bambu3d",
+    "opencv",
+    "yolo"
   ]);
   assert.deepEqual(projectTechLines.map(({ key }) => key), [
     "threejs",
@@ -59,6 +63,17 @@ test("WORKS contains the five verified repositories and the repository index", (
   assert.equal(projectEntries.every(({ url }) => url.startsWith("https://github.com/Rain-dust")), true);
 });
 
+test("PROJECTS renders a repository index without the retired card interactions", () => {
+  const projects = read("src/themes/fuyukawa-kagari/pages/ProjectsPage.astro");
+  assert.match(projects, /Projects/);
+  assert.match(projects, /项目档案/);
+  assert.match(projects, /GitHub Archive/);
+  assert.match(projects, /href=\{project\.url\}/);
+  assert.match(projects, /target="_blank"/);
+  assert.match(projects, /rel="noreferrer"/);
+  assert.doesNotMatch(projects, /works-filter|works-tech-board|works-card|data-card-toggle|data-card-panel/);
+});
+
 test("inherited articles and their production-only assets are absent", () => {
   const blogDirectory = new URL("src/content/blog/", root);
   const markdown = existsSync(blogDirectory)
@@ -86,7 +101,7 @@ test("Fuyukawa runtime has no Live2D or waifu implementation", () => {
     read("src/themes/fuyukawa-kagari/styles/theme.css")
   ].join("\n");
   assert.doesNotMatch(runtime, /live2d|waifu|cubism|modelTexturesId|modelId/i);
-  assert.match(runtime, /data-music-toggle/);
+  assert.doesNotMatch(runtime, /<aside class="toy-dock"|window\.__yuimiRadio \?\?=/);
 });
 
 test("BLOG renders an intentional empty state without fake posts", () => {

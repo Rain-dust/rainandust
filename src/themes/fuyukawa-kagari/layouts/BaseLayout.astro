@@ -9,6 +9,13 @@ import ConsoleEasterEgg from "@/core/ConsoleEasterEgg.astro";
 import PerformanceProfile from "@/core/PerformanceProfile.astro";
 import { kagariAssets } from "../assets";
 
+const ShadowInkDebug = import.meta.env.DEV
+  ? (await import("../components/ShadowInkDebug.astro")).default
+  : null;
+const PageTransitionPrototype = import.meta.env.DEV
+  ? (await import("../components/PageTransitionPrototype.astro")).default
+  : null;
+
 interface Props {
   title?: string;
   description?: string;
@@ -23,10 +30,17 @@ const {
   isArticlePage = false
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
+const pageTone = Astro.url.pathname.startsWith("/projects") || Astro.url.pathname.startsWith("/works")
+  ? "architecture"
+  : Astro.url.pathname.startsWith("/blog")
+    ? "editorial"
+    : Astro.url.pathname.startsWith("/about") || Astro.url.pathname.startsWith("/me")
+      ? "profile"
+      : "paper";
 ---
 
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-page-tone={pageTone}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -55,61 +69,10 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
       <div class="pig-scrollbar-pig">
         <span class="pig-scrollbar-snort">哼~ 哼~</span>
         <img src={kagariAssets.scrollPig} alt="" width="56" height="48" />
+        <span class="scroll-chibi-layer scroll-chibi-hair" aria-hidden="true"></span>
+        <span class="scroll-chibi-layer scroll-chibi-grass" aria-hidden="true"></span>
       </div>
     </div>
-    <aside class="toy-dock" aria-label="Rain_dust toy dock" transition:persist="yuimi-toy-dock">
-      <button class="toy-dock-handle" type="button" aria-label="打开侧边工具">
-        <span>TOOLS</span>
-      </button>
-      <div class="toy-dock-panel">
-        <section class="toy-widget music-widget" aria-label="音乐播放器">
-          <div class="toy-widget-title">
-            <span>♫</span>
-            <strong>Rain_dust Radio</strong>
-          </div>
-          <div class="music-player-shell">
-            <div class="music-cover-area">
-              <div class="record-player" aria-hidden="true">
-                <div class="record-arm"></div>
-                <div class="record-disc">
-                  <div class="record-label">
-                    <img src={kagariAssets.brand} alt="" width="42" height="38" />
-                  </div>
-                </div>
-              </div>
-              <span class="music-cover-caption">now spinning</span>
-            </div>
-            <div class="music-info-area">
-              <span class="music-meta">Rain_dust playlist</span>
-              <p class="music-track">lofi sakura loop</p>
-              <p class="music-note" data-music-note>正在读取歌单...</p>
-            </div>
-          </div>
-          <div class="music-progress">
-            <div class="music-control-label">
-              <span>播放进度</span>
-              <strong><span data-music-current>00:00</span> / <span data-music-duration>00:00</span></strong>
-            </div>
-            <input data-music-seek type="range" min="0" max="100" value="0" step="0.1" aria-label="播放进度" />
-          </div>
-          <div class="music-bottom-row">
-            <div class="music-controls" aria-label="播放控制">
-              <button type="button" data-music-prev aria-label="上一首">‹</button>
-              <button type="button" data-music-toggle aria-label="播放或暂停音乐">▶</button>
-              <button type="button" data-music-next aria-label="下一首">›</button>
-            </div>
-            <div class="music-volume">
-              <div class="music-control-label">
-                <span>音量</span>
-                <strong>volume</strong>
-              </div>
-              <input data-music-volume type="range" min="0" max="1" value="0.28" step="0.01" aria-label="音量" />
-            </div>
-          </div>
-        </section>
-
-      </div>
-    </aside>
     <nav class="custom-context-menu" data-context-menu aria-label="&#x5FEB;&#x6377;&#x83DC;&#x5355;">
       <button type="button" data-context-action="top">&#x2191; &#x56DE;&#x5230;&#x9876;&#x90E8;</button>
       <button type="button" data-context-action="refresh">&#x21BB; &#x5237;&#x65B0;&#x9875;&#x9762;</button>
@@ -119,7 +82,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
       <button type="button" data-context-action="copy">&#x29C9; &#x590D;&#x5236;&#x94FE;&#x63A5;</button>
       <button type="button" data-context-action="title">T &#x590D;&#x5236;&#x6807;&#x9898;</button>
       <button type="button" data-context-action="sakura" aria-pressed="true">&#x273F; 樱花雨：开</button>
-      <button type="button" data-context-action="music-autoplay" aria-pressed="false">♫ 进站续播：关</button>
     </nav>
     <div class="site-shell">
       <header class="site-header" aria-label="Primary">
@@ -142,18 +104,21 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
       <main>
         <slot />
       </main>
-      <footer class="site-footer" data-footer-timers>
+      <footer class="site-footer">
         <div class="footer-inner">
           <p class="footer-signature-line">© 2026 BY 寻辰沐雨 / Rain_dust</p>
-          <p>二次元手账、开发记录、还有一点点宇宙回声。</p>
-          <p>🛰️ 旅行者一号：<time data-elapsed-from="1977-09-05T12:56:00Z" data-elapsed-mode="minute">计算中...</time> 仍在远航</p>
-          <p>🛰️ 旅行者二号：<time data-elapsed-from="1977-08-20T14:29:00Z" data-elapsed-mode="minute">计算中...</time> 仍在远航</p>
-          <p>🌸 Rain_dust 已落地：<time data-elapsed-from="2026-05-18T00:00:00+08:00" data-elapsed-mode="second">计算中...</time></p>
-          <p class="footer-status-line">sakura: falling / pig: on duty / tea: warm</p>
         </div>
       </footer>
     </div>
     <ThemeLongPressMenu />
+    {ShadowInkDebug && <ShadowInkDebug />}
+    {PageTransitionPrototype && <PageTransitionPrototype />}
+
+    <script>
+      if (import.meta.env.DEV) {
+        void import("../lib/page-transition/controller");
+      }
+    </script>
 
     <script>
       let pigScrollTimer = 0;
@@ -192,92 +157,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
       document.addEventListener("astro:page-load", schedulePigScrollbar);
       document.addEventListener("astro:after-swap", schedulePigScrollbar);
       window.addEventListener("pageshow", schedulePigScrollbar);
-
-      const padTimer = (value) => String(value).padStart(2, "0");
-      const getElapsedParts = (startDate) => {
-        const diff = Math.max(0, Date.now() - startDate.getTime());
-        const totalSeconds = Math.floor(diff / 1000);
-        return {
-          days: Math.floor(totalSeconds / 86400),
-          hours: Math.floor((totalSeconds % 86400) / 3600),
-          minutes: Math.floor((totalSeconds % 3600) / 60),
-          seconds: totalSeconds % 60
-        };
-      };
-
-      const formatElapsed = (startDate, mode = "second") => {
-        const { days, hours, minutes, seconds } = getElapsedParts(startDate);
-        if (mode === "minute") {
-          return `${days.toLocaleString("zh-CN")}天 ${padTimer(hours)}小时 ${padTimer(minutes)}分`;
-        }
-        if (mode === "days") {
-          return `第 ${days.toLocaleString("zh-CN")} 天`;
-        }
-        return `${days.toLocaleString("zh-CN")}天 ${padTimer(hours)}小时 ${padTimer(minutes)}分 ${padTimer(seconds)}秒`;
-      };
-
-      const updateFooterTimers = () => {
-        const timerNodes = document.querySelectorAll("[data-elapsed-from]");
-        timerNodes.forEach((node) => {
-          const start = new Date(node.dataset.elapsedFrom);
-          if (Number.isNaN(start.getTime())) return;
-          node.textContent = formatElapsed(start, node.dataset.elapsedMode);
-          node.setAttribute("dateTime", start.toISOString());
-        });
-      };
-
-      let footerTimer = 0;
-      const scheduleFooterTimers = () => {
-        if (footerTimer) window.clearTimeout(footerTimer);
-        footerTimer = 0;
-        if (document.visibilityState !== "visible") return;
-        updateFooterTimers();
-        footerTimer = window.setTimeout(scheduleFooterTimers, 1000);
-      };
-
-      scheduleFooterTimers();
-      document.addEventListener("astro:page-load", updateFooterTimers);
-      document.addEventListener("astro:after-swap", updateFooterTimers);
-      window.addEventListener("pageshow", updateFooterTimers);
-      document.addEventListener("visibilitychange", scheduleFooterTimers);
-
-      let toyDockCloseTimer = 0;
-      const getToyDock = () => document.querySelector(".toy-dock");
-      const isInsideToyDock = (target) => {
-        const toyDock = getToyDock();
-        return Boolean(toyDock && target instanceof Node && toyDock.contains(target));
-      };
-      document.addEventListener("click", (event) => {
-        const handle = event.target instanceof Element ? event.target.closest(".toy-dock-handle") : null;
-        if (!handle) return;
-        const toyDock = getToyDock();
-        toyDock?.classList.toggle("is-pinned");
-      });
-      document.addEventListener("pointerover", (event) => {
-        if (!isInsideToyDock(event.target) || isInsideToyDock(event.relatedTarget)) return;
-        window.clearTimeout(toyDockCloseTimer);
-      });
-      document.addEventListener("pointerout", (event) => {
-        if (!isInsideToyDock(event.target) || isInsideToyDock(event.relatedTarget)) return;
-        const toyDock = getToyDock();
-        if (!toyDock) return;
-        if (toyDock.classList.contains("is-pinned")) return;
-        toyDockCloseTimer = window.setTimeout(() => {
-          toyDock.querySelector(":focus")?.blur();
-        }, 180);
-      });
-      window.addEventListener("pointerdown", (event) => {
-        const toyDock = getToyDock();
-        if (!toyDock || toyDock.contains(event.target)) return;
-        toyDock.classList.remove("is-pinned");
-        toyDock.querySelector(":focus")?.blur();
-      });
-      window.addEventListener("keydown", (event) => {
-        const toyDock = getToyDock();
-        if (event.key !== "Escape" || !toyDock) return;
-        toyDock.classList.remove("is-pinned");
-        toyDock.querySelector(":focus")?.blur();
-      });
 
       const musicCacheKey = "yuimi-radio-state-v1";
       const musicAutoplayKey = "yuimi-radio-autoplay-v1";
@@ -558,14 +437,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
         return player;
       };
 
-      window.__yuimiRadio ??= createYuimiRadio();
-      window.__yuimiRadio.bind();
-      window.__yuimiRadio.init();
-      document.addEventListener("astro:page-load", () => {
-        window.__yuimiRadio?.bind();
-        window.__yuimiRadio?.init();
-      });
-
       const sakuraStateKey = "yuimi-sakura-enabled-v1";
       const getContextMenu = () => document.querySelector("[data-context-menu]");
       let contextMenuReturnFocus = null;
@@ -585,22 +456,15 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
       const updateContextToggleLabels = () => {
         const contextMenu = getContextMenu();
         const sakuraButton = contextMenu?.querySelector('[data-context-action="sakura"]');
-        const musicAutoplayButton = contextMenu?.querySelector('[data-context-action="music-autoplay"]');
         const sakuraEnabled = isSakuraEnabled();
-        const musicAutoplayEnabled = window.__yuimiRadio?.isAutoplayEnabled?.() ?? false;
         if (sakuraButton) {
           sakuraButton.textContent = sakuraEnabled ? "✿ 樱花雨：开" : "✿ 樱花雨：关";
           sakuraButton.setAttribute("aria-pressed", String(sakuraEnabled));
-        }
-        if (musicAutoplayButton) {
-          musicAutoplayButton.textContent = musicAutoplayEnabled ? "♫ 进站续播：开" : "♫ 进站续播：关";
-          musicAutoplayButton.setAttribute("aria-pressed", String(musicAutoplayEnabled));
         }
       };
 
       setSakuraEnabled(isSakuraEnabled());
       updateContextToggleLabels();
-      window.addEventListener("yuimi:music-autoplay-change", updateContextToggleLabels);
 
       const showContextMenuAt = (clientX, clientY, focusFirst = false) => {
         const contextMenu = getContextMenu();
@@ -678,11 +542,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
         }
         if (action === "sakura") {
           setSakuraEnabled(!isSakuraEnabled());
-          updateContextToggleLabels();
-        }
-        if (action === "music-autoplay") {
-          const nextEnabled = !(window.__yuimiRadio?.isAutoplayEnabled?.() ?? false);
-          window.__yuimiRadio?.setAutoplayEnabled?.(nextEnabled);
           updateContextToggleLabels();
         }
         hideContextMenu();

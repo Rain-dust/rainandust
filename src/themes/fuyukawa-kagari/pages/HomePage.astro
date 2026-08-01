@@ -1,41 +1,8 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { noticeContent } from "../data/noticeContent";
 import { kagariAssets } from "../assets";
 import { profileIdentity } from "@/core/data/profile";
 import { site } from "@/lib/site";
-
-const noticeContentPayload = JSON.stringify(noticeContent);
-
-const fallingTags = [
-  "Rain_dust",
-  "寻辰沐雨",
-  "Vibe Coder",
-  "INTP",
-  "白羊座",
-  "小说",
-  "网文",
-  "动漫",
-  "玄学",
-  "想要成为影之实力者",
-  "Three.js",
-  "WebGL",
-  "PWA",
-  "Capacitor",
-  "Python",
-  "OCR",
-  "Next.js",
-  "React",
-  "TypeScript",
-  "JavaScript",
-  "localStorage",
-  "Earth Online",
-  "浮生录",
-  "MindCache",
-  "Campus Reimburse Kit",
-  "知微",
-  "Rain_dust Radio",
-];
 ---
 
 <BaseLayout>
@@ -54,15 +21,10 @@ const fallingTags = [
         aria-hidden="true"
       ></video>
       <div class="hero-overlay"></div>
-      <button class="home-notice-trigger" type="button" data-notice-open aria-haspopup="dialog">
-        <span aria-hidden="true">💌</span>
-        今日公告
-      </button>
       <div class="hero-copy" data-hero-copy>
         <p class="eyebrow">Personal site / Anime & code</p>
         <h1 data-title={site.name}>{site.name}</h1>
         <p class="hero-text terminal-line" aria-label="typing subtitle">
-          <span class="hero-terminal-badge" aria-hidden="true"></span>
           <span class="hero-terminal-stack">
             <span class="hero-terminal-status" aria-hidden="true">
               <span></span>
@@ -80,9 +42,6 @@ const fallingTags = [
 
       <div class="hero-profile identity-card" data-hero-profile aria-label="Profile">
         <div class="identity-avatar" data-poke-avatar>
-          <span class="avatar-flower" aria-hidden="true">
-            <span class="avatar-flower__bloom"></span>
-          </span>
           <img src={kagariAssets.profile} alt={`${profileIdentity.displayName} 的头像`} width="168" height="168" />
           <span class="avatar-poke-bubble" data-poke-bubble>&#x64CD;&#x4F5C;&#x592A;&#x5FEB;&#x5566;&#xFF0C;&#x4F11;&#x606F;&#x4E00;&#x4E0B;&#x5427;</span>
         </div>
@@ -119,82 +78,8 @@ const fallingTags = [
         </div>
       </div>
 
-      <a class="scroll-cue" href="#main-content" aria-label="Scroll to content">
-        <span class="scroll-cue__prompt">scroll@home:~$</span>
-        <span class="scroll-cue__arrows" aria-hidden="true">
-          <span>&gt;</span>
-          <span>&gt;</span>
-          <span>&gt;</span>
-        </span>
-      </a>
     </div>
   </section>
-
-  <div class="home-notice-backdrop" data-notice-backdrop hidden>
-    <section class="home-notice-modal" role="dialog" aria-modal="true" aria-labelledby="home-notice-title" data-notice-modal>
-      <div class="home-notice-scroll-area" data-notice-scroll-area>
-        <button class="home-notice-close" type="button" data-notice-close aria-label="关闭公告">×</button>
-        <div class="home-notice-head">
-          <span class="home-notice-icon" data-notice-icon aria-hidden="true">💗</span>
-          <div>
-            <p data-notice-date>Today</p>
-            <h2 id="home-notice-title" data-notice-title>{site.name} 今日公告</h2>
-          </div>
-        </div>
-        <div class="home-notice-body" data-notice-body></div>
-        <label class="home-notice-skip">
-          <input type="checkbox" data-notice-skip />
-          <span>今日不再弹出</span>
-        </label>
-      </div>
-      <div class="home-notice-scrollbar" data-notice-scrollbar aria-hidden="true">
-        <span data-notice-scroll-thumb></span>
-      </div>
-    </section>
-  </div>
-
-  <script type="application/json" id="notice-content-data" set:html={noticeContentPayload}></script>
-
-  <div class="scene-divider" aria-hidden="true">
-    <div class="scene-divider__rail">
-      <span class="scene-divider__glow"></span>
-      <span class="scene-divider__stitch"></span>
-      <span class="scene-divider__note note-a"></span>
-      <span class="scene-divider__note note-b"></span>
-      <span class="scene-divider__note note-c"></span>
-      <span class="scene-divider__spark spark-a"></span>
-      <span class="scene-divider__spark spark-b"></span>
-      <span class="scene-divider__spark spark-c"></span>
-    </div>
-  </div>
-
-  <div class="home-content-bg">
-    <section
-      class="tag-rain-stage"
-      id="main-content"
-      data-tag-rain
-      data-tags={JSON.stringify(fallingTags)}
-      data-tencent-map-key={import.meta.env.PUBLIC_TENCENT_MAP_KEY ?? ""}
-      aria-label="Rain_dust tag rain"
-    >
-      <div class="home-art-word" aria-label={site.name}>
-        <span>{site.name}</span>
-        <small>ideas / code / anime</small>
-      </div>
-      <div class="home-signal-card" aria-label="Local signal">
-        <p data-home-date>---- 年 -- 月 -- 日</p>
-        <strong data-home-time>--:--:--</strong>
-        <span data-home-weather>本地时区 · 气温待接入</span>
-      </div>
-      <div class="home-welcome-bubble">
-        <span aria-hidden="true">“</span>
-        <strong>哇，你终于回来了～</strong>
-        <p>这里会掉下一点兴趣标签，等它们堆在底下再慢慢消失。</p>
-        <span aria-hidden="true">”</span>
-      </div>
-      <canvas class="tag-rain-canvas" data-tag-rain-canvas aria-hidden="true"></canvas>
-    </section>
-  </div>
 
   <script data-astro-rerun>
     (() => {

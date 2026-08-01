@@ -16,10 +16,14 @@ export const profileStatus = [
 
 export const profileTech = [
   { key: "threejs", name: "Three.js / WebGL", note: "3D 场景 / 交互实验" },
-  { key: "pwa", name: "PWA / Capacitor", note: "离线优先 / Android" },
   { key: "python", name: "Python", note: "本地工具 / OCR / Excel" },
   { key: "nextjs", name: "Next.js / React", note: "沉浸式交互 / TypeScript" },
-  { key: "javascript", name: "JavaScript", note: "轻量原型 / localStorage" }
+  { key: "solidworks", name: "SolidWorks", note: "工业建模 / 装配体" },
+  { key: "creo", name: "Creo", note: "参数化建模 / 工程设计" },
+  { key: "autocad", name: "AutoCAD", note: "工程制图 / 二维图纸" },
+  { key: "bambu3d", name: "拓竹 3D 打印", note: "切片 / 打印制造" },
+  { key: "opencv", name: "OpenCV", note: "图像处理 / 传统视觉" },
+  { key: "yolo", name: "YOLO", note: "目标检测 / 机器视觉" }
 ] as const;
 
 export const animeFavorites = [
