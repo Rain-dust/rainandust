@@ -1,0 +1,25 @@
+---
+title: "文章标题"
+description: "列表页会显示的简短摘要"
+pubDate: 2026-08-02
+updatedDate: 2026-08-02
+cover: "/images/blog/cover.webp"
+coverAlt: "准确描述封面图片内容"
+tags: ["随笔"]
+category: life
+draft: true
+---
+
+把复制来的 Markdown 正文粘贴到这里。
+
+## 小标题
+
+正文支持 **粗体**、*斜体*、[链接](https://example.com) 和列表。
+
+![图片说明](/images/blog/illustration.webp)
+
+> 这是引用。
+
+```js
+console.log("代码块也可以正常显示");
+```

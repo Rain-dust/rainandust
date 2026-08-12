@@ -32,11 +32,14 @@ const {
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
 const pageTone = Astro.url.pathname.startsWith("/projects") || Astro.url.pathname.startsWith("/works")
   ? "architecture"
-  : Astro.url.pathname.startsWith("/blog")
-    ? "editorial"
-    : Astro.url.pathname.startsWith("/about") || Astro.url.pathname.startsWith("/me")
-      ? "profile"
-      : "paper";
+  : Astro.url.pathname.startsWith("/about") || Astro.url.pathname.startsWith("/me")
+    ? "profile"
+    : "paper";
+const currentNavHref = pageTone === "architecture"
+  ? "/projects/"
+  : pageTone === "profile"
+    ? "/about/"
+    : "/";
 ---
 
 <!doctype html>
@@ -49,8 +52,6 @@ const pageTone = Astro.url.pathname.startsWith("/projects") || Astro.url.pathnam
     <meta name="theme-color" content="#fff8ec" />
     <link rel="canonical" href={canonical} />
     <ThemePreferenceGate currentTheme="fuyukawa-kagari" honorPreference={honorThemePreference} />
-    <link rel="icon" type="image/png" href={kagariAssets.favicon} />
-    <link rel="apple-touch-icon" href={kagariAssets.appleTouchIcon} />
     <title>{title}</title>
     <ClientRouter />
     <ConsoleEasterEgg />
@@ -86,13 +87,17 @@ const pageTone = Astro.url.pathname.startsWith("/projects") || Astro.url.pathnam
     <div class="site-shell">
       <header class="site-header" aria-label="Primary">
         <a class="brand" href="/" aria-label={`${site.name} home`}>
-          <img src={kagariAssets.brand} alt="" width="40" height="36" />
           <span>{site.name}</span>
         </a>
         <nav class="nav-links" aria-label="Main navigation">
           {
             site.nav.map((item) => (
-              <a href={item.href} aria-label={`${item.label}: ${item.hint}`}>
+              <a
+                href={item.href}
+                aria-label={`${item.label}: ${item.hint}`}
+                aria-current={item.href === currentNavHref ? "page" : undefined}
+                data-nav-key={item.label.toLowerCase()}
+              >
                 <span class="nav-icon" aria-hidden="true"><Icon name={item.icon} /></span>
                 <span class="nav-label">{item.label}</span>
                 <span class="nav-hint">{item.hint}</span>
@@ -118,6 +123,87 @@ const pageTone = Astro.url.pathname.startsWith("/projects") || Astro.url.pathnam
       if (import.meta.env.DEV) {
         void import("../lib/page-transition/controller");
       }
+    </script>
+
+    <script>
+      const pageShellGlobal = window as typeof window & {
+        __rainDustPageShellAbort?: AbortController;
+      };
+
+      pageShellGlobal.__rainDustPageShellAbort?.abort();
+      const pageShellAbort = new AbortController();
+      pageShellGlobal.__rainDustPageShellAbort = pageShellAbort;
+
+      const resolvePageTone = (pathname: string) => {
+        if (pathname.startsWith("/projects") || pathname.startsWith("/works")) return "architecture";
+        if (pathname.startsWith("/about") || pathname.startsWith("/me")) return "profile";
+        return "paper";
+      };
+
+      const pageShellCriticalCss = `
+        .nav-links {
+          display: grid !important;
+          grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+          width: min(860px, calc(100vw - 84px)) !important;
+        }
+        .nav-links a {
+          justify-content: start !important;
+          width: 100% !important;
+          min-width: 0 !important;
+        }
+        .nav-links a:hover:not([aria-current="page"])::after {
+          opacity: 0 !important;
+          transform: scaleX(0.2) !important;
+        }
+        @media (max-width: 940px) {
+          .nav-links {
+            width: min(100%, 520px) !important;
+            max-width: calc(100vw - 24px) !important;
+            overflow: hidden !important;
+          }
+        }
+        @media (max-width: 520px) {
+          .nav-links a {
+            justify-content: center !important;
+            min-height: 46px !important;
+            padding-inline: 4px !important;
+          }
+        }
+      `;
+
+      const ensurePageShellCriticalStyle = () => {
+        let style = document.querySelector<HTMLStyleElement>("#rain-dust-page-shell-critical");
+        if (!style) {
+          style = document.createElement("style");
+          style.id = "rain-dust-page-shell-critical";
+          style.dataset.astroTransitionPersist = "rain-dust-page-shell-critical";
+          document.head.append(style);
+        }
+        if (style.textContent !== pageShellCriticalCss) style.textContent = pageShellCriticalCss;
+      };
+
+      const syncPageShell = () => {
+        ensurePageShellCriticalStyle();
+        const tone = resolvePageTone(window.location.pathname);
+        const currentHref = tone === "architecture"
+          ? "/projects/"
+          : tone === "profile"
+            ? "/about/"
+            : "/";
+
+        document.documentElement.dataset.pageTone = tone;
+        document.querySelectorAll<HTMLAnchorElement>(".nav-links a[href]").forEach((link) => {
+          if (link.getAttribute("href") === currentHref) {
+            link.setAttribute("aria-current", "page");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+        });
+      };
+
+      syncPageShell();
+      document.addEventListener("astro:after-swap", syncPageShell, { signal: pageShellAbort.signal });
+      document.addEventListener("astro:page-load", syncPageShell, { signal: pageShellAbort.signal });
     </script>
 
     <script>

@@ -74,8 +74,7 @@ const TONE_STYLES: Record<
 const PAGE_ORDER: Record<PrototypePage["id"], number> = {
   home: 0,
   projects: 1,
-  blog: 2,
-  about: 3
+  about: 2
 };
 
 function routeSign(match: PrototypeRouteMatch): number {

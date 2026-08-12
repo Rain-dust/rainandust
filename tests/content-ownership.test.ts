@@ -13,6 +13,13 @@ import { projectEntries, projectTechLines } from "../src/core/data/projects.ts";
 const root = new URL("../", import.meta.url);
 const read = (file: string) => readFileSync(new URL(file, root), "utf8");
 
+test("BLOG is absent from public routes and navigation", () => {
+  const site = read("src/lib/site.ts");
+  assert.equal(existsSync(new URL("src/pages/blog/index.astro", root)), false);
+  assert.equal(existsSync(new URL("src/pages/blog/[...slug].astro", root)), false);
+  assert.doesNotMatch(site, /href: "\/blog\/"/);
+});
+
 test("public profile data contains only the confirmed Rain_dust facts", () => {
   assert.deepEqual(profileTech.map(({ key }) => key), [
     "threejs",
@@ -36,7 +43,6 @@ test("public profile data contains only the confirmed Rain_dust facts", () => {
   assert.deepEqual(xpFavorites.map(({ key }) => key), [
     "white-hair",
     "red-eyes",
-    "quiet-mystery",
     "barefoot-imagery"
   ]);
   assert.deepEqual(favoriteReading.map(({ key }) => key), [
@@ -74,12 +80,15 @@ test("PROJECTS renders a repository index without the retired card interactions"
   assert.doesNotMatch(projects, /works-filter|works-tech-board|works-card|data-card-toggle|data-card-panel/);
 });
 
-test("inherited articles and their production-only assets are absent", () => {
+test("only the user-authored BLOG article is present and inherited assets remain absent", () => {
   const blogDirectory = new URL("src/content/blog/", root);
   const markdown = existsSync(blogDirectory)
     ? readdirSync(blogDirectory).filter((name) => name.endsWith(".md"))
     : [];
-  assert.deepEqual(markdown, []);
+  assert.deepEqual(markdown, ["codex-app-long-term-usage-habits.md"]);
+  const article = read("src/content/blog/codex-app-long-term-usage-habits.md");
+  assert.match(article, /Codex App 用久以后，我留下的这些使用习惯/);
+  assert.match(article, /draft: false/);
   assert.equal(existsSync(new URL("public/blog-assets/", root)), false);
 });
 
@@ -110,6 +119,24 @@ test("BLOG renders an intentional empty state without fake posts", () => {
   assert.match(blog, /这里暂时没有文章/);
   assert.match(blog, /有想写的再写/);
   assert.match(blog, /暂无文章/);
+  assert.match(blog, /blog-empty-plate/);
+  assert.match(blog, /kagariAssets\.heroWallpaper/);
+});
+
+test("BLOG has a private Markdown authoring workflow without a public editor", () => {
+  const schema = read("src/content.config.ts");
+  const packageJson = JSON.parse(read("package.json"));
+  const generator = read("scripts/new-blog-post.mjs");
+  const template = read("src/content/blog/_template.md.example");
+  const article = read("src/themes/fuyukawa-kagari/layouts/ArticleLayout.astro");
+
+  assert.equal(packageJson.scripts["blog:new"], "node scripts/new-blog-post.mjs");
+  assert.match(generator, /draft: true/);
+  assert.match(template, /draft: true/);
+  assert.match(schema, /coverAlt: z\.string\(\)\.optional\(\)/);
+  assert.match(article, /frontmatter\.cover/);
+  assert.match(article, /\.prose img/);
+  assert.doesNotMatch(generator, /fetch\(|login|password/i);
 });
 
 test("Sites worker serves the custom 404 document without redirecting", () => {

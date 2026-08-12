@@ -1,14 +1,18 @@
+import { portfolioPositioning, portfolioRoleLine } from "./portfolio.ts";
+
 export const profileIdentity = {
   displayName: "寻辰沐雨",
-  handle: "Rain_dust",
-  siteName: "Vibe Coder",
-  bio: "Vibe Coder。INTP / 白羊座。小说、网文、动漫、玄学都看一点。想到什么，就做点什么。",
+  handle: portfolioPositioning.brand,
+  siteName: portfolioRoleLine,
+  bio: `${portfolioPositioning.introduction}${portfolioPositioning.personaTags[0]}。`,
   github: "https://github.com/Rain-dust",
-  email: "mailto:1223451146@qq.com"
+  email: "mailto:1223451146@qq.com",
+  emailAddress: "1223451146@qq.com"
 } as const;
 
 export const profileStatus = [
-  "Vibe Coder",
+  portfolioRoleLine,
+  `${portfolioPositioning.personaTags[0]}（人格标签）`,
   "INTP / 白羊座",
   "小说、网文、动漫、玄学都看一点",
   "想到什么，就做点什么"
@@ -36,21 +40,62 @@ export const animeFavorites = [
 ] as const;
 
 export const xpFavorites = [
-  { key: "white-hair", title: "白发", subtitle: "white hair", icon: "tabler:sparkles" },
-  { key: "red-eyes", title: "红瞳", subtitle: "red eyes", icon: "tabler:eye" },
-  { key: "quiet-mystery", title: "神秘感", subtitle: "quiet mystery", icon: "tabler:moon-stars" },
-  { key: "barefoot-imagery", title: "赤足意象", subtitle: "barefoot imagery", icon: "tabler:shoe-off" }
+  {
+    key: "white-hair",
+    title: "白毛",
+    subtitle: "white hair",
+    image: "/images/blog/cover-summer-white-01.webp",
+    imageAlt: "白毛角色插画",
+    imagePosition: "72% 34%"
+  },
+  {
+    key: "red-eyes",
+    title: "红瞳",
+    subtitle: "red eyes",
+    image: "/images/blog/cover-violet-gaze-01.webp",
+    imageAlt: "红瞳角色插画",
+    imagePosition: "70% 46%"
+  },
+  {
+    key: "barefoot-imagery",
+    title: "赤足",
+    subtitle: "barefoot imagery",
+    image: "/themes/kisara/assets/blog/sharon-back-solo-v1.webp",
+    imageAlt: "轻盈跃起的角色插画",
+    imagePosition: "50% 42%"
+  }
 ] as const;
 
 export const favoriteReading = [
-  { key: "novel", title: "小说", subtitle: "Novel", icon: "tabler:book-2" },
-  { key: "web-fiction", title: "网文", subtitle: "Web Fiction", icon: "tabler:books" },
-  { key: "metaphysics", title: "玄学", subtitle: "Metaphysics", icon: "tabler:moon-stars" }
+  {
+    key: "novel",
+    title: "小说",
+    subtitle: "《荒原狼》 · Hermann Hesse",
+    image: "https://upload.wikimedia.org/wikipedia/commons/9/93/Hermann_Hesse_Der_Steppenwolf_1927.jpg",
+    imageAlt: "赫尔曼·黑塞《荒原狼》1927 年版封面",
+    imagePosition: "50% 50%"
+  },
+  {
+    key: "web-fiction",
+    title: "网文",
+    subtitle: "《异兽迷城》 · 彭湃",
+    image: "/images/about/beast-maze-cover.jpg",
+    imageAlt: "《异兽迷城》封面",
+    imagePosition: "50% 50%"
+  },
+  {
+    key: "metaphysics",
+    title: "玄学",
+    subtitle: "Metaphysics",
+    image: "/images/about/metaphysics-paper.png",
+    imageAlt: "水墨、红线与卦象构成的玄学意象",
+    imagePosition: "50% 50%"
+  }
 ] as const;
 
 export const currentSignals = [
-  { label: "正在做", text: "完善这个个人网站。" },
-  { label: "最近在折腾", text: "Earth Online、浮生录和一些小项目。" },
-  { label: "当前状态", text: "Vibe Coding。" }
+  { label: "正在做", text: "自我未来模型、嘉豪 Skill" },
+  { label: "最近在折腾", text: "桌面机器人、维护 Earth Online" },
+  { label: "当前状态", text: "追番 ing" }
 ] as const;
 

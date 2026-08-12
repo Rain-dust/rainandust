@@ -2,27 +2,22 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { kagariAssets } from "../assets";
 import { profileIdentity } from "@/core/data/profile";
+import { portfolioRoleLine } from "@/core/data/portfolio";
 import { site } from "@/lib/site";
+
+const forceMotionPreview = import.meta.env.DEV && Astro.url.searchParams.get("motion") !== "reduce";
 ---
 
 <BaseLayout>
-  <section class="hero-stage" data-hero-stage>
+  <section
+    class="hero-stage"
+    data-hero-stage
+    data-dev-motion-preview={forceMotionPreview ? "force" : undefined}
+  >
     <div class="hero">
-      <video
-        class="hero-background-video"
-        data-home-hero-video
-        src={kagariAssets.homeVideo}
-        poster={kagariAssets.homePoster}
-        autoplay
-        muted
-        loop
-        playsinline
-        preload="metadata"
-        aria-hidden="true"
-      ></video>
       <div class="hero-overlay"></div>
       <div class="hero-copy" data-hero-copy>
-        <p class="eyebrow">Personal site / Anime & code</p>
+        <p class="eyebrow">{portfolioRoleLine}</p>
         <h1 data-title={site.name}>{site.name}</h1>
         <p class="hero-text terminal-line" aria-label="typing subtitle">
           <span class="hero-terminal-stack">
@@ -61,6 +56,18 @@ import { site } from "@/lib/site";
             <span class="terminal-cursor" aria-hidden="true"></span>
           </p>
           <p class="identity-caption">{profileIdentity.displayName} / {profileIdentity.handle}</p>
+          <section class="identity-status" aria-labelledby="identity-status-title">
+            <div class="identity-status-heading">
+              <span id="identity-status-title">STATUS</span>
+              <span class="identity-status-signal" aria-hidden="true">ACTIVE</span>
+            </div>
+            <ul>
+              <li><span aria-hidden="true">›</span> 推进自瞄算法迭代</li>
+              <li><span aria-hidden="true">›</span> 优化 Earth Online</li>
+              <li><span aria-hidden="true">›</span> 为 AstrBot 编写插件</li>
+              <li><span aria-hidden="true">›</span> 利用 Obsidian 搭建自我预测模型</li>
+            </ul>
+          </section>
           <div class="social-links" aria-label="Social links">
             <a href={profileIdentity.github} target="_blank" rel="noreferrer" aria-label="GitHub profile">
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -75,7 +82,61 @@ import { site } from "@/lib/site";
               Email
             </a>
           </div>
+          <section class="hero-story identity-terminal-extension" data-hero-story aria-hidden="true">
+            <div class="identity-terminal-extension__body">
+              <p class="identity-terminal-extension__command">
+                <span class="terminal-prefix">profile@rain-dust:~$</span>
+                <span>identify --profile</span>
+              </p>
+              <div class="identity-terminal-extension__output">
+                <div class="identity-terminal-extension__headline">
+                  <span>IDENTITY</span>
+                  <strong>19-YEAR-OLD</strong>
+                  <b>CREATIVE VIBECODER</b>
+                </div>
+                <dl class="identity-terminal-extension__facts">
+                  <div>
+                    <dt>ROLE</dt>
+                    <dd>CREATIVE ENGINEER</dd>
+                  </div>
+                  <div>
+                    <dt>MODE</dt>
+                    <dd>INDEPENDENT BUILDER</dd>
+                  </div>
+                  <div>
+                    <dt>MISSION</dt>
+                    <dd>GUIKE HACKATHON 2026</dd>
+                  </div>
+                </dl>
+                <p class="identity-terminal-extension__focus">
+                  <span>FOCUS</span>
+                  <strong>AI PROTOTYPES</strong>
+                  <i aria-hidden="true">/</i>
+                  <strong>INTERACTIVE WEB</strong>
+                  <i aria-hidden="true">/</i>
+                  <strong>AUTOMATION</strong>
+                </p>
+              </div>
+            </div>
+          </section>
         </div>
+          <a
+            class="identity-rift"
+            data-identity-rift
+            href="/projects/"
+            aria-label="Execute Works"
+            aria-hidden="true"
+            tabindex="-1"
+          >
+            <span class="identity-rift__fracture" aria-hidden="true">
+              <canvas class="identity-rift__canvas" data-identity-rift-canvas></canvas>
+              <span class="identity-rift__fallback"></span>
+            </span>
+            <span class="identity-rift__prompt">
+              <small>&gt; EXECUTE</small>
+              <strong>/WORKS</strong>
+            </span>
+          </a>
       </div>
 
     </div>
@@ -323,8 +384,6 @@ import { site } from "@/lib/site";
       const performanceProfile = document.documentElement.dataset.yuimiPerformance ?? "full";
       const mobilePerformance = performanceProfile !== "full";
       const litePerformance = performanceProfile === "lite";
-      const pigImage = new Image();
-      pigImage.src = "/themes/fuyukawa-kagari/assets/mini-pig-scroll.webp";
       const dateTarget = document.querySelector("[data-home-date]");
       const timeTarget = document.querySelector("[data-home-time]");
       const weatherTarget = document.querySelector("[data-home-weather]");
@@ -670,25 +729,6 @@ import { site } from "@/lib/site";
         };
       };
 
-      const makePig = (index) => {
-        const size = random(42, 58);
-        const radius = size * 0.52;
-        return {
-          type: "pig",
-          width: size,
-          height: size * 0.78,
-          radius,
-          x: random(radius + 14, state.width - radius - 14),
-          y: -random(80, 320),
-          vx: random(-1.5, 1.5),
-          vy: random(0.4, 1.6),
-          angle: random(-0.35, 0.35),
-          spin: random(-0.02, 0.02),
-          alpha: 1,
-          index
-        };
-      };
-
       const resize = () => {
         const rect = stage.getBoundingClientRect();
         const dprCeiling = litePerformance ? 1 : mobilePerformance ? 1.15 : 2;
@@ -704,10 +744,7 @@ import { site } from "@/lib/site";
       };
 
       const prepareQueue = () => {
-        const tagBodies = labels.map(makeTag);
-        const pigCount = Math.max(3, Math.min(6, Math.round(labels.length / 6)));
-        const pigBodies = Array.from({ length: pigCount }, (_, index) => makePig(index));
-        state.queue = [...tagBodies, ...pigBodies].sort(() => Math.random() - 0.5);
+        state.queue = labels.map(makeTag).sort(() => Math.random() - 0.5);
       };
 
       const startRain = () => {
@@ -762,30 +799,6 @@ import { site } from "@/lib/site";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(body.label, 0, 1, body.width - 34);
-        ctx.restore();
-      };
-
-      const drawPig = (body) => {
-        ctx.save();
-        ctx.globalAlpha = body.alpha;
-        ctx.translate(body.x, body.y);
-        ctx.rotate(body.angle);
-        if (pigImage.complete && pigImage.naturalWidth > 0) {
-          ctx.drawImage(pigImage, -body.width / 2, -body.height / 2, body.width, body.height);
-        } else {
-          ctx.fillStyle = "#ffd5df";
-          ctx.strokeStyle = "#ef9db3";
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.roundRect(-body.width / 2, -body.height / 2, body.width, body.height, 18);
-          ctx.fill();
-          ctx.stroke();
-          ctx.fillStyle = "#6f5160";
-          ctx.font = "900 14px sans-serif";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText("pig", 0, 1);
-        }
         ctx.restore();
       };
 
@@ -917,10 +930,7 @@ import { site } from "@/lib/site";
           }
         }
 
-        state.bodies.forEach((body) => {
-          if (body.type === "pig") drawPig(body);
-          else drawCapsule(body);
-        });
+        state.bodies.forEach(drawCapsule);
 
         maybeFade(now);
         state.raf = window.requestAnimationFrame(tick);
@@ -1010,6 +1020,307 @@ import { site } from "@/lib/site";
     const hero = stage?.querySelector(".hero");
     const typingTarget = document.querySelector("[data-terminal-typing]");
     const nameTarget = document.querySelector("[data-name-typing]");
+    const story = document.querySelector("[data-hero-story]");
+    const rift = document.querySelector("[data-identity-rift]");
+    const profile = document.querySelector("[data-hero-profile]");
+    const avatar = profile?.querySelector(".identity-avatar");
+    const terminal = profile?.querySelector(".identity-terminal");
+    const riftCanvas = rift?.querySelector("[data-identity-rift-canvas]");
+
+    const createRiftRenderer = (canvas, riftRoot, stageRoot) => {
+      if (!(canvas instanceof HTMLCanvasElement) || !(riftRoot instanceof HTMLElement) || !(stageRoot instanceof HTMLElement)) {
+        return null;
+      }
+
+      const context = canvas.getContext("2d", { alpha: true });
+      const fallback = riftRoot.querySelector(".identity-rift__fallback");
+      if (!context) {
+        fallback?.classList.add("is-visible");
+        return null;
+      }
+
+      const source = new Image();
+      source.decoding = "async";
+      source.src = "/themes/fuyukawa-kagari/assets/hero-wallpaper-20260729.png";
+
+      let frame = 0;
+      let active = false;
+      let ready = false;
+      let hovered = false;
+      let destroyed = false;
+      let formationStartedAt = 0;
+      let executeStartedAt = 0;
+      let glitchUntil = 0;
+      let nextGlitchAt = Number.POSITIVE_INFINITY;
+      let width = 0;
+      let height = 0;
+      let dpr = 1;
+
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const motionAllowed = () => !reducedMotion.matches || stageRoot.dataset.devMotionPreview === "force";
+      const smoothstep = (value) => value * value * (3 - 2 * value);
+      const clampUnit = (value) => Math.min(1, Math.max(0, value));
+      const seeded = (seed) => {
+        const value = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+        return value - Math.floor(value);
+      };
+
+      const resize = () => {
+        const rect = canvas.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        width = rect.width;
+        height = rect.height;
+        const pixelWidth = Math.max(1, Math.round(width * dpr));
+        const pixelHeight = Math.max(1, Math.round(height * dpr));
+        if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+          canvas.width = pixelWidth;
+          canvas.height = pixelHeight;
+        }
+      };
+
+      const crackCenter = (y) => {
+        const normalized = y / Math.max(height, 1);
+        return width * 0.5
+          + Math.sin(normalized * 7.2 + 0.5) * 3.2
+          + Math.sin(normalized * 17.4 + 1.8) * 1.6
+          + Math.sin(normalized * 3.4 - 0.7) * 2.4;
+      };
+
+      const crackHalfWidth = (y, opening) => {
+        const normalized = y / Math.max(height, 1);
+        const taper = Math.pow(Math.max(0, Math.sin(Math.PI * normalized)), 0.58);
+        const texture = 0.82 + 0.18 * Math.sin(normalized * 21 + 0.4);
+        return Math.max(0.35, opening * taper * texture);
+      };
+
+      const traceCrack = (opening) => {
+        context.beginPath();
+        for (let y = 0; y <= height; y += 3) {
+          const x = crackCenter(y) - crackHalfWidth(y, opening);
+          if (y === 0) context.moveTo(x, y);
+          else context.lineTo(x, y);
+        }
+        for (let y = height; y >= 0; y -= 3) {
+          context.lineTo(crackCenter(y) + crackHalfWidth(y, opening), y);
+        }
+        context.closePath();
+      };
+
+      const drawWorksSliver = (opening) => {
+        context.save();
+        traceCrack(opening);
+        context.clip();
+
+        const wall = context.createLinearGradient(width * 0.2, 0, width * 0.8, height);
+        wall.addColorStop(0, "#0d0f0e");
+        wall.addColorStop(0.52, "#171713");
+        wall.addColorStop(1, "#25221e");
+        context.fillStyle = wall;
+        context.fillRect(0, 0, width, height);
+
+        const warmLight = context.createRadialGradient(width * 0.72, height * 0.25, 0, width * 0.72, height * 0.25, height * 0.56);
+        warmLight.addColorStop(0, "rgba(151, 126, 102, 0.52)");
+        warmLight.addColorStop(0.42, "rgba(102, 87, 72, 0.18)");
+        warmLight.addColorStop(1, "rgba(15, 16, 14, 0)");
+        context.fillStyle = warmLight;
+        context.fillRect(0, 0, width, height);
+
+        context.fillStyle = "rgba(5, 6, 6, 0.62)";
+        context.beginPath();
+        context.moveTo(width * 0.58, 0);
+        context.lineTo(width, 0);
+        context.lineTo(width * 0.46, height);
+        context.lineTo(width * 0.12, height);
+        context.closePath();
+        context.fill();
+
+        context.strokeStyle = "rgba(205, 190, 174, 0.12)";
+        context.lineWidth = 1;
+        for (let y = 20; y < height; y += 38) {
+          context.beginPath();
+          context.moveTo(0, y + 0.5);
+          context.lineTo(width, y + 0.5);
+          context.stroke();
+        }
+        context.restore();
+      };
+
+      const drawEdge = (opening, offset, color, alpha, lineWidth = 1) => {
+        context.save();
+        context.globalAlpha = alpha;
+        context.strokeStyle = color;
+        context.lineWidth = lineWidth;
+        context.beginPath();
+        for (let y = 1; y < height; y += 3) {
+          const x = crackCenter(y) + crackHalfWidth(y, opening) * offset;
+          if (y === 1) context.moveTo(x, y);
+          else context.lineTo(x, y);
+        }
+        context.stroke();
+        context.restore();
+      };
+
+      const drawSourceBand = (y, bandHeight, offset, tint, alpha) => {
+        if (!source.complete || !source.naturalWidth) return;
+        const stageRect = stageRoot.getBoundingClientRect();
+        const canvasRect = canvas.getBoundingClientRect();
+        const coverScale = Math.max(stageRect.width / source.naturalWidth, stageRect.height / source.naturalHeight);
+        const renderedWidth = source.naturalWidth * coverScale;
+        const renderedHeight = source.naturalHeight * coverScale;
+        const imageLeft = stageRect.left + (stageRect.width - renderedWidth) / 2;
+        const imageTop = stageRect.top + (stageRect.height - renderedHeight) / 2;
+        const sampleWidth = Math.min(112, width * 0.76);
+        const destinationX = (width - sampleWidth) / 2 + offset;
+        const sourceX = (canvasRect.left + (width - sampleWidth) / 2 - imageLeft) / coverScale;
+        const sourceY = (canvasRect.top + y - imageTop) / coverScale;
+        const sourceWidth = sampleWidth / coverScale;
+        const sourceHeight = bandHeight / coverScale;
+
+        context.save();
+        context.globalAlpha = alpha;
+        context.drawImage(source, sourceX, sourceY, sourceWidth, sourceHeight, destinationX, y, sampleWidth, bandHeight);
+        context.globalCompositeOperation = "screen";
+        context.fillStyle = tint;
+        context.fillRect(destinationX, y, sampleWidth, bandHeight);
+        context.restore();
+      };
+
+      const drawGlitch = (now, intensity) => {
+        const tick = Math.floor(now / 32);
+        const colors = [
+          "rgba(255, 10, 62, 0.64)",
+          "rgba(0, 221, 255, 0.62)",
+          "rgba(255, 28, 211, 0.56)",
+          "rgba(70, 255, 139, 0.48)",
+          "rgba(246, 235, 54, 0.46)"
+        ];
+        for (let index = 0; index < 7; index += 1) {
+          const y = seeded(tick * 17 + index * 31) * height;
+          const bandHeight = 1 + seeded(tick * 23 + index * 11) * 7;
+          const direction = seeded(tick * 29 + index * 7) > 0.5 ? 1 : -1;
+          const displacement = direction * (16 + seeded(tick * 41 + index) * 68) * intensity;
+          drawSourceBand(y, bandHeight, displacement, colors[index % colors.length], 0.48 + intensity * 0.36);
+        }
+      };
+
+      const render = (now) => {
+        frame = 0;
+        if (!active || destroyed) return;
+        resize();
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
+        context.clearRect(0, 0, width, height);
+
+        const formationElapsed = formationStartedAt ? now - formationStartedAt : 900;
+        const formation = smoothstep(clampUnit(formationElapsed / 820));
+        const executing = executeStartedAt ? smoothstep(clampUnit((now - executeStartedAt) / 320)) : 0;
+        const baseOpening = (7.5 + hovered * 5.5) * formation;
+        const opening = baseOpening + executing * Math.max(width * 0.48, 42);
+        const glitching = now < glitchUntil;
+
+        drawWorksSliver(opening);
+        drawEdge(opening, -1, "#d6d8d3", 0.42, 0.9);
+        drawEdge(opening, 1, "#aeb3b2", 0.54, 1.05);
+        drawEdge(opening + 2.2, -1, "#242a2d", 0.28, 0.7);
+        drawEdge(opening + 2.2, 1, "#242a2d", 0.34, 0.7);
+
+        if (glitching) {
+          const remaining = clampUnit((glitchUntil - now) / 150);
+          drawGlitch(now, Math.max(0.42, remaining));
+          drawEdge(opening + 3, -1, "#ff164f", 0.58, 1.4);
+          drawEdge(opening + 4, 1, "#00e1ff", 0.62, 1.4);
+        }
+
+        if (motionAllowed() && ready && now >= nextGlitchAt && !hovered && !executeStartedAt) {
+          glitchUntil = now + 80 + Math.random() * 80;
+          nextGlitchAt = now + 2400 + Math.random() * 3400;
+        }
+
+        if (motionAllowed() && (formation < 1 || glitching || ready || executeStartedAt)) {
+          frame = window.requestAnimationFrame(render);
+        }
+      };
+
+      const schedule = () => {
+        if (!frame && active && !destroyed) frame = window.requestAnimationFrame(render);
+      };
+
+      const startFormation = () => {
+        active = true;
+        ready = !motionAllowed();
+        executeStartedAt = 0;
+        formationStartedAt = performance.now() - (motionAllowed() ? 0 : 820);
+        glitchUntil = formationStartedAt + 520;
+        nextGlitchAt = formationStartedAt + 2800 + Math.random() * 2200;
+        fallback?.classList.remove("is-visible");
+        canvas.classList.add("is-ready");
+        schedule();
+      };
+
+      const settle = () => {
+        active = true;
+        ready = true;
+        nextGlitchAt = performance.now() + 2200 + Math.random() * 3200;
+        schedule();
+      };
+
+      const reset = () => {
+        active = false;
+        ready = false;
+        hovered = false;
+        formationStartedAt = 0;
+        executeStartedAt = 0;
+        glitchUntil = 0;
+        nextGlitchAt = Number.POSITIVE_INFINITY;
+        window.cancelAnimationFrame(frame);
+        frame = 0;
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.clearRect(0, 0, canvas.width, canvas.height);
+      };
+
+      const execute = () => {
+        executeStartedAt = performance.now();
+        glitchUntil = executeStartedAt + 260;
+        schedule();
+      };
+
+      const handleEnter = () => {
+        hovered = true;
+        glitchUntil = performance.now() + 110;
+        schedule();
+      };
+      const handleLeave = () => {
+        hovered = false;
+        schedule();
+      };
+      const handleFocus = () => handleEnter();
+      const handleBlur = () => handleLeave();
+
+      riftRoot.addEventListener("pointerenter", handleEnter);
+      riftRoot.addEventListener("pointerleave", handleLeave);
+      riftRoot.addEventListener("focus", handleFocus);
+      riftRoot.addEventListener("blur", handleBlur);
+      source.addEventListener("load", schedule, { once: true });
+      source.addEventListener("error", () => fallback?.classList.add("is-visible"), { once: true });
+
+      return {
+        startFormation,
+        settle,
+        reset,
+        resize: schedule,
+        execute,
+        destroy() {
+          destroyed = true;
+          reset();
+          riftRoot.removeEventListener("pointerenter", handleEnter);
+          riftRoot.removeEventListener("pointerleave", handleLeave);
+          riftRoot.removeEventListener("focus", handleFocus);
+          riftRoot.removeEventListener("blur", handleBlur);
+        }
+      };
+    };
+
+    const riftRenderer = createRiftRenderer(riftCanvas, rift, stage);
 
     const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
     const pullDistance = 260;
@@ -1017,39 +1328,21 @@ import { site } from "@/lib/site";
     const resetDelay = 260;
     const releaseDelay = 120;
     const terminalLines = [
+      "echo \"把模糊想法快速构建成可运行原型\"",
       "vibe --build",
       "collect \"blue moments\" && write",
-      "npm run scrapbook",
-      "echo \"做自己想做，想自己所想\""
+      "npm run scrapbook"
     ];
     const nameLines = ["寻辰沐雨", "Rain_dust"];
 
-    const heroVideo = stage?.querySelector("[data-home-hero-video]");
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const syncHeroVideo = () => {
-      if (!(heroVideo instanceof HTMLVideoElement) || !stage) return;
-      const litePerformance = document.documentElement.dataset.yuimiPerformance === "lite";
-      if (reducedMotion.matches || litePerformance) {
-        heroVideo.pause();
-        stage.dataset.mediaState = "fallback";
-        return;
-      }
-      stage.dataset.mediaState = "ready";
-      heroVideo.play().catch(() => {
-        stage.dataset.mediaState = "fallback";
-      });
-    };
-    const handleHeroVideoError = () => {
-      if (stage) stage.dataset.mediaState = "fallback";
-    };
-    reducedMotion.addEventListener("change", syncHeroVideo);
-    heroVideo?.addEventListener("error", handleHeroVideoError);
-    syncHeroVideo();
-
     let pull = 0;
+    let storyPull = 0;
     let state = "idle";
     let resetTimer = 0;
     let releaseTimer = 0;
+    let riftTimer = 0;
+    let riftNavigationTimer = 0;
+    let riftNavigationArmed = false;
     const typingTimers = new Set();
 
     const setTypingTimer = (callback, delay) => {
@@ -1116,14 +1409,101 @@ import { site } from "@/lib/site";
       hero.style.setProperty("--cue-opacity", `${1 - clamp(value / 0.48)}`);
     };
 
+    const setStoryProgress = (progress) => {
+      if (!hero || !story) return;
+
+      const value = clamp(progress);
+      const extensionProgress = value;
+      const identityOpacity = value;
+      const concealed = 1 - extensionProgress;
+
+      hero.style.setProperty("--story-progress", `${value}`);
+      hero.style.setProperty("--story-shift", "0px");
+      hero.style.setProperty("--story-extension-progress", `${extensionProgress}`);
+      hero.style.setProperty("--story-extension-clip", `${concealed * 100}%`);
+      hero.style.setProperty("--story-extension-y", `${concealed * -22}px`);
+      hero.style.setProperty("--story-extension-scale", `${0.78 + extensionProgress * 0.22}`);
+      hero.style.setProperty("--story-extension-bend", "0deg");
+      hero.style.setProperty("--story-identity-opacity", `${identityOpacity}`);
+      hero.classList.toggle("is-story-active", value > 0.01);
+      hero.classList.toggle("is-story-identity", identityOpacity > 0.08);
+      story.setAttribute("aria-hidden", value > 0.01 ? "false" : "true");
+    };
+
+    const clearRiftState = () => {
+      window.clearTimeout(riftTimer);
+      riftTimer = 0;
+      riftRenderer?.reset();
+      hero?.classList.remove("is-rift-forming", "is-rift-ready", "is-rift-executing");
+      hero?.style.removeProperty("--rift-terminal-x");
+      hero?.style.removeProperty("--rift-terminal-y");
+      hero?.style.removeProperty("--rift-terminal-origin-y");
+      hero?.style.removeProperty("--rift-avatar-x");
+      hero?.style.removeProperty("--rift-avatar-y");
+      rift?.setAttribute("aria-hidden", "true");
+      rift?.setAttribute("tabindex", "-1");
+    };
+
+    const completeRift = () => {
+      if (!hero || state !== "rift" || !hero.classList.contains("is-rift-forming")) return;
+      hero.classList.remove("is-rift-forming");
+      hero.classList.add("is-rift-ready");
+      riftRenderer?.settle();
+      window.clearTimeout(riftTimer);
+      riftTimer = 0;
+    };
+
+    const handleRiftAnimationEnd = (event) => {
+      if (event.target === rift && event.animationName === "identity-rift-data-form") completeRift();
+    };
+    rift?.addEventListener("animationend", handleRiftAnimationEnd);
+    heroCleanupTasks.push(() => rift?.removeEventListener("animationend", handleRiftAnimationEnd));
+
+    const formRift = () => {
+      if (!hero || !rift || state !== "story") return;
+      const heroRect = hero.getBoundingClientRect();
+      const profileRect = profile?.getBoundingClientRect();
+      const targetX = heroRect.left + heroRect.width * 0.5;
+      const targetY = heroRect.top + heroRect.height * 0.56;
+      if (terminal && profileRect) {
+        const socialLinks = terminal.querySelector(".social-links");
+        const mainHeight = socialLinks
+          ? socialLinks.offsetTop + socialLinks.offsetHeight
+          : Math.min(terminal.offsetHeight, 294);
+        const originY = mainHeight / 2;
+        const centerX = profileRect.left + terminal.offsetLeft + terminal.offsetWidth / 2;
+        const centerY = profileRect.top + terminal.offsetTop + originY;
+        hero.style.setProperty("--rift-terminal-x", `${targetX - centerX}px`);
+        hero.style.setProperty("--rift-terminal-y", `${targetY - centerY}px`);
+        hero.style.setProperty("--rift-terminal-origin-y", `${originY}px`);
+      }
+      if (avatar && profileRect) {
+        const centerX = profileRect.left + avatar.offsetLeft + avatar.offsetWidth / 2;
+        const centerY = profileRect.top + avatar.offsetTop + avatar.offsetHeight / 2;
+        hero.style.setProperty("--rift-avatar-x", `${targetX - centerX}px`);
+        hero.style.setProperty("--rift-avatar-y", `${targetY - centerY}px`);
+      }
+      state = "rift";
+      hero.classList.remove("is-rift-ready", "is-rift-executing");
+      hero.classList.add("is-rift-forming");
+      riftRenderer?.startFormation();
+      rift.setAttribute("aria-hidden", "false");
+      rift.setAttribute("tabindex", "0");
+      window.clearTimeout(riftTimer);
+      riftTimer = window.setTimeout(completeRift, 900);
+    };
+
     const resetPull = () => {
       if (state === "passed") return;
       window.clearTimeout(resetTimer);
       window.clearTimeout(releaseTimer);
       pull = 0;
+      storyPull = 0;
       state = "idle";
-      hero?.classList.remove("is-docked", "is-pulling");
+      clearRiftState();
+      hero?.classList.remove("is-docked", "is-pulling", "is-story-active", "is-story-identity");
       setProgress(0);
+      setStoryProgress(0);
     };
 
     const settlePull = () => {
@@ -1150,7 +1530,7 @@ import { site } from "@/lib/site";
 
       window.clearTimeout(releaseTimer);
       releaseTimer = window.setTimeout(() => {
-        state = "passed";
+        state = "docked";
       }, releaseDelay);
     };
 
@@ -1160,7 +1540,6 @@ import { site } from "@/lib/site";
 
       const atHeroTop = window.scrollY <= 2 && stage.getBoundingClientRect().top >= -2;
       if (!atHeroTop) {
-        state = "passed";
         return;
       }
 
@@ -1168,11 +1547,27 @@ import { site } from "@/lib/site";
         event.preventDefault();
         window.clearTimeout(releaseTimer);
 
-        if (state === "passed" || state === "docked") {
+        if (state === "rift") {
+          clearRiftState();
+          state = "story";
+          storyPull = 1;
+          setStoryProgress(1);
+          return;
+        }
+
+        if (storyPull > 0) {
+          storyPull = 0;
+          state = "docked";
+          setStoryProgress(0);
+          return;
+        }
+
+        if (state === "docked" || state === "story") {
           pull = 0;
           state = "idle";
           hero.classList.remove("is-docked", "is-pulling");
           setProgress(0);
+          setStoryProgress(0);
           return;
         }
 
@@ -1189,8 +1584,19 @@ import { site } from "@/lib/site";
         return;
       }
 
-      if (state === "passed") return;
       if (state === "docked") {
+        event.preventDefault();
+        storyPull = 1;
+        state = "story";
+        setStoryProgress(1);
+        return;
+      }
+      if (state === "story") {
+        event.preventDefault();
+        formRift();
+        return;
+      }
+      if (state === "rift") {
         event.preventDefault();
         return;
       }
@@ -1214,13 +1620,6 @@ import { site } from "@/lib/site";
 
       const nativeProgress = clamp(-stage.getBoundingClientRect().top / (window.innerHeight || 1));
       hero.style.setProperty("--hero-dim", `${0.12 + clamp((nativeProgress - 1.05) / 0.25) * 0.12}`);
-
-      if (window.scrollY <= 2 && state === "passed") {
-        pull = pullDistance;
-        hero.classList.remove("is-pulling");
-        hero.classList.add("is-docked");
-        setProgress(1);
-      }
     };
 
     runTypingLoop(typingTarget, terminalLines);
@@ -1267,63 +1666,62 @@ import { site } from "@/lib/site";
       window.setTimeout(() => pokeAvatar.classList.remove("is-poked"), 720);
     };
 
+    const handleRiftClick = (event) => {
+      if (!rift || !hero || state !== "rift") {
+        event.preventDefault();
+        return;
+      }
+      if (riftNavigationArmed) return;
+
+      event.preventDefault();
+      riftNavigationArmed = true;
+      riftRenderer?.execute();
+      hero.classList.remove("is-rift-forming");
+      hero.classList.add("is-rift-ready", "is-rift-executing");
+      window.clearTimeout(riftNavigationTimer);
+      riftNavigationTimer = window.setTimeout(() => {
+        riftNavigationTimer = 0;
+        rift.click();
+      }, 340);
+    };
+
     pokeAvatar?.addEventListener("pointermove", handlePokeMove);
     pokeAvatar?.addEventListener("pointerleave", handlePokeLeave);
     pokeAvatar?.addEventListener("dblclick", handlePokeDoubleClick);
+    rift?.addEventListener("click", handleRiftClick);
     heroCleanupTasks.push(() => {
       pokeAvatar?.removeEventListener("pointermove", handlePokeMove);
       pokeAvatar?.removeEventListener("pointerleave", handlePokeLeave);
       pokeAvatar?.removeEventListener("dblclick", handlePokeDoubleClick);
+      rift?.removeEventListener("click", handleRiftClick);
     });
 
     setProgress(0);
+    setStoryProgress(0);
     handleHeroScroll();
     window.addEventListener("wheel", handleHeroWheel, { passive: false });
     window.addEventListener("scroll", handleHeroScroll, { passive: true });
-    window.addEventListener("resize", handleHeroScroll);
+    const handleHeroResize = () => {
+      handleHeroScroll();
+      riftRenderer?.resize();
+    };
+    window.addEventListener("resize", handleHeroResize);
     window.addEventListener("pageshow", handleHeroScroll);
     heroCleanupTasks.push(() => {
       window.clearTimeout(resetTimer);
       window.clearTimeout(releaseTimer);
+      window.clearTimeout(riftTimer);
+      window.clearTimeout(riftNavigationTimer);
       window.clearTimeout(bubbleTimer);
       typingTimers.forEach((timer) => window.clearTimeout(timer));
       typingTimers.clear();
       window.removeEventListener("wheel", handleHeroWheel);
       window.removeEventListener("scroll", handleHeroScroll);
-      window.removeEventListener("resize", handleHeroScroll);
+      window.removeEventListener("resize", handleHeroResize);
       window.removeEventListener("pageshow", handleHeroScroll);
-      reducedMotion.removeEventListener("change", syncHeroVideo);
-      heroVideo?.removeEventListener("error", handleHeroVideoError);
-      heroVideo?.pause();
+      riftRenderer?.destroy();
     });
     })();
   </script>
 
-  <style>
-    :global(.hero-stage .hero) {
-      background: transparent;
-    }
-
-    .hero-background-video {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center;
-      pointer-events: none;
-    }
-
-    :global(.hero-stage[data-media-state="fallback"]) .hero-background-video,
-    :global(html[data-yuimi-performance="lite"]) .hero-background-video {
-      opacity: 0;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .hero-background-video {
-        opacity: 0;
-      }
-    }
-  </style>
 </BaseLayout>

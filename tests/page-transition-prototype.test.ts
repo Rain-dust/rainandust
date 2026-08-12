@@ -39,15 +39,15 @@ test("T1 keeps one persistent two-layer stage and leaves pointer input to the pa
   assert.match(adapter, /clonePreset\("TRANSITION"\)/);
 });
 
-test("directional ink covers every ordered pair across the four main pages", () => {
+test("directional ink covers every ordered pair across the three public pages", () => {
   const routes = read(
     "src/themes/fuyukawa-kagari/lib/page-transition/routes.ts",
   );
 
   assert.match(routes, /"\/": \{ id: "home", tone: "paper" \}/);
   assert.match(routes, /"\/projects\/": \{ id: "projects", tone: "architecture" \}/);
-  assert.match(routes, /"\/blog\/": \{ id: "blog", tone: "editorial" \}/);
   assert.match(routes, /"\/about\/": \{ id: "about", tone: "profile" \}/);
+  assert.doesNotMatch(routes, /"\/blog\/"/);
   assert.match(routes, /direction: `\$\{fromPage\.id\}-to-\$\{toPage\.id\}`/);
 });
 
@@ -63,6 +63,23 @@ test("T1 coordinates preparation and reveal without replacing Astro's swap", () 
   assert.match(controller, /astro:page-load/);
   assert.match(controller, /Promise\.all\(\[originalLoader\(\), coverPromise\]\)/);
   assert.doesNotMatch(controller, /\.swap\s*=/);
+});
+
+test("shared navigation and progress rail resync their page material after Astro swaps", () => {
+  const layout = read("src/themes/fuyukawa-kagari/layouts/BaseLayout.astro");
+  const styles = read("src/themes/fuyukawa-kagari/styles/theme.css");
+
+  assert.match(layout, /const resolvePageTone = \(pathname: string\)/);
+  assert.match(layout, /document\.documentElement\.dataset\.pageTone = tone/);
+  assert.match(layout, /document\.addEventListener\("astro:after-swap", syncPageShell/);
+  assert.match(layout, /document\.addEventListener\("astro:page-load", syncPageShell/);
+  assert.match(layout, /ensurePageShellCriticalStyle\(\)/);
+  assert.match(layout, /rain-dust-page-shell-critical/);
+  assert.match(layout, /grid-template-columns: repeat\(3, minmax\(0, 1fr\)\) !important/);
+  assert.match(layout, /link\.setAttribute\("aria-current", "page"\)/);
+  assert.match(styles, /html\[data-page-tone="architecture"\] \.nav-links/);
+  assert.match(styles, /html\[data-page-tone="editorial"\] \.pig-scrollbar-track/);
+  assert.match(styles, /html\[data-page-tone="profile"\] \.nav-links/);
 });
 
 test("T1 always returns to Idle after reveal and bounds the Astro snapshot wait", () => {

@@ -5,9 +5,6 @@ export function kagariAsset(path: string) {
 }
 
 export const kagariAssets = {
-  favicon: kagariAsset("pig-favicon.png"),
-  appleTouchIcon: kagariAsset("pig-apple-touch.png"),
-  brand: kagariAsset("pig-brand.webp"),
   scrollPig: kagariAsset("scroll-chibi.png"),
   profile: "/rain-dust/me/rain-dust-avatar-20260729.jpg",
   homeVideo: "/rain-dust/home/shadow-home-loop.mp4",

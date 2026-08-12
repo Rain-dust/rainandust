@@ -40,9 +40,13 @@ const coverFocus: Record<string, string> = {
 <BaseLayout title="Blog | Rain_dust" description="Rain_dust 的文章与笔记。">
   <div class="blog-archive-page">
     <section class="page-title blog-hero-card">
-      <p class="section-kicker">Archive</p>
-      <h1>Blog</h1>
-      <p>这里暂时没有文章。有想写的再写。</p>
+      <div class="blog-hero-heading">
+        <p class="section-kicker">Reading Archive</p>
+        <h1>Blog</h1>
+      </div>
+      <div class="blog-hero-note">
+        <span>{posts.length.toString().padStart(2, "0")} NOTES</span>
+      </div>
     </section>
 
     <section class="blog-search-card" data-pagefind-ignore>
@@ -69,9 +73,18 @@ const coverFocus: Record<string, string> = {
     {
       !hasPosts && (
         <section class="blog-empty-state" aria-label="Blog empty state">
-          <p>NO NOTES YET</p>
-          <h2>这里暂时没有文章。</h2>
-          <span>有想写的再写。</span>
+          <div class="blog-empty-copy">
+            <p>NO NOTES YET</p>
+            <h2>这里暂时没有文章。</h2>
+            <span>有想写的再写。</span>
+          </div>
+          <figure class="blog-empty-plate" aria-hidden="true">
+            <img src={kagariAssets.heroWallpaper} alt="" loading="eager" />
+            <figcaption>
+              <span>IMAGE / TEXT</span>
+              <span>RAIN_DUST ARCHIVE</span>
+            </figcaption>
+          </figure>
         </section>
       )
     }
@@ -224,16 +237,18 @@ const coverFocus: Record<string, string> = {
   </script>
   <style>
     .blog-archive-page {
-      --blog-paper: #c7c9c8;
-      --blog-paper-deep: #b9bcbb;
-      --blog-ink: #242827;
-      --blog-muted: #626866;
+      --blog-paper: #c9ccca;
+      --blog-paper-deep: #b9bdbb;
+      --blog-ink: #222625;
+      --blog-muted: #58605d;
       --blog-line: rgba(36, 40, 39, 0.22);
       --blog-signal: #763b3f;
       min-height: 100svh;
       padding: clamp(112px, 13vw, 168px) 0 clamp(76px, 10vw, 120px);
       color: var(--blog-ink);
-      background: var(--blog-paper);
+      background:
+        linear-gradient(90deg, transparent 0 9.5%, rgba(36, 40, 39, 0.05) 9.5% calc(9.5% + 1px), transparent calc(9.5% + 1px)),
+        var(--blog-paper);
     }
 
     .blog-archive-page :global(.section-kicker) {
@@ -261,12 +276,11 @@ const coverFocus: Record<string, string> = {
       -webkit-backdrop-filter: none;
     }
 
-    .blog-hero-card .section-kicker,
-    .blog-hero-card h1 {
-      grid-column: 1;
+    .blog-hero-heading {
+      min-width: 0;
     }
 
-    .blog-hero-card h1 {
+    .blog-hero-heading h1 {
       margin: 0;
       color: var(--blog-ink);
       font-family: Georgia, "Times New Roman", "Noto Serif SC", serif;
@@ -276,10 +290,26 @@ const coverFocus: Record<string, string> = {
       letter-spacing: -0.055em;
     }
 
-    .blog-hero-card > p:last-child {
-      grid-column: 2;
-      grid-row: 1 / span 2;
-      margin: 0 0 4px;
+    .blog-hero-note {
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 28px;
+      padding-left: 24px;
+      border-left: 1px solid var(--blog-line);
+    }
+
+    .blog-hero-note > span {
+      color: var(--blog-signal);
+      font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+    }
+
+    .blog-hero-note p {
+      margin: 0;
       color: var(--blog-muted);
       font-size: 0.98rem;
       line-height: 1.8;
@@ -355,13 +385,13 @@ const coverFocus: Record<string, string> = {
 
     .blog-empty-state {
       display: grid;
-      grid-template-columns: minmax(160px, 0.34fr) minmax(0, 0.66fr);
-      gap: 10px 48px;
-      align-content: center;
+      grid-template-columns: minmax(260px, 0.42fr) minmax(360px, 0.58fr);
+      gap: clamp(38px, 6vw, 76px);
+      align-items: center;
       width: min(1120px, calc(100% - 48px));
-      min-height: 340px;
+      min-height: 460px;
       margin: 0 auto;
-      padding: 54px 0;
+      padding: 58px 0 66px;
       text-align: left;
       background: transparent;
       border: 0;
@@ -370,15 +400,19 @@ const coverFocus: Record<string, string> = {
       box-shadow: none;
     }
 
-    .blog-empty-state p,
-    .blog-empty-state h2,
-    .blog-empty-state span {
+    .blog-empty-copy {
+      display: grid;
+      gap: 14px;
+    }
+
+    .blog-empty-copy p,
+    .blog-empty-copy h2,
+    .blog-empty-copy span {
       display: block;
       margin: 0;
     }
 
-    .blog-empty-state p {
-      grid-row: 1 / span 2;
+    .blog-empty-copy p {
       color: var(--blog-signal);
       font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
       font-size: 0.72rem;
@@ -386,7 +420,7 @@ const coverFocus: Record<string, string> = {
       letter-spacing: 0.16em;
     }
 
-    .blog-empty-state h2 {
+    .blog-empty-copy h2 {
       color: var(--blog-ink);
       font-family: "Noto Serif SC", "Songti SC", SimSun, serif;
       font-size: clamp(2rem, 4.4vw, 4rem);
@@ -394,8 +428,48 @@ const coverFocus: Record<string, string> = {
       line-height: 1.18;
     }
 
-    .blog-empty-state span {
+    .blog-empty-copy > span {
       color: var(--blog-muted);
+    }
+
+    .blog-empty-plate {
+      position: relative;
+      min-width: 0;
+      margin: 0;
+      padding: 10px 10px 0;
+      background: rgba(231, 233, 230, 0.3);
+      border: 1px solid var(--blog-line);
+      box-shadow: 18px 20px 0 rgba(57, 64, 61, 0.08);
+      transform: rotate(1.2deg);
+    }
+
+    .blog-empty-plate::before {
+      content: "";
+      position: absolute;
+      inset: 20px -15px -15px 20px;
+      z-index: -1;
+      border: 1px solid rgba(36, 40, 39, 0.16);
+    }
+
+    .blog-empty-plate img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      object-position: 50% 27%;
+      filter: grayscale(1) contrast(0.92) brightness(0.84);
+      opacity: 0.78;
+    }
+
+    .blog-empty-plate figcaption {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 2px 11px;
+      color: var(--blog-muted);
+      font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
     }
 
     .blog-archive-page :global(.blog-timeline) {
@@ -444,10 +518,10 @@ const coverFocus: Record<string, string> = {
     }
 
     :global(body:has(.blog-archive-page)) {
-      --blog-paper: #c7c9c8;
-      --blog-paper-deep: #b9bcbb;
-      --blog-ink: #242827;
-      --blog-muted: #626866;
+      --blog-paper: #c9ccca;
+      --blog-paper-deep: #b9bdbb;
+      --blog-ink: #222625;
+      --blog-muted: #58605d;
       --blog-line: rgba(36, 40, 39, 0.22);
       --blog-signal: #763b3f;
       color: var(--blog-ink);
@@ -482,16 +556,15 @@ const coverFocus: Record<string, string> = {
         width: min(100% - 32px, 1120px);
       }
 
-      .blog-hero-card > p:last-child,
-      .blog-hero-card .section-kicker,
-      .blog-hero-card h1,
-      .blog-empty-state p {
-        grid-column: 1;
-        grid-row: auto;
-      }
-
       .blog-hero-card {
         padding-bottom: 32px;
+      }
+
+      .blog-hero-note {
+        gap: 14px;
+        padding: 18px 0 0;
+        border-top: 1px solid var(--blog-line);
+        border-left: 0;
       }
 
       .blog-search-card {
@@ -500,7 +573,11 @@ const coverFocus: Record<string, string> = {
 
       .blog-empty-state {
         min-height: 300px;
-        gap: 14px;
+        gap: 34px;
+      }
+
+      .blog-empty-plate {
+        width: calc(100% - 12px);
       }
     }
 

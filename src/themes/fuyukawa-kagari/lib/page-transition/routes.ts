@@ -1,4 +1,4 @@
-export type PrototypePageId = "home" | "projects" | "blog" | "about";
+export type PrototypePageId = "home" | "projects" | "about";
 export type PrototypePageTone = "paper" | "architecture" | "editorial" | "profile";
 export type PrototypeDirection = `${PrototypePageId}-to-${PrototypePageId}`;
 
@@ -18,7 +18,6 @@ export interface PrototypeRouteMatch {
 const MAIN_PAGES: Record<string, PrototypePage> = {
   "/": { id: "home", tone: "paper" },
   "/projects/": { id: "projects", tone: "architecture" },
-  "/blog/": { id: "blog", tone: "editorial" },
   "/about/": { id: "about", tone: "profile" }
 };
 

@@ -4,12 +4,24 @@ import test from "node:test";
 
 const read = (file: string) => readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
 
-test("HOME video keeps the upstream autoplay lifecycle attributes", () => {
+test("HOME keeps the current static hero and accessible motion fallback", () => {
   const home = read("src/themes/fuyukawa-kagari/pages/HomePage.astro");
-  for (const attribute of ["autoplay", "muted", "loop", "playsinline", "data-home-hero-video"]) {
-    assert.match(home, new RegExp(`\\b${attribute}\\b`));
-  }
+  assert.match(home, /class="hero-stage"/);
+  assert.match(home, /class="hero-overlay"/);
+  assert.match(home, /data-hero-profile/);
   assert.match(home, /prefers-reduced-motion:\s*reduce/);
+  assert.doesNotMatch(home, /<video\b|data-home-hero-video/);
+});
+
+test("the retired pink pig is no longer rendered anywhere in the public shell or HOME", () => {
+  const home = read("src/themes/fuyukawa-kagari/pages/HomePage.astro");
+  const layout = read("src/themes/fuyukawa-kagari/layouts/BaseLayout.astro");
+  const assets = read("src/themes/fuyukawa-kagari/assets.ts");
+
+  for (const source of [home, layout, assets]) {
+    assert.doesNotMatch(source, /mini-pig-scroll|pig-brand|pig-favicon|pig-apple-touch/);
+  }
+  assert.doesNotMatch(home, /makePig|drawPig|type:\s*"pig"/);
 });
 
 test("all six factual project repository URLs are present", () => {

@@ -77,7 +77,7 @@ test("BLOG uses an editorial gray surface and shared route transitions respect r
   const css = read("src/themes/fuyukawa-kagari/styles/theme.css");
 
   assert.match(blog, /class="blog-archive-page"/);
-  assert.match(blog, /--blog-paper: #c7c9c8/);
+  assert.match(blog, /--blog-paper: #c9ccca/);
   assert.match(blog, /body:has\(\.blog-archive-page\) \.site-footer/);
   assert.match(layout, /data-page-tone=\{pageTone\}/);
   assert.match(css, /::view-transition-old\(root\)/);
