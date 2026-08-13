@@ -15,6 +15,9 @@ test("WORKS enables the cellar on normal desktop visits in a production build", 
   assert.doesNotMatch(projects, /await import\("\.\.\/scripts\/project-vault-3d"\)/);
   assert.doesNotMatch(projects, /const motion = fine && \(!reduced \|\| forced\)/);
   assert.match(projects, /data-vault-booting="true"/);
+  assert.match(projects, /data-vault-motion="reduced-depth"/);
+  assert.match(projects, /:is\(\[data-vault-booting="true"\],\[data-vault-motion="depth"\]/);
+  assert.match(projects, /\[data-vault-motion="reduced-depth"\]\) \.vault-viewport \{ position: sticky; height: 100dvh/);
 });
 
 test("HOME uses the same explicit motion preview contract in development and production", () => {
@@ -32,5 +35,6 @@ test("WORKS does not run its hidden fallback animation beside WebGL", () => {
   assert.match(projects, /if \(fallbackMotion\) addEventListener\("scroll"/);
   assert.match(engine, /renderer\.shadowMap\.autoUpdate = false/);
   assert.match(engine, /pixelRatioCap/);
+  assert.match(engine, /Math\.min\(canvas\.clientHeight, window\.innerHeight\)/);
   assert.match(engine, /visibilitychange/);
 });

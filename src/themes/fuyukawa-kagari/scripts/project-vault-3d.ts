@@ -1255,8 +1255,8 @@ export const mountProjectVault3D = (
   };
 
   const resize = () => {
-    const width = Math.max(1, canvas.clientWidth);
-    const height = Math.max(1, canvas.clientHeight);
+    const width = Math.max(1, Math.min(canvas.clientWidth, window.innerWidth));
+    const height = Math.max(1, Math.min(canvas.clientHeight, window.innerHeight));
     renderer.setPixelRatio(Math.min(devicePixelRatio, pixelRatioCap));
     renderer.setSize(width, height, false);
     glitchTarget.setSize(

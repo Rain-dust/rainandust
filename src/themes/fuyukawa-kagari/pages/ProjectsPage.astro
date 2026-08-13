@@ -727,15 +727,15 @@ const cellarSteps = Array.from({ length: 34 }, (_, index) => index);
     }
 
     @media (hover: hover) and (pointer: fine) {
-      .vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"]) { height: 840dvh; }
-      .vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"]) .vault-viewport { position: sticky; height: 100dvh; min-height: 0; padding: 0; perspective: 760px; }
-      .vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"]) .vault-world { opacity: 1; }
-      .vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"]) .vault-foreground { display: block; }
-      .vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"]) .vault-heading { position: absolute; top: clamp(104px,14vh,152px); left: clamp(28px,5vw,84px); width: min(38rem,48vw); margin: 0; opacity: clamp(0,calc(1 - var(--vault-progress) * 4),1); transform: translate3d(0,calc(var(--vault-progress) * -48px),0); }
-      .vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"]) .vault-scenes { position: absolute; inset: 0; display: block; }
-      .vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"]) .vault-bay { position: absolute; top: 8%; left: 50%; width: min(38vw,590px); height: min(80vh,730px); margin: 0; }
-      .vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"]) .vault-instruction,.vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"]) .vault-depth-meter { display: block; }
-      .vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"]) .vault-instruction span { animation: vault-nudge 1.8s cubic-bezier(.16,1,.3,1) infinite; }
+      .vault:is([data-vault-booting="true"],[data-vault-motion="depth"],[data-vault-motion="forced-depth"],[data-vault-motion="reduced-depth"]) { height: 840dvh; }
+      .vault:is([data-vault-booting="true"],[data-vault-motion="depth"],[data-vault-motion="forced-depth"],[data-vault-motion="reduced-depth"]) .vault-viewport { position: sticky; height: 100dvh; min-height: 0; padding: 0; perspective: 760px; }
+      .vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"],[data-vault-motion="reduced-depth"]) .vault-world { opacity: 1; }
+      .vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"],[data-vault-motion="reduced-depth"]) .vault-foreground { display: block; }
+      .vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"],[data-vault-motion="reduced-depth"]) .vault-heading { position: absolute; top: clamp(104px,14vh,152px); left: clamp(28px,5vw,84px); width: min(38rem,48vw); margin: 0; opacity: clamp(0,calc(1 - var(--vault-progress) * 4),1); transform: translate3d(0,calc(var(--vault-progress) * -48px),0); }
+      .vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"],[data-vault-motion="reduced-depth"]) .vault-scenes { position: absolute; inset: 0; display: block; }
+      .vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"],[data-vault-motion="reduced-depth"]) .vault-bay { position: absolute; top: 8%; left: 50%; width: min(38vw,590px); height: min(80vh,730px); margin: 0; }
+      .vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"],[data-vault-motion="reduced-depth"]) .vault-instruction,.vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"],[data-vault-motion="reduced-depth"]) .vault-depth-meter { display: block; }
+      .vault:is([data-vault-motion="depth"],[data-vault-motion="forced-depth"],[data-vault-motion="reduced-depth"]) .vault-instruction span { animation: vault-nudge 1.8s cubic-bezier(.16,1,.3,1) infinite; }
     }
   </style>
 </BaseLayout>
