@@ -178,6 +178,8 @@ const cellarSteps = Array.from({ length: 34 }, (_, index) => index);
   </section>
 
   <script>
+    import { mountProjectVault3D } from "../scripts/project-vault-3d";
+
     type ProjectVault3D = { destroy: () => void };
 
     type VaultWindow = Window & {
@@ -233,8 +235,6 @@ const cellarSteps = Array.from({ length: 34 }, (_, index) => index);
       if (immersive && webglCanvas) {
         root.dataset.vaultBooting = "true";
         try {
-          await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-          const { mountProjectVault3D } = await import("../scripts/project-vault-3d");
           if (!signal.aborted && vaultWindow.__rainDustVaultLoadId === loadId) {
             vaultWindow.__rainDustVault3D = mountProjectVault3D(root, webglCanvas) ?? undefined;
           }

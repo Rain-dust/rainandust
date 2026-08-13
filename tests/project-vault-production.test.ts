@@ -11,7 +11,8 @@ test("WORKS enables the cellar on normal desktop visits in a production build", 
   assert.match(projects, /get\("motion"\) === "force" && fine/);
   assert.doesNotMatch(projects, /import\.meta\.env\.DEV && new URLSearchParams/);
   assert.match(projects, /const immersive = fine/);
-  assert.match(projects, /await import\("\.\.\/scripts\/project-vault-3d"\)/);
+  assert.match(projects, /import \{ mountProjectVault3D \} from "\.\.\/scripts\/project-vault-3d"/);
+  assert.doesNotMatch(projects, /await import\("\.\.\/scripts\/project-vault-3d"\)/);
   assert.doesNotMatch(projects, /const motion = fine && \(!reduced \|\| forced\)/);
   assert.match(projects, /data-vault-booting="true"/);
 });
