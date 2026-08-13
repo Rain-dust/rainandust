@@ -770,9 +770,18 @@ export const mountProjectVault3D = (
   root: HTMLElement,
   canvas: HTMLCanvasElement,
 ): ProjectVault3D | null => {
+  const deviceNavigator = navigator as Navigator & { deviceMemory?: number };
+  const lowPowerDevice =
+    (deviceNavigator.deviceMemory ?? 8) <= 4 ||
+    (deviceNavigator.hardwareConcurrency ?? 8) <= 4;
+  const pixelRatioCap = lowPowerDevice ? 1 : 1.25;
   let renderer: THREE.WebGLRenderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: !lowPowerDevice,
+      powerPreference: "high-performance",
+    });
   } catch {
     return null;
   }
@@ -781,8 +790,11 @@ export const mountProjectVault3D = (
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.shadowMap.autoUpdate = false;
+  renderer.shadowMap.needsUpdate = true;
 
   root.dataset.vaultRenderer = "pending";
+  root.dataset.vaultQuality = lowPowerDevice ? "balanced" : "high";
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x17120f);
   scene.fog = new THREE.FogExp2(0x17120f, 0.0145);
@@ -1244,11 +1256,11 @@ export const mountProjectVault3D = (
   const resize = () => {
     const width = Math.max(1, canvas.clientWidth);
     const height = Math.max(1, canvas.clientHeight);
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.55));
+    renderer.setPixelRatio(Math.min(devicePixelRatio, pixelRatioCap));
     renderer.setSize(width, height, false);
     glitchTarget.setSize(
-      Math.max(1, Math.floor(width * Math.min(devicePixelRatio, 1.35))),
-      Math.max(1, Math.floor(height * Math.min(devicePixelRatio, 1.35))),
+      Math.max(1, Math.floor(width * Math.min(devicePixelRatio, 1))),
+      Math.max(1, Math.floor(height * Math.min(devicePixelRatio, 1))),
     );
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
@@ -1378,9 +1390,19 @@ export const mountProjectVault3D = (
   window.addEventListener("keydown", onKeyDown, true);
   document.documentElement.addEventListener("mouseleave", onPointerLeave);
   focusClose?.addEventListener("click", clearFocus);
+  const onVisibilityChange = () => {
+    if (disposed) return;
+    if (document.hidden) {
+      renderer.setAnimationLoop(null);
+      return;
+    }
+    previousTime = performance.now();
+    renderer.setAnimationLoop(render);
+  };
+  document.addEventListener("visibilitychange", onVisibilityChange);
   readScroll();
   resize();
-  renderer.setAnimationLoop(render);
+  onVisibilityChange();
 
   return {
     destroy: () => {
@@ -1392,6 +1414,7 @@ export const mountProjectVault3D = (
       window.removeEventListener("keydown", onKeyDown, true);
       document.documentElement.removeEventListener("mouseleave", onPointerLeave);
       focusClose?.removeEventListener("click", clearFocus);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       presentFocus(null);
       renderer.setAnimationLoop(null);
       scene.traverse((object) => {

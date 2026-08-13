@@ -9,7 +9,7 @@ const cellarSteps = Array.from({ length: 34 }, (_, index) => index);
 ---
 
 <BaseLayout title="Projects | Rain_dust" description="Rain_dust 持续维护的个人项目与技术实验档案。">
-  <section class="vault" data-vault aria-labelledby="vault-title">
+  <section class="vault" data-vault data-vault-booting="true" aria-labelledby="vault-title">
     <script is:inline>
       (() => {
         const root = document.currentScript?.closest("[data-vault]");
@@ -18,6 +18,7 @@ const cellarSteps = Array.from({ length: 34 }, (_, index) => index);
         const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
         const forced = new URLSearchParams(location.search).get("motion") === "force";
         if (fine && (!reduced || forced)) root.dataset.vaultBooting = "true";
+        else delete root.dataset.vaultBooting;
       })();
     </script>
     <div class="vault-viewport">
@@ -209,14 +210,16 @@ const cellarSteps = Array.from({ length: 34 }, (_, index) => index);
       const signal = controller.signal;
       const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-      const forced = import.meta.env.DEV && new URLSearchParams(location.search).get("motion") === "force" && fine;
+      const forced = new URLSearchParams(location.search).get("motion") === "force" && fine;
       const motion = fine && (!reduced || forced);
       const webglCanvas = root.querySelector<HTMLCanvasElement>("[data-vault-webgl]");
       vaultWindow.__rainDustVault3D?.destroy();
       vaultWindow.__rainDustVault3D = motion && webglCanvas
         ? mountProjectVault3D(root, webglCanvas) ?? undefined
         : undefined;
-      if (!vaultWindow.__rainDustVault3D) {
+      const webglActive = Boolean(vaultWindow.__rainDustVault3D);
+      const fallbackMotion = motion && !webglActive;
+      if (!webglActive) {
         delete root.dataset.vaultBooting;
         root.dataset.vaultRenderer = "fallback";
       }
@@ -238,7 +241,7 @@ const cellarSteps = Array.from({ length: 34 }, (_, index) => index);
         const rect = root.getBoundingClientRect();
         targetProgress = clamp(-rect.top / Math.max(1, rect.height - innerHeight));
         lastScrollAt = performance.now();
-        if (!motion) progress = targetProgress;
+        if (!fallbackMotion) progress = targetProgress;
       };
 
       const visualTarget = () => {
@@ -254,7 +257,7 @@ const cellarSteps = Array.from({ length: 34 }, (_, index) => index);
       const renderScene = () => {
         sceneFrame = 0;
         const destination = visualTarget();
-        if (motion) {
+        if (fallbackMotion) {
           const force = (destination - progress) * 0.032;
           velocity = (velocity + force) * 0.82;
           progress += velocity;
@@ -277,7 +280,7 @@ const cellarSteps = Array.from({ length: 34 }, (_, index) => index);
         root.style.setProperty("--observer-y", pointerY.toFixed(4));
         root.dataset.activeReserve = String(activeIndex + 1);
 
-        if (motion) {
+        if (fallbackMotion) {
           world.style.transform = `translate3d(${(-turn * 8 - pointerX * 2).toFixed(2)}px,${(bob * .28 - pointerY * 1.5).toFixed(2)}px,0) rotateZ(${(-turn * .045).toFixed(3)}deg)`;
           foreground.style.transform = `translate3d(${(turn * 4 + sway).toFixed(2)}px,${bob.toFixed(2)}px,0) rotateZ(${(-turn * 0.07).toFixed(3)}deg)`;
 
@@ -328,7 +331,7 @@ const cellarSteps = Array.from({ length: 34 }, (_, index) => index);
         }
 
         const pending = Math.abs(destination - progress) > 0.00012 || Math.abs(velocity) > 0.00004 || Math.abs(targetX - pointerX) > 0.0008 || Math.abs(targetY - pointerY) > 0.0008;
-        if (motion && pending && !document.hidden) sceneFrame = requestAnimationFrame(renderScene);
+        if (fallbackMotion && pending && !document.hidden) sceneFrame = requestAnimationFrame(renderScene);
       };
 
       const scheduleScene = () => {
@@ -359,8 +362,8 @@ const cellarSteps = Array.from({ length: 34 }, (_, index) => index);
       bottles.forEach((bottle) => bottle.addEventListener("click", () => openDrawer(bottle.dataset.projectBottle || "", bottle), { signal }));
       closeButton?.addEventListener("click", () => closeDrawer(), { signal });
       document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeDrawer(); }, { signal });
-      addEventListener("scroll", scheduleScene, { passive: true, signal });
-      if (motion) {
+      if (fallbackMotion) addEventListener("scroll", scheduleScene, { passive: true, signal });
+      if (fallbackMotion) {
         viewport.addEventListener("pointermove", (event) => {
           const rect = viewport.getBoundingClientRect();
           targetX = clamp((event.clientX - rect.left) / rect.width) * 2 - 1;

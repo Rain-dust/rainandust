@@ -5,7 +5,7 @@ import { profileIdentity } from "@/core/data/profile";
 import { portfolioRoleLine } from "@/core/data/portfolio";
 import { site } from "@/lib/site";
 
-const forceMotionPreview = import.meta.env.DEV && Astro.url.searchParams.get("motion") !== "reduce";
+const forceMotionPreview = Astro.url.searchParams.get("motion") === "force";
 ---
 
 <BaseLayout>
