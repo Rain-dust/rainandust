@@ -15,14 +15,17 @@ const cellarSteps = Array.from({ length: 34 }, (_, index) => index);
         const root = document.currentScript?.closest("[data-vault]");
         if (!(root instanceof HTMLElement)) return;
         const fine = matchMedia("(hover: hover) and (pointer: fine)").matches;
-        const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-        const forced = new URLSearchParams(location.search).get("motion") === "force";
-        if (fine && (!reduced || forced)) root.dataset.vaultBooting = "true";
+        if (fine) root.dataset.vaultBooting = "true";
         else delete root.dataset.vaultBooting;
       })();
     </script>
     <div class="vault-viewport">
       <canvas class="vault-webgl" data-vault-webgl aria-hidden="true"></canvas>
+      <div class="vault-boot-screen" data-vault-boot-screen role="status" aria-live="polite">
+        <span>RAIN_DUST PRIVATE CELLAR</span>
+        <i aria-hidden="true"></i>
+        <small>CALIBRATING SPATIAL ARCHIVE</small>
+      </div>
       <div class="vault-webgl-hud" aria-hidden="true">
         <span>RAIN_DUST CELLAR / SPATIAL STUDY 01</span>
         <small>SCROLL · DESCEND · HOLD BOTTLE TO INSPECT</small>
@@ -175,12 +178,13 @@ const cellarSteps = Array.from({ length: 34 }, (_, index) => index);
   </section>
 
   <script>
-    import { mountProjectVault3D, type ProjectVault3D } from "../scripts/project-vault-3d";
+    type ProjectVault3D = { destroy: () => void };
 
     type VaultWindow = Window & {
       __rainDustVaultCleanup?: () => void;
       __rainDustVaultBinding?: AbortController;
       __rainDustVault3D?: ProjectVault3D;
+      __rainDustVaultLoadId?: number;
     };
 
     const vaultWindow = window as VaultWindow;
@@ -191,7 +195,7 @@ const cellarSteps = Array.from({ length: 34 }, (_, index) => index);
     const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
     const smoother = (value: number) => value * value * value * (value * (value * 6 - 15) + 10);
 
-    const initVault = () => {
+    const initVault = async () => {
       vaultWindow.__rainDustVaultCleanup?.();
       const root = document.querySelector<HTMLElement>("[data-vault]");
       if (!root) return;
@@ -211,14 +215,36 @@ const cellarSteps = Array.from({ length: 34 }, (_, index) => index);
       const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
       const forced = new URLSearchParams(location.search).get("motion") === "force" && fine;
-      const motion = fine && (!reduced || forced);
+      const immersive = fine;
       const webglCanvas = root.querySelector<HTMLCanvasElement>("[data-vault-webgl]");
       vaultWindow.__rainDustVault3D?.destroy();
-      vaultWindow.__rainDustVault3D = motion && webglCanvas
-        ? mountProjectVault3D(root, webglCanvas) ?? undefined
-        : undefined;
+      vaultWindow.__rainDustVault3D = undefined;
+      const loadId = (vaultWindow.__rainDustVaultLoadId ?? 0) + 1;
+      vaultWindow.__rainDustVaultLoadId = loadId;
+      let cleanupActive = () => {};
+      const cleanup = () => {
+        controller.abort();
+        if (vaultWindow.__rainDustVaultLoadId === loadId) vaultWindow.__rainDustVaultLoadId = loadId + 1;
+        cleanupActive();
+        vaultWindow.__rainDustVaultCleanup = undefined;
+      };
+      vaultWindow.__rainDustVaultCleanup = cleanup;
+      document.addEventListener("astro:before-swap", cleanup, { once: true, signal });
+      if (immersive && webglCanvas) {
+        root.dataset.vaultBooting = "true";
+        try {
+          await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+          const { mountProjectVault3D } = await import("../scripts/project-vault-3d");
+          if (!signal.aborted && vaultWindow.__rainDustVaultLoadId === loadId) {
+            vaultWindow.__rainDustVault3D = mountProjectVault3D(root, webglCanvas) ?? undefined;
+          }
+        } catch (error) {
+          root.dataset.vaultError = error instanceof Error ? error.name : "load-failed";
+        }
+      }
+      if (signal.aborted || vaultWindow.__rainDustVaultLoadId !== loadId) return;
       const webglActive = Boolean(vaultWindow.__rainDustVault3D);
-      const fallbackMotion = motion && !webglActive;
+      const fallbackMotion = fine && !webglActive && (!reduced || forced);
       if (!webglActive) {
         delete root.dataset.vaultBooting;
         root.dataset.vaultRenderer = "fallback";
@@ -379,22 +405,21 @@ const cellarSteps = Array.from({ length: 34 }, (_, index) => index);
 
       readProgress();
       renderScene();
-      root.dataset.vaultMotion = forced ? "forced-depth" : motion ? "depth" : reduced ? "reduced" : "static";
+      root.dataset.vaultMotion = webglActive
+        ? forced ? "forced-depth" : reduced ? "reduced-depth" : "depth"
+        : fallbackMotion ? "fallback-depth" : reduced ? "reduced" : "static";
 
-      const cleanup = () => {
-        controller.abort();
+      cleanupActive = () => {
         if (sceneFrame) cancelAnimationFrame(sceneFrame);
         vaultWindow.__rainDustVault3D?.destroy();
         vaultWindow.__rainDustVault3D = undefined;
         closeDrawer(false);
-        vaultWindow.__rainDustVaultCleanup = undefined;
       };
-      vaultWindow.__rainDustVaultCleanup = cleanup;
-      document.addEventListener("astro:before-swap", cleanup, { once: true, signal });
     };
 
-    document.addEventListener("astro:page-load", initVault, { signal: vaultBinding.signal });
-    initVault();
+    const startVault = () => { void initVault(); };
+    document.addEventListener("astro:page-load", startVault, { signal: vaultBinding.signal });
+    startVault();
   </script>
 
   <style>
@@ -424,6 +449,46 @@ const cellarSteps = Array.from({ length: 34 }, (_, index) => index);
       background: radial-gradient(ellipse at 50% 42%, rgba(120,84,46,.14), transparent 31%), linear-gradient(180deg, #191c17, #0d100d 68%, #080a08);
     }
     .vault-webgl { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity .45s ease; }
+    .vault-boot-screen {
+      position: absolute;
+      inset: 0;
+      z-index: 32;
+      display: grid;
+      place-content: center;
+      gap: 14px;
+      color: #b9b0a0;
+      background:
+        radial-gradient(ellipse at 50% 48%, rgba(126, 83, 52, .18), transparent 32%),
+        linear-gradient(180deg, #17130f, #0b0d0b 72%);
+      font: 600 clamp(.62rem, 1vw, .78rem)/1.2 ui-monospace, "Cascadia Mono", Consolas, monospace;
+      letter-spacing: .2em;
+      text-align: center;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity .36s ease, visibility 0s linear .36s;
+    }
+    .vault-boot-screen i {
+      width: min(260px, 54vw);
+      height: 1px;
+      overflow: hidden;
+      background: rgba(185, 176, 160, .16);
+    }
+    .vault-boot-screen i::after {
+      content: "";
+      display: block;
+      width: 42%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, #9a4b48, transparent);
+      animation: vault-calibrate 1.1s cubic-bezier(.4, 0, .2, 1) infinite;
+    }
+    .vault-boot-screen small { color: #6f685d; font-size: .5rem; letter-spacing: .17em; }
+    .vault[data-vault-booting="true"] .vault-boot-screen {
+      opacity: 1;
+      visibility: visible;
+      transition-delay: 0s;
+    }
+    @keyframes vault-calibrate { from { transform: translateX(-110%); } to { transform: translateX(340%); } }
     .vault[data-vault-booting="true"] :is(.vault-world,.vault-foreground,.vault-scenes,.vault-heading,.vault-depth-meter,.vault-instruction,.vault-archive-link) { visibility: hidden; pointer-events: none; }
     .vault-webgl-hud { position: absolute; z-index: 9; right: clamp(18px,3vw,48px); bottom: clamp(22px,4vh,50px); display: none; color: #aaa28e; font-family: ui-monospace,"Cascadia Mono",Consolas,monospace; text-align: right; letter-spacing: .12em; pointer-events: none; }
     .vault-webgl-hud span,.vault-webgl-hud small { display: block; } .vault-webgl-hud span { font-size: .65rem; } .vault-webgl-hud small { margin-top: 7px; color: #6f6c61; font-size: .48rem; }

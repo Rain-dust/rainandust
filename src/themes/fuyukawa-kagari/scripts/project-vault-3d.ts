@@ -771,15 +771,17 @@ export const mountProjectVault3D = (
   canvas: HTMLCanvasElement,
 ): ProjectVault3D | null => {
   const deviceNavigator = navigator as Navigator & { deviceMemory?: number };
+  const forcedMotion = new URLSearchParams(location.search).get("motion") === "force";
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches && !forcedMotion;
   const lowPowerDevice =
     (deviceNavigator.deviceMemory ?? 8) <= 4 ||
     (deviceNavigator.hardwareConcurrency ?? 8) <= 4;
-  const pixelRatioCap = lowPowerDevice ? 1 : 1.25;
+  const pixelRatioCap = lowPowerDevice ? 0.82 : reducedMotion ? 0.92 : 1.08;
   let renderer: THREE.WebGLRenderer;
   try {
     renderer = new THREE.WebGLRenderer({
       canvas,
-      antialias: !lowPowerDevice,
+      antialias: !lowPowerDevice && !reducedMotion,
       powerPreference: "high-performance",
     });
   } catch {
@@ -794,7 +796,7 @@ export const mountProjectVault3D = (
   renderer.shadowMap.needsUpdate = true;
 
   root.dataset.vaultRenderer = "pending";
-  root.dataset.vaultQuality = lowPowerDevice ? "balanced" : "high";
+  root.dataset.vaultQuality = lowPowerDevice ? "economy" : reducedMotion ? "balanced" : "high";
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x17120f);
   scene.fog = new THREE.FogExp2(0x17120f, 0.0145);
@@ -1080,8 +1082,7 @@ export const mountProjectVault3D = (
   let detailVisible = false;
   let disposed = false;
   let previousTime = performance.now();
-  const forcedMotion = new URLSearchParams(location.search).get("motion") === "force";
-  const reduceGlitch = matchMedia("(prefers-reduced-motion: reduce)").matches && !forcedMotion;
+  const reduceGlitch = reducedMotion;
   const nextGlitchDelay = () => 8000 + Math.random() * 7000;
   let glitchStartsAt = performance.now() + (forcedMotion ? 1800 + Math.random() * 900 : nextGlitchDelay());
   let glitchEndsAt = 0;
