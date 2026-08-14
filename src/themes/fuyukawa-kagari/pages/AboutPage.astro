@@ -62,8 +62,8 @@ const nowDoing = currentSignals;
       <div class="about-status-card">
         <p class="about-mini-title">Now status</p>
         <ul>
-          {statusItems.map((item) => (
-            <li>
+          {statusItems.map((item, index) => (
+            <li class:list={{ "is-now": index === 0 }}>
               <Icon name="tabler:pin" aria-hidden="true" />
               <span>{item}</span>
             </li>
@@ -375,6 +375,42 @@ const nowDoing = currentSignals;
     .about-activity-grid p {
       color: var(--ink-soft);
       line-height: 1.85;
+    }
+
+    .about-bio {
+      margin: 10px 0 0;
+      max-width: 24rem;
+    }
+
+    .about-readme-hero p {
+      margin: 14px 0 0;
+      max-width: 40rem;
+      font-size: 0.98rem;
+    }
+
+    .about-readme-hero h2 {
+      letter-spacing: -0.02em;
+    }
+
+    .about-id-card h1 {
+      letter-spacing: -0.01em;
+    }
+
+    .about-section-heading h2 {
+      letter-spacing: -0.015em;
+    }
+
+    .about-avatar-card img {
+      transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .about-avatar-card:hover img {
+      transform: scale(1.04);
+    }
+
+    .about-link-row :is(a, button):focus-visible {
+      outline: 2px solid var(--pink);
+      outline-offset: 2px;
     }
 
     .about-link-row {
@@ -1002,6 +1038,15 @@ const nowDoing = currentSignals;
       .about-avatar-flower {
         animation: about-flower-pulse 3.4s ease-in-out infinite;
       }
+
+      .about-status-card li.is-now svg {
+        animation: about-pin-pulse 2.6s ease-in-out infinite;
+      }
+    }
+
+    @keyframes about-pin-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.18); }
     }
 
     @keyframes about-badge-float {
