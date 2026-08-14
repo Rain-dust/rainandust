@@ -54,6 +54,7 @@ const nowDoing = currentSignals;
           <button type="button" data-copy-email={profileIdentity.emailAddress}>
             <Icon name="tabler:mail" aria-hidden="true" />
             <span data-copy-email-label>Email</span>
+            <span class="about-sr-only" role="status" aria-live="polite" data-copy-email-status></span>
           </button>
         </div>
       </div>
@@ -98,8 +99,12 @@ const nowDoing = currentSignals;
         </div>
 
         <div class="about-tech-grid">
-          {techStack.map((tech) => (
-            <article class={`about-tech-card about-tech-card--${tech.tone}`}>
+          {techStack.map((tech, index) => (
+            <article
+              class={`about-tech-card about-tech-card--${tech.tone}`}
+              data-about-reveal
+              style={`--reveal-index: ${index};`}
+            >
               <span class="about-tech-icon" aria-hidden="true">
                 <Icon name={tech.icon} />
               </span>
@@ -122,8 +127,12 @@ const nowDoing = currentSignals;
         </div>
 
         <div class="about-media-grid about-media-grid--anime">
-          {animeShelf.map((item) => (
-            <article class="about-media-card">
+          {animeShelf.map((item, index) => (
+            <article
+              class="about-media-card"
+              data-about-reveal
+              style={`--reveal-index: ${index};`}
+            >
               <img src={item.image} alt={`${item.title} 视觉海报`} loading="lazy" width="900" height="506" />
               <div>
                 <h3>{item.title}</h3>
@@ -145,8 +154,12 @@ const nowDoing = currentSignals;
           </div>
 
           <div class="about-xp-grid">
-            {xpTags.map((item) => (
-              <article class={`about-xp-card about-xp-card--${item.key}`}>
+            {xpTags.map((item, index) => (
+              <article
+                class={`about-xp-card about-xp-card--${item.key}`}
+                data-about-reveal
+                style={`--reveal-index: ${index};`}
+              >
                 <figure class="about-xp-visual">
                   <img
                     src={item.image}
@@ -175,8 +188,12 @@ const nowDoing = currentSignals;
           </div>
 
           <div class="about-game-list">
-            {readingShelf.map((item) => (
-              <article class={`about-game-card about-game-card--${item.key}`}>
+            {readingShelf.map((item, index) => (
+              <article
+                class={`about-game-card about-game-card--${item.key}`}
+                data-about-reveal
+                style={`--reveal-index: ${index};`}
+              >
                 <figure class="about-reading-cover">
                   <img
                     src={item.image}
@@ -209,8 +226,8 @@ const nowDoing = currentSignals;
         </div>
 
         <div class="about-activity-grid">
-          {nowDoing.map((item) => (
-            <article>
+          {nowDoing.map((item, index) => (
+            <article data-about-reveal style={`--reveal-index: ${index};`}>
               <span>{item.label}</span>
               <p>{item.text}</p>
             </article>
@@ -327,7 +344,7 @@ const nowDoing = currentSignals;
       font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
       font-size: 0.75rem;
       font-weight: 800;
-      letter-spacing: 0;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
@@ -347,7 +364,10 @@ const nowDoing = currentSignals;
     .about-handle {
       margin: 8px 0 0;
       color: var(--ink);
+      font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+      font-size: 0.88rem;
       font-weight: 800;
+      letter-spacing: 0.05em;
     }
 
     .about-bio,
@@ -881,6 +901,131 @@ const nowDoing = currentSignals;
         font-size: clamp(2rem, 16vw, 2.8rem);
       }
     }
+
+    /* ---- Reveal-on-scroll (armed by JS only, so no-JS stays fully visible) ---- */
+    [data-about-reveal] {
+      transition:
+        opacity .55s ease calc(var(--reveal-index, 0) * 45ms),
+        transform .65s cubic-bezier(.2, .8, .25, 1) calc(var(--reveal-index, 0) * 45ms);
+    }
+
+    .about-reveal-active [data-about-reveal] {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+
+    .about-reveal-active [data-about-reveal].is-revealed {
+      opacity: 1;
+      transform: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .about-reveal-active [data-about-reveal] {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+    }
+
+    /* ---- Card hover feel ---- */
+    .about-tech-card,
+    .about-media-card,
+    .about-xp-card,
+    .about-game-card,
+    .about-activity-grid article {
+      transition:
+        transform .34s cubic-bezier(.2, .8, .25, 1),
+        box-shadow .34s ease,
+        border-color .34s ease,
+        background .34s ease;
+    }
+
+    .about-tech-card:hover,
+    .about-media-card:hover,
+    .about-xp-card:hover,
+    .about-game-card:hover,
+    .about-activity-grid article:hover {
+      transform: translateY(-4px);
+      background: rgba(255, 255, 255, 0.68);
+      border-color: rgba(93, 113, 145, 0.3);
+      box-shadow:
+        0 20px 38px rgba(67, 82, 106, 0.14),
+        0 4px 10px rgba(67, 82, 106, 0.06);
+    }
+
+    .about-tech-icon {
+      transition: transform .4s cubic-bezier(.2, 1.4, .3, 1), box-shadow .4s ease;
+    }
+
+    .about-tech-card:hover .about-tech-icon {
+      transform: scale(1.08) rotate(-3deg);
+      box-shadow: 0 10px 18px rgba(67, 82, 106, 0.14);
+    }
+
+    .about-media-card img {
+      transition: transform .5s cubic-bezier(.2, .8, .2, 1);
+    }
+
+    .about-media-card:hover img {
+      transform: scale(1.025);
+    }
+
+    .about-activity-grid article {
+      position: relative;
+    }
+
+    .about-activity-grid article::before {
+      position: absolute;
+      top: 0;
+      right: 14px;
+      left: 14px;
+      height: 3px;
+      content: "";
+      background: linear-gradient(90deg, var(--pink), var(--blue));
+      border-radius: 0 0 3px 3px;
+      opacity: 0;
+      transform: scaleX(.4);
+      transition: opacity .3s ease, transform .4s ease;
+    }
+
+    .about-activity-grid article:hover::before {
+      opacity: .9;
+      transform: scaleX(1);
+    }
+
+    /* ---- Ambient life (only when motion is allowed) ---- */
+    @media (prefers-reduced-motion: no-preference) {
+      .about-readme-badge {
+        animation: about-badge-float 6s ease-in-out infinite;
+      }
+
+      .about-avatar-flower {
+        animation: about-flower-pulse 3.4s ease-in-out infinite;
+      }
+    }
+
+    @keyframes about-badge-float {
+      0%, 100% { transform: rotate(4deg) translateY(0); }
+      50% { transform: rotate(4deg) translateY(-6px); }
+    }
+
+    @keyframes about-flower-pulse {
+      0%, 100% { box-shadow: 0 10px 22px rgba(91, 110, 139, 0.16); }
+      50% { box-shadow: 0 10px 26px rgba(215, 130, 156, 0.38); }
+    }
+
+    /* ---- Screen-reader-only copy feedback ---- */
+    .about-sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
   </style>
 
   <script>
@@ -921,6 +1066,13 @@ const nowDoing = currentSignals;
 
       await copyEmail(email);
       const label = button.querySelector<HTMLElement>("[data-copy-email-label]");
+      const status = button.querySelector<HTMLElement>("[data-copy-email-status]");
+      if (status) {
+        status.textContent = "邮箱地址已复制到剪贴板";
+        window.setTimeout(() => {
+          status.textContent = "";
+        }, 2400);
+      }
       if (!label) return;
 
       window.clearTimeout(Number(button.dataset.restoreTimer ?? 0));
@@ -935,5 +1087,26 @@ const nowDoing = currentSignals;
 
     appWindow.__rainDustAboutEmailHandler = handleEmailCopy;
     document.addEventListener("click", handleEmailCopy);
+
+    // Reveal-on-scroll: armed only when JS runs and motion is allowed, so
+    // the page stays fully visible for no-JS and reduced-motion visitors.
+    const revealTargets = Array.from(document.querySelectorAll<HTMLElement>("[data-about-reveal]"));
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!reducedMotion && "IntersectionObserver" in window) {
+      document.documentElement.classList.add("about-reveal-active");
+      const revealObserver = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            entry.target.classList.add("is-revealed");
+            revealObserver.unobserve(entry.target);
+          }
+        },
+        { rootMargin: "0px 0px -8% 0px", threshold: 0.08 },
+      );
+      revealTargets.forEach((element) => revealObserver.observe(element));
+    } else {
+      revealTargets.forEach((element) => element.classList.add("is-revealed"));
+    }
   </script>
 </BaseLayout>
