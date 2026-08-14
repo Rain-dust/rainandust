@@ -21,6 +21,8 @@ type VaultTextures = {
 
 type VaultProjectFocus = {
   id: string;
+  projectId: string;
+  url: string;
   accent: string;
   name: string;
   kicker: string;
@@ -29,6 +31,15 @@ type VaultProjectFocus = {
   side: -1 | 1;
   position: THREE.Vector3;
   cameraPosition: THREE.Vector3;
+};
+
+type VaultProjectData = {
+  id: string;
+  title: string;
+  type: string;
+  status: string;
+  summary: string;
+  url: string;
 };
 
 type VaultBottle = {
@@ -795,6 +806,12 @@ export const mountProjectVault3D = (
   renderer.shadowMap.autoUpdate = false;
   renderer.shadowMap.needsUpdate = true;
 
+  // Construction guard: if anything below throws after the GL context was
+  // created, dispose the renderer so the page's fallback path doesn't leak
+  // GPU resources. The guard is armed until the mount completes.
+  let mountComplete = false;
+  try {
+
   root.dataset.vaultRenderer = "pending";
   root.dataset.vaultQuality = lowPowerDevice ? "economy" : reducedMotion ? "balanced" : "high";
   const scene = new THREE.Scene();
@@ -1033,14 +1050,45 @@ export const mountProjectVault3D = (
     scene.add(lamp);
   });
 
-  const reserves = [
-    { id: "earth", t: 0.18, side: -1 as const, name: "Earth Online", accent: "#8b342d", kicker: "INTERACTIVE WORLD", summary: "把现实人生包装成持续在线的 3D 世界。", details: "THREE.JS · WEBGL · INDEPENDENT BUILD" },
-    { id: "campus", t: 0.23, side: 1 as const, name: "Campus Kit", accent: "#6c432a", kicker: "LOCAL AUTOMATION", summary: "整理电子票据，并生成可复核的报销资料。", details: "PYTHON · OCR · WORKFLOW" },
-    { id: "mind", t: 0.46, side: -1 as const, name: "Mind Cache", accent: "#564638", kicker: "LOCAL-FIRST ARCHIVE", summary: "在浏览器中保存、搜索与归档想法。", details: "JAVASCRIPT · SEARCH · LOCAL STORAGE" },
-    { id: "floating", t: 0.52, side: 1 as const, name: "Floating Life", accent: "#7b4b35", kicker: "PORTABLE JOURNAL", summary: "为文字摘录与个人感悟设计的移动端积累本。", details: "PWA · CAPACITOR · PERSONAL TOOL" },
-    { id: "zhiwei", t: 0.73, side: -1 as const, name: "Zhi Wei", accent: "#493e4d", kicker: "IMMERSIVE NOVEL", summary: "以沉浸式阅读为方向的可部署原型。", details: "NARRATIVE · INTERACTION · PROTOTYPE" },
-    { id: "archive", t: 0.79, side: 1 as const, name: "Archive", accent: "#6d392e", kicker: "GITHUB RESERVE", summary: "持续维护的小型实验与工程存档。", details: "OPEN SOURCE · ITERATION · ARCHIVE" },
+  const readProjectData = (): Map<string, VaultProjectData> => {
+    const script = root.querySelector<HTMLScriptElement>("script[data-vault-projects]");
+    if (!script?.textContent) return new Map();
+    try {
+      const parsed = JSON.parse(script.textContent) as VaultProjectData[];
+      return new Map(parsed.map((entry) => [entry.id, entry]));
+    } catch {
+      return new Map();
+    }
+  };
+  const projectData = readProjectData();
+
+  // Fallback copy is only used when the page did not inject real project data.
+  const reserveMeta = [
+    { id: "earth", projectId: "earth-online", t: 0.18, side: -1 as const, accent: "#8b342d", kicker: "INTERACTIVE WORLD", name: "Earth Online", summary: "把现实人生包装成持续在线的 3D 世界。", details: "THREE.JS · WEBGL · INDEPENDENT BUILD" },
+    { id: "campus", projectId: "campus-reimburse-kit", t: 0.23, side: 1 as const, accent: "#6c432a", kicker: "LOCAL AUTOMATION", name: "Campus Reimburse Kit", summary: "整理电子票据，并生成可复核的报销资料。", details: "PYTHON · OCR · WORKFLOW" },
+    { id: "mind", projectId: "mindcache", t: 0.46, side: -1 as const, accent: "#564638", kicker: "LOCAL-FIRST ARCHIVE", name: "MindCache", summary: "在浏览器中保存、搜索与归档想法。", details: "JAVASCRIPT · SEARCH · LOCAL STORAGE" },
+    { id: "floating", projectId: "fushenglu", t: 0.52, side: 1 as const, accent: "#7b4b35", kicker: "PORTABLE JOURNAL", name: "浮生录", summary: "为文字摘录与个人感悟设计的移动端积累本。", details: "PWA · CAPACITOR · PERSONAL TOOL" },
+    { id: "zhiwei", projectId: "zhi-wei", t: 0.73, side: -1 as const, accent: "#493e4d", kicker: "IMMERSIVE NOVEL", name: "Zhi-Wei", summary: "以沉浸式阅读为方向的可部署原型。", details: "NARRATIVE · INTERACTION · PROTOTYPE" },
+    { id: "archive", projectId: "more-projects", t: 0.79, side: 1 as const, accent: "#6d392e", kicker: "GITHUB RESERVE", name: "GitHub Archive", summary: "持续维护的小型实验与工程存档。", details: "OPEN SOURCE · ITERATION · ARCHIVE" },
   ];
+
+  const reserves: Array<VaultProjectFocus & { t: number }> = reserveMeta.map((meta) => {
+    const data = projectData.get(meta.projectId);
+    return {
+      id: meta.id,
+      projectId: meta.projectId,
+      url: data?.url ?? "",
+      t: meta.t,
+      side: meta.side,
+      accent: meta.accent,
+      kicker: meta.kicker,
+      name: data?.title ?? meta.name,
+      summary: data?.summary ?? meta.summary,
+      details: data ? `${data.type} · ${data.status}` : meta.details,
+      position: new THREE.Vector3(),
+      cameraPosition: new THREE.Vector3(),
+    };
+  });
   reserves.forEach((reserve, index) => {
     const point = path.getPointAt(reserve.t);
     scene.add(
@@ -1102,6 +1150,7 @@ export const mountProjectVault3D = (
   const focusName = focusCard?.querySelector<HTMLElement>("[data-vault-focus-name]");
   const focusSummary = focusCard?.querySelector<HTMLElement>("[data-vault-focus-summary]");
   const focusDetails = focusCard?.querySelector<HTMLElement>("[data-vault-focus-details]");
+  const focusLink = focusCard?.querySelector<HTMLAnchorElement>("[data-vault-focus-link]");
   const focusClose = root.querySelector<HTMLButtonElement>("[data-vault-focus-close]");
   const focusIntent = root.querySelector<HTMLElement>("[data-vault-focus-intent]");
 
@@ -1191,6 +1240,10 @@ export const mountProjectVault3D = (
     if (focusName) focusName.textContent = focus.name;
     if (focusSummary) focusSummary.textContent = focus.summary;
     if (focusDetails) focusDetails.textContent = focus.details;
+    if (focusLink) {
+      focusLink.href = focus.url || "#";
+      focusLink.hidden = !focus.url;
+    }
     root.dataset.vaultFocusSide = focus.side === 1 ? "right" : "left";
     root.dataset.vaultFocusProject = focus.id;
     focusCard.style.setProperty("--vault-label-accent", focus.accent);
@@ -1202,6 +1255,10 @@ export const mountProjectVault3D = (
     activeFocus = null;
     delete root.dataset.vaultFocusSide;
     delete root.dataset.vaultFocusProject;
+    if (focusLink) {
+      focusLink.href = "#";
+      focusLink.hidden = true;
+    }
     focusCard?.style.removeProperty("--vault-label-accent");
   };
   const onKeyDown = (event: KeyboardEvent) => {
@@ -1230,9 +1287,11 @@ export const mountProjectVault3D = (
       return;
     }
     pointerActive = true;
-    const lensRadius = Math.min(126, Math.max(94, innerWidth * .09));
-    focusCard?.style.setProperty("--lens-x", `${Math.min(innerWidth - lensRadius, Math.max(lensRadius, event.clientX))}px`);
-    focusCard?.style.setProperty("--lens-y", `${Math.min(innerHeight - lensRadius, Math.max(lensRadius, event.clientY))}px`);
+    if (!detailVisible) {
+      const lensRadius = Math.min(126, Math.max(94, innerWidth * .09));
+      focusCard?.style.setProperty("--lens-x", `${Math.min(innerWidth - lensRadius, Math.max(lensRadius, event.clientX))}px`);
+      focusCard?.style.setProperty("--lens-y", `${Math.min(innerHeight - lensRadius, Math.max(lensRadius, event.clientY))}px`);
+    }
     focusIntent?.style.setProperty("--intent-x", `${event.clientX}px`);
     focusIntent?.style.setProperty("--intent-y", `${event.clientY}px`);
     focusIntent?.style.setProperty("--intent-offset-x", event.clientX > innerWidth - 150 ? "-138px" : "14px");
@@ -1252,6 +1311,53 @@ export const mountProjectVault3D = (
     pointerActive = false;
     clearFocusIntent();
     hideFocusDetails();
+  };
+
+  // Click a bottle (focused or not) to open its project drawer.
+  let pointerDownAt = 0;
+  let pointerDownX = 0;
+  let pointerDownY = 0;
+  const hitFocusAt = (clientX: number, clientY: number): VaultProjectFocus | null => {
+    const bounds = canvas.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return null;
+    pointerRayNdc.set(
+      ((clientX - bounds.left) / bounds.width) * 2 - 1,
+      -((clientY - bounds.top) / bounds.height) * 2 + 1,
+    );
+    raycaster.setFromCamera(pointerRayNdc, camera);
+    const hit = raycaster.intersectObjects(interactiveTargets, false)[0];
+    return (hit?.object.userData.vaultFocus as VaultProjectFocus | undefined) ?? null;
+  };
+  const onPointerDown = (event: PointerEvent) => {
+    pointerDownAt = performance.now();
+    pointerDownX = event.clientX;
+    pointerDownY = event.clientY;
+  };
+  const onPointerUp = (event: PointerEvent) => {
+    const duration = performance.now() - pointerDownAt;
+    pointerDownAt = 0;
+    if (duration > 640) return;
+    const moved = Math.hypot(event.clientX - pointerDownX, event.clientY - pointerDownY);
+    if (moved > 10) return;
+    const focus = activeFocus ?? hitFocusAt(event.clientX, event.clientY);
+    if (!focus) return;
+    root.dispatchEvent(new CustomEvent("vault:open-drawer", {
+      bubbles: true,
+      detail: { projectId: focus.projectId },
+    }));
+  };
+  const onProjectFocus = (event: Event) => {
+    const projectId = (event as CustomEvent<{ projectId?: string }>).detail?.projectId;
+    if (!projectId) {
+      clearFocus();
+      return;
+    }
+    const reserve = reserves.find((item) => item.projectId === projectId);
+    if (!reserve) return;
+    presentFocus(reserve);
+    // Keyboard focus is the accessible pointer-free path: show the full card
+    // (including the repo link) immediately instead of waiting for label hover.
+    revealFocusDetails();
   };
 
   const resize = () => {
@@ -1279,6 +1385,7 @@ export const mountProjectVault3D = (
     const look = path.getPointAt(clamp01(pathProgress + 0.072));
     baseCameraPosition.set(point.x + pointerX, point.y + 1.02 - pointerY, point.z);
     baseLookTarget.set(look.x, look.y + 0.45, look.z);
+    root.style.setProperty("--vault-progress", progress.toFixed(4));
 
     if (pointerActive && !activeFocus) {
       raycaster.setFromCamera(pointerRayNdc, camera);
@@ -1388,6 +1495,9 @@ export const mountProjectVault3D = (
   addEventListener("scroll", readScroll, { passive: true });
   addEventListener("resize", resize, { passive: true });
   addEventListener("pointermove", onPointerMove, { passive: true });
+  canvas.addEventListener("pointerdown", onPointerDown);
+  canvas.addEventListener("pointerup", onPointerUp);
+  root.addEventListener("vault:focus-project", onProjectFocus);
   window.addEventListener("keydown", onKeyDown, true);
   document.documentElement.addEventListener("mouseleave", onPointerLeave);
   focusClose?.addEventListener("click", clearFocus);
@@ -1405,6 +1515,7 @@ export const mountProjectVault3D = (
   resize();
   onVisibilityChange();
 
+  mountComplete = true;
   return {
     destroy: () => {
       if (disposed) return;
@@ -1412,6 +1523,9 @@ export const mountProjectVault3D = (
       removeEventListener("scroll", readScroll);
       removeEventListener("resize", resize);
       removeEventListener("pointermove", onPointerMove);
+      canvas.removeEventListener("pointerdown", onPointerDown);
+      canvas.removeEventListener("pointerup", onPointerUp);
+      root.removeEventListener("vault:focus-project", onProjectFocus);
       window.removeEventListener("keydown", onKeyDown, true);
       document.documentElement.removeEventListener("mouseleave", onPointerLeave);
       focusClose?.removeEventListener("click", clearFocus);
@@ -1438,4 +1552,11 @@ export const mountProjectVault3D = (
       delete root.dataset.vaultRenderer;
     },
   };
+  } finally {
+    if (!mountComplete) {
+      try { renderer.dispose(); } catch { /* already disposed */ }
+      try { renderer.forceContextLoss(); } catch { /* context already lost */ }
+      delete root.dataset.vaultRenderer;
+    }
+  }
 };

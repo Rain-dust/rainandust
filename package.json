@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.13.0"
+    "node": ">=22.18.0"
   },
   "scripts": {
     "dev": "astro dev",
@@ -14,8 +14,7 @@
     "preview": "astro preview",
     "blog:new": "node scripts/new-blog-post.mjs",
     "generate:assets": "node scripts/generate-assets.mjs",
-    "optimize:images": "node scripts/optimize-images.mjs",
-    "upload:images": "node scripts/upload-images-to-scdn.mjs"
+    "optimize:images": "node scripts/optimize-images.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.2",
@@ -24,7 +23,6 @@
     "astro": "^6.3.3",
     "astro-expressive-code": "^0.42.0",
     "astro-icon": "^1.1.5",
-    "pagefind": "^1.5.2",
     "rehype-autolink-headings": "^7.1.0",
     "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
@@ -32,7 +30,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
-    "typescript": "5.9.2",
-    "sharp": "^0.34.5"
+    "sharp": "^0.34.5",
+    "typescript": "5.9.2"
   }
 }

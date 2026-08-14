@@ -5,12 +5,11 @@ export function kagariAsset(path: string) {
 }
 
 export const kagariAssets = {
+  favicon: kagariAsset("avatar-sigil.png"),
+  appleTouchIcon: kagariAsset("avatar-sigil.png"),
   scrollPig: kagariAsset("scroll-chibi.png"),
   profile: "/rain-dust/me/rain-dust-avatar-20260729.jpg",
-  homeVideo: "/rain-dust/home/shadow-home-loop.mp4",
-  homePoster: "/rain-dust/home/shadow-home-poster.jpg",
   heroWallpaper: kagariAsset("hero-wallpaper-20260729.png"),
   pageBackground: kagariAsset("fuyukawa-kagari-bg.webp"),
-  notFound: kagariAsset("legacy/404.webp"),
-  musicManifest: `${themeRoot}/music/manifest.json`
+  notFound: kagariAsset("legacy/404.webp")
 } as const;

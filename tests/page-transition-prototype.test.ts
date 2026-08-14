@@ -78,7 +78,7 @@ test("shared navigation and progress rail resync their page material after Astro
   assert.match(layout, /grid-template-columns: repeat\(3, minmax\(0, 1fr\)\) !important/);
   assert.match(layout, /link\.setAttribute\("aria-current", "page"\)/);
   assert.match(styles, /html\[data-page-tone="architecture"\] \.nav-links/);
-  assert.match(styles, /html\[data-page-tone="editorial"\] \.pig-scrollbar-track/);
+  assert.match(styles, /html\[data-page-tone="profile"\] \.pig-scrollbar-track/);
   assert.match(styles, /html\[data-page-tone="profile"\] \.nav-links/);
 });
 

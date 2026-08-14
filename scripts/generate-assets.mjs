@@ -1,56 +1,8 @@
-import { copyFile, mkdir, readdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { deflateSync } from "node:zlib";
 
 const outDir = new URL("../public/themes/fuyukawa-kagari/assets/", import.meta.url);
 await mkdir(outDir, { recursive: true });
-
-const sourceMusicDir = new URL("../MUSIC/", import.meta.url);
-const publicMusicDir = new URL("../public/themes/fuyukawa-kagari/music/", import.meta.url);
-const audioExtensions = new Set([".mp3", ".flac", ".wav", ".ogg", ".m4a"]);
-
-function extensionOf(filename) {
-  const index = filename.lastIndexOf(".");
-  return index >= 0 ? filename.slice(index).toLowerCase() : "";
-}
-
-function publicMusicPath(filename) {
-  return `/themes/fuyukawa-kagari/music/${filename.split("/").map(encodeURIComponent).join("/")}`;
-}
-
-async function syncMusicLibrary() {
-  let entries = [];
-
-  try {
-    entries = await readdir(sourceMusicDir, { withFileTypes: true });
-  } catch {
-    await mkdir(publicMusicDir, { recursive: true });
-    await writeFile(new URL("manifest.json", publicMusicDir), "[]\n");
-    return;
-  }
-
-  await mkdir(publicMusicDir, { recursive: true });
-  const tracks = entries
-    .filter((entry) => entry.isFile() && audioExtensions.has(extensionOf(entry.name)))
-    .sort((a, b) => a.name.localeCompare(b.name, "zh-CN", { sensitivity: "base" }));
-
-  await Promise.all(
-    tracks.map((entry) => copyFile(new URL(entry.name, sourceMusicDir), new URL(entry.name, publicMusicDir)))
-  );
-
-  const manifest = tracks.map((entry, index) => {
-    const title = entry.name.replace(/\.[^.]+$/, "");
-    return {
-      id: `track-${index + 1}`,
-      title,
-      file: entry.name,
-      src: publicMusicPath(entry.name)
-    };
-  });
-
-  await writeFile(new URL("manifest.json", publicMusicDir), `${JSON.stringify(manifest, null, 2)}\n`);
-}
-
-await syncMusicLibrary();
 
 function crc32(buf) {
   let crc = 0xffffffff;

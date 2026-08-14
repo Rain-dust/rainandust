@@ -17,7 +17,7 @@ test("WORKS enables the cellar on normal desktop visits in a production build", 
   assert.match(projects, /data-vault-booting="true"/);
   assert.match(projects, /data-vault-motion="reduced-depth"/);
   assert.match(projects, /:is\(\[data-vault-booting="true"\],\[data-vault-motion="depth"\]/);
-  assert.match(projects, /\[data-vault-motion="reduced-depth"\]\) \.vault-viewport \{ position: sticky; height: 100dvh/);
+  assert.match(projects, /\[data-vault-motion="fallback-depth"\]\) \.vault-viewport \{ position: sticky; top: 0; height: 100dvh/);
 });
 
 test("HOME uses the same explicit motion preview contract in development and production", () => {

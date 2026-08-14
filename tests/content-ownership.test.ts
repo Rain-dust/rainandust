@@ -113,14 +113,13 @@ test("Fuyukawa runtime has no Live2D or waifu implementation", () => {
   assert.doesNotMatch(runtime, /<aside class="toy-dock"|window\.__yuimiRadio \?\?=/);
 });
 
-test("BLOG renders an intentional empty state without fake posts", () => {
-  const blog = read("src/themes/fuyukawa-kagari/pages/BlogIndexPage.astro");
-  assert.match(blog, /NO NOTES YET/);
-  assert.match(blog, /这里暂时没有文章/);
-  assert.match(blog, /有想写的再写/);
-  assert.match(blog, /暂无文章/);
-  assert.match(blog, /blog-empty-plate/);
-  assert.match(blog, /kagariAssets\.heroWallpaper/);
+test("BLOG page templates are no longer shipped to the public site", () => {
+  assert.equal(existsSync(new URL("src/themes/fuyukawa-kagari/pages/BlogIndexPage.astro", root)), false);
+  assert.equal(existsSync(new URL("src/themes/fuyukawa-kagari/pages/ArticlePage.astro", root)), false);
+  assert.equal(existsSync(new URL("src/themes/fuyukawa-kagari/layouts/ArticleLayout.astro", root)), false);
+  const themeIndex = read("src/themes/fuyukawa-kagari/index.ts");
+  assert.doesNotMatch(themeIndex, /BlogIndexPage|ArticlePage/);
+  assert.equal(existsSync(new URL("public/images/blog/", root)), false);
 });
 
 test("BLOG has a private Markdown authoring workflow without a public editor", () => {
@@ -128,14 +127,11 @@ test("BLOG has a private Markdown authoring workflow without a public editor", (
   const packageJson = JSON.parse(read("package.json"));
   const generator = read("scripts/new-blog-post.mjs");
   const template = read("src/content/blog/_template.md.example");
-  const article = read("src/themes/fuyukawa-kagari/layouts/ArticleLayout.astro");
 
   assert.equal(packageJson.scripts["blog:new"], "node scripts/new-blog-post.mjs");
   assert.match(generator, /draft: true/);
   assert.match(template, /draft: true/);
   assert.match(schema, /coverAlt: z\.string\(\)\.optional\(\)/);
-  assert.match(article, /frontmatter\.cover/);
-  assert.match(article, /\.prose img/);
   assert.doesNotMatch(generator, /fetch\(|login|password/i);
 });
 

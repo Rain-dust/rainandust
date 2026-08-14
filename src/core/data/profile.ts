@@ -44,7 +44,7 @@ export const xpFavorites = [
     key: "white-hair",
     title: "白毛",
     subtitle: "white hair",
-    image: "/images/blog/cover-summer-white-01.webp",
+    image: "/images/about/cover-summer-white-01.webp",
     imageAlt: "白毛角色插画",
     imagePosition: "72% 34%"
   },
@@ -52,7 +52,7 @@ export const xpFavorites = [
     key: "red-eyes",
     title: "红瞳",
     subtitle: "red eyes",
-    image: "/images/blog/cover-violet-gaze-01.webp",
+    image: "/images/about/cover-violet-gaze-01.webp",
     imageAlt: "红瞳角色插画",
     imagePosition: "70% 46%"
   },
@@ -71,7 +71,7 @@ export const favoriteReading = [
     key: "novel",
     title: "小说",
     subtitle: "《荒原狼》 · Hermann Hesse",
-    image: "https://upload.wikimedia.org/wikipedia/commons/9/93/Hermann_Hesse_Der_Steppenwolf_1927.jpg",
+    image: "/images/about/steppenwolf-cover.jpg",
     imageAlt: "赫尔曼·黑塞《荒原狼》1927 年版封面",
     imagePosition: "50% 50%"
   },

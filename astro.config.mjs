@@ -6,8 +6,6 @@ import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeExpressiveCode from "rehype-expressive-code";
-import * as pagefind from "pagefind";
-import { fileURLToPath } from "node:url";
 
 const expressiveCodeOptions = {
   themes: ["github-dark"],
@@ -43,45 +41,6 @@ const expressiveCodeOptions = {
     }
   }
 };
-
-const pagefindIntegration = () => ({
-  name: "yuimi-pagefind",
-  hooks: {
-    "astro:build:done": async ({ dir, logger }) => {
-      const { index, errors } = await pagefind.createIndex({
-        forceLanguage: "zh",
-        includeCharacters: "_-:"
-      });
-
-      if (!index) {
-        logger.warn(`Pagefind index was not created: ${errors.join(", ")}`);
-        return;
-      }
-
-      const distDir = fileURLToPath(dir);
-      const addResult = await index.addDirectory({
-        path: distDir,
-        glob: "**/*.html"
-      });
-
-      if (addResult.errors.length) {
-        logger.warn(`Pagefind indexing warnings: ${addResult.errors.join(", ")}`);
-      }
-
-      const writeResult = await index.writeFiles({
-        outputPath: fileURLToPath(new URL("./pagefind", dir))
-      });
-
-      if (writeResult.errors.length) {
-        logger.warn(`Pagefind write warnings: ${writeResult.errors.join(", ")}`);
-      } else {
-        logger.info(`Pagefind indexed ${addResult.page_count} pages.`);
-      }
-
-      await pagefind.close();
-    }
-  }
-});
 
 export default defineConfig({
   site: "https://rain-dust-portfolio.workspace-852244.chatgpt.site",
@@ -184,8 +143,7 @@ export default defineConfig({
           "javascript"
         ]
       }
-    }),
-    pagefindIntegration()
+    })
   ],
   markdown: {
     syntaxHighlight: false,
