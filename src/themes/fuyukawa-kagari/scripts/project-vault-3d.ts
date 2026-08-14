@@ -293,11 +293,14 @@ const markShadows = (object: THREE.Object3D) => {
 
 const makeLabelTexture = (name: string, index: number, design: VaultBottleDesign) => {
   const canvas = document.createElement("canvas");
-  canvas.width = 512;
-  canvas.height = 640;
+  canvas.width = 1024;
+  canvas.height = 1280;
   const context = canvas.getContext("2d")!;
+  // Draw at 2x so the label stays crisp both on the bottle and inside the
+  // focus-card lens, where it is magnified.
+  context.scale(2, 2);
   context.fillStyle = design.paper;
-  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.fillRect(0, 0, 512, 640);
   const seededNoise = (seed: number) => {
     const value = Math.sin(seed * 127.1 + index * 311.7) * 43758.5453;
     return value - Math.floor(value);
@@ -346,9 +349,6 @@ const makeLabelTexture = (name: string, index: number, design: VaultBottleDesign
     context.strokeStyle = `${design.accent}99`;
     context.lineWidth = 4;
     context.beginPath(); context.moveTo(116,300); context.lineTo(396,300); context.stroke();
-    context.fillStyle = design.ink; context.textAlign = "center";
-    context.font = "700 52px Arial Narrow, sans-serif";
-    context.fillText("EARTH",256,390); context.fillText("ONLINE",256,446);
   } else if (design.variant === "ledger") {
     context.fillStyle = design.accent;
     context.fillRect(18,18,476,48);
@@ -361,7 +361,6 @@ const makeLabelTexture = (name: string, index: number, design: VaultBottleDesign
     context.fillStyle = design.accent; context.fillRect(38,42,92,12);
     context.fillStyle = design.ink; context.textAlign="left";
     context.font="700 19px ui-monospace, monospace"; context.fillText("CAMPUS / CLAIM 02",38,92);
-    context.font="700 48px Arial Narrow, sans-serif"; context.fillText("CAMPUS",38,292); context.fillText("KIT",38,346);
     context.save(); context.translate(384,390); context.rotate(-.11);
     context.strokeStyle=design.accent; context.lineWidth=7; context.strokeRect(-72,-34,144,68);
     context.fillStyle=design.accent; context.textAlign="center"; context.font="700 17px ui-monospace, monospace"; context.fillText("VERIFIED",0,6); context.restore();
@@ -373,7 +372,6 @@ const makeLabelTexture = (name: string, index: number, design: VaultBottleDesign
     context.fillStyle = design.paper; context.textAlign="left";
     context.font="700 22px ui-monospace, monospace"; context.fillText("INDEX / 03",38,52);
     context.fillStyle = design.ink;
-    context.font="700 52px Arial Narrow, sans-serif"; context.fillText("MIND",38,250); context.fillText("CACHE",38,308);
     context.strokeStyle=design.ink; context.strokeRect(38,356,436,126);
     context.font="600 17px ui-monospace, monospace";
     ["SEARCH","TAG","LOCAL"].forEach((word,i)=>{context.fillText(word,58+i*142,404);context.fillRect(58+i*142,430,72,3);});
@@ -385,14 +383,12 @@ const makeLabelTexture = (name: string, index: number, design: VaultBottleDesign
     context.beginPath(); context.moveTo(-20,238); context.bezierCurveTo(120,155,212,320,532,198); context.stroke();
     context.lineWidth=2;
     [0,1,2].forEach((wave)=>{context.beginPath();context.moveTo(76,256+wave*26);context.bezierCurveTo(178,214+wave*22,284,314+wave*14,458,236+wave*24);context.stroke();});
-    context.font="500 46px Georgia, serif"; context.fillText("Floating",42,384); context.fillText("Life",42,438);
     context.font="600 17px ui-monospace, monospace"; context.fillText("WORDS THAT TRAVEL",42,566);
   } else if (design.variant === "literary") {
     context.strokeStyle=design.accent; context.lineWidth=2;
     context.beginPath();context.moveTo(64,40);context.lineTo(64,600);context.moveTo(448,40);context.lineTo(448,600);context.stroke();
     context.textAlign="center"; context.fillStyle=design.ink;
     context.font="italic 18px Georgia, serif"; context.fillText("an immersive reading reserve",256,78);
-    context.font="500 64px Georgia, serif"; context.fillText("ZHI",256,290);context.fillText("WEI",256,360);
     context.fillStyle=design.accent; context.fillRect(222,420,68,68);
     context.fillStyle=design.paper;context.font="700 19px Georgia, serif";context.fillText("05",256,462);
     context.strokeStyle=`${design.accent}aa`; context.lineWidth=1;
@@ -402,9 +398,38 @@ const makeLabelTexture = (name: string, index: number, design: VaultBottleDesign
     context.textAlign="left"; context.fillStyle=design.ink;
     context.font="700 18px ui-monospace, monospace"; context.fillText("RAIN_DUST PRIVATE RECORD",36,58);
     context.lineWidth=5;context.strokeRect(32,92,448,340);
-    context.font="700 51px Georgia, serif"; context.fillText("ARCHIVE",54,260);
     context.fillStyle=design.accent;context.save();context.translate(356,360);context.rotate(-.12);context.strokeStyle=design.accent;context.lineWidth=8;context.strokeRect(-76,-38,152,76);context.font="700 20px ui-monospace, monospace";context.textAlign="center";context.fillText("OPEN / 06",0,8);context.restore();
   }
+
+  // Dynamic title block: the real project name (injected from
+  // projectEntries) replaces the retired placeholder wordmarks.
+  const titleWords = name.trim().split(/\s+/).filter(Boolean);
+  const titleLines = titleWords.length >= 3
+    ? [titleWords.slice(0, 2).join(" "), titleWords.slice(2).join(" ")]
+    : titleWords;
+  const titleSpecs: Record<string, { font: string; size: number; x: number; y: number; gap: number; align: CanvasTextAlign; maxWidth: number }> = {
+    orbit: { font: "Arial Narrow, sans-serif", size: 52, x: 256, y: 388, gap: 56, align: "center", maxWidth: 380 },
+    ledger: { font: "Arial Narrow, sans-serif", size: 48, x: 38, y: 292, gap: 54, align: "left", maxWidth: 400 },
+    index: { font: "Arial Narrow, sans-serif", size: 52, x: 38, y: 250, gap: 58, align: "left", maxWidth: 410 },
+    tide: { font: "Georgia, serif", size: 46, x: 42, y: 384, gap: 54, align: "left", maxWidth: 380 },
+    literary: { font: "Georgia, serif", size: 62, x: 256, y: 292, gap: 70, align: "center", maxWidth: 360 },
+    archive: { font: "Georgia, serif", size: 48, x: 54, y: 262, gap: 54, align: "left", maxWidth: 400 },
+  };
+  const spec = titleSpecs[design.variant] ?? titleSpecs.archive;
+  const fitSize = (size: number) => {
+    let fitted = size;
+    const longest = titleLines.reduce((max, line) => Math.max(max, line.length), 0);
+    while (fitted > 24 && longest * fitted * 0.62 > spec.maxWidth) fitted -= 2;
+    return fitted;
+  };
+  const fittedSize = fitSize(spec.size);
+  context.textAlign = spec.align;
+  context.fillStyle = design.ink;
+  context.font = `700 ${fittedSize}px ${spec.font}`;
+  titleLines.forEach((line, lineIndex) => {
+    if (!line) return;
+    context.fillText(line, spec.x, spec.y + lineIndex * spec.gap);
+  });
 
   context.fillStyle = design.ink;
   context.textAlign = "left";
@@ -414,7 +439,7 @@ const makeLabelTexture = (name: string, index: number, design: VaultBottleDesign
   context.fillText(title.slice(0, 24), 474, 604);
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 4;
+  texture.anisotropy = 8;
   texture.userData.labelDataUrl = canvas.toDataURL("image/png");
   return texture;
 };
@@ -437,7 +462,7 @@ const createBottle = (
     thickness: 0.72,
     clearcoat: 0.42,
     clearcoatRoughness: 0.3,
-    envMapIntensity: 0.72,
+    envMapIntensity: 0.92,
   });
   const profile = design.profile.map(([radius,y]) => new THREE.Vector2(radius,y));
   const body = new THREE.Mesh(new THREE.LatheGeometry(profile, design.segments), glass);
@@ -787,19 +812,19 @@ export const mountProjectVault3D = (
   const lowPowerDevice =
     (deviceNavigator.deviceMemory ?? 8) <= 4 ||
     (deviceNavigator.hardwareConcurrency ?? 8) <= 4;
-  const pixelRatioCap = lowPowerDevice ? 0.82 : reducedMotion ? 0.92 : 1.08;
+  const pixelRatioCap = lowPowerDevice ? 1.25 : reducedMotion ? 1.5 : 2;
   let renderer: THREE.WebGLRenderer;
   try {
     renderer = new THREE.WebGLRenderer({
       canvas,
-      antialias: !lowPowerDevice && !reducedMotion,
+      antialias: true,
       powerPreference: "high-performance",
     });
   } catch {
     return null;
   }
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.3;
+  renderer.toneMappingExposure = 1.22;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
@@ -817,7 +842,7 @@ export const mountProjectVault3D = (
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x17120f);
   scene.fog = new THREE.FogExp2(0x17120f, 0.0145);
-  scene.environmentIntensity = 0.27;
+  scene.environmentIntensity = 0.34;
 
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
   const environmentRenderTarget = pmremGenerator.fromScene(new RoomEnvironment(), 0.035);
@@ -849,7 +874,7 @@ export const mountProjectVault3D = (
   key.position.set(-1.8, 6.2, 8.2);
   key.target.position.set(0, -3.5, -18);
   key.castShadow = true;
-  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.mapSize.set(2048, 2048);
   key.shadow.camera.near = 0.5;
   key.shadow.camera.far = 48;
   key.shadow.bias = -0.00035;
@@ -1043,12 +1068,40 @@ export const mountProjectVault3D = (
     scene.add(createCeilingBeam(point, Math.atan2(tangent.x, tangent.z), textures));
   });
 
+  const cellarLamps: Array<{ light: THREE.PointLight; base: number; phase: number }> = [];
   [0.12, 0.36, 0.61, 0.84].forEach((t, index) => {
     const point = path.getPointAt(t);
     const lamp = new THREE.PointLight(index % 2 ? 0xb87545 : 0xc89159, 11.5, 11, 2.15);
     lamp.position.set(point.x + (index % 2 ? 2.8 : -2.8), point.y + 3.2, point.z);
     scene.add(lamp);
+    cellarLamps.push({ light: lamp, base: 11.5, phase: index * 2.1 });
   });
+
+  // Dust motes drifting in the lamp light: cheap atmosphere without
+  // touching the geometry. Ambient drift is disabled for reduced motion.
+  const dustCount = 170;
+  const dustPositions = new Float32Array(dustCount * 3);
+  for (let i = 0; i < dustCount; i += 1) {
+    const t = Math.random();
+    const point = path.getPointAt(t);
+    dustPositions[i * 3] = point.x + (Math.random() - 0.5) * 7;
+    dustPositions[i * 3 + 1] = point.y + 0.6 + Math.random() * 3.4;
+    dustPositions[i * 3 + 2] = point.z + (Math.random() - 0.5) * 7;
+  }
+  const dustGeometry = new THREE.BufferGeometry();
+  dustGeometry.setAttribute("position", new THREE.BufferAttribute(dustPositions, 3));
+  const dustMaterial = new THREE.PointsMaterial({
+    color: 0xd9c49c,
+    size: 0.028,
+    sizeAttenuation: true,
+    transparent: true,
+    opacity: 0.42,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const dust = new THREE.Points(dustGeometry, dustMaterial);
+  dust.frustumCulled = false;
+  scene.add(dust);
 
   const readProjectData = (): Map<string, VaultProjectData> => {
     const script = root.querySelector<HTMLScriptElement>("script[data-vault-projects]");
@@ -1130,6 +1183,12 @@ export const mountProjectVault3D = (
   let detailVisible = false;
   let disposed = false;
   let previousTime = performance.now();
+  // Adaptive quality: if the scene cannot hold a playable frame rate with
+  // the raised pixel ratio, settle once on a lighter render target instead
+  // of stuttering forever.
+  let frameTimeEma = 1 / 60;
+  let slowFrames = 0;
+  let qualityReduced = false;
   const reduceGlitch = reducedMotion;
   const nextGlitchDelay = () => 8000 + Math.random() * 7000;
   let glitchStartsAt = performance.now() + (forcedMotion ? 1800 + Math.random() * 900 : nextGlitchDelay());
@@ -1365,9 +1424,10 @@ export const mountProjectVault3D = (
     const height = Math.max(1, Math.min(canvas.clientHeight, window.innerHeight));
     renderer.setPixelRatio(Math.min(devicePixelRatio, pixelRatioCap));
     renderer.setSize(width, height, false);
+    const glitchRatio = Math.min(renderer.getPixelRatio(), 1.25);
     glitchTarget.setSize(
-      Math.max(1, Math.floor(width * Math.min(devicePixelRatio, 1))),
-      Math.max(1, Math.floor(height * Math.min(devicePixelRatio, 1))),
+      Math.max(1, Math.floor(width * glitchRatio)),
+      Math.max(1, Math.floor(height * glitchRatio)),
     );
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
@@ -1377,7 +1437,27 @@ export const mountProjectVault3D = (
     if (disposed) return;
     const dt = Math.min((time - previousTime) / 1000, 0.05);
     previousTime = time;
-    progress += (targetProgress - progress) * (1 - Math.exp(-dt * 5.1));
+    if (!qualityReduced) {
+      frameTimeEma = frameTimeEma * 0.95 + dt * 0.05;
+      if (frameTimeEma > 0.045) {
+        slowFrames += 1;
+        if (slowFrames > 90) {
+          qualityReduced = true;
+          renderer.setPixelRatio(1);
+          resize();
+        }
+      } else {
+        slowFrames = Math.max(0, slowFrames - 2);
+      }
+    }
+    if (!reduceGlitch) {
+      dust.rotation.y += dt * 0.02;
+      dust.position.y = 1.6 + Math.sin(time * 0.00025) * 0.35;
+      cellarLamps.forEach(({ light, base, phase }) => {
+        light.intensity = base * (0.9 + 0.1 * Math.sin(time * 0.007 + phase));
+      });
+    }
+    progress += (targetProgress - progress) * (1 - Math.exp(-dt * 4.3));
     pointerX += (targetPointerX - pointerX) * (1 - Math.exp(-dt * 4.2));
     pointerY += (targetPointerY - pointerY) * (1 - Math.exp(-dt * 4.2));
     const pathProgress = clamp01(progress * 0.94);
@@ -1434,7 +1514,7 @@ export const mountProjectVault3D = (
     }
 
     const desiredFocusAmount = activeFocus ? 1 : 0;
-    const focusSpeed = activeFocus ? 2.15 : 1.65;
+    const focusSpeed = activeFocus ? 2.4 : 1.8;
     focusAmount += (desiredFocusAmount - focusAmount) * (1 - Math.exp(-dt * focusSpeed));
     camera.position.copy(baseCameraPosition);
     resolvedLookTarget.copy(baseLookTarget);
@@ -1547,6 +1627,8 @@ export const mountProjectVault3D = (
       glitchQuad.geometry.dispose();
       glitchMaterial.dispose();
       glitchTarget.dispose();
+      dustGeometry.dispose();
+      dustMaterial.dispose();
       environmentRenderTarget.dispose();
       renderer.dispose();
       delete root.dataset.vaultRenderer;

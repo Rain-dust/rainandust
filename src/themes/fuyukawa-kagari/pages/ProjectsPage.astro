@@ -674,7 +674,7 @@ const vaultData = [...vaultProjects, ...(archive ? [archive] : [])].map((entry) 
     .vault[data-vault-renderer="webgl"] .vault-webgl { opacity: 1; }
     .vault[data-vault-renderer="webgl"] .vault-webgl-hud { display: block; }
     .vault[data-vault-renderer="webgl"] :is(.vault-world,.vault-foreground,.vault-depth-meter,.vault-instruction) { visibility: hidden; pointer-events: none; }
-    .vault[data-vault-renderer="webgl"] .vault-vignette { z-index: 3; background: radial-gradient(circle at 50% 43%, transparent 22%, rgba(5,7,5,.2) 68%, rgba(4,5,4,.7) 100%); }
+    .vault[data-vault-renderer="webgl"] .vault-vignette { z-index: 3; background: radial-gradient(circle at 50% 43%, transparent 30%, rgba(5,7,5,.12) 70%, rgba(4,5,4,.46) 100%); }
     .vault[data-vault-renderer="webgl"] .vault-grain { z-index: 4; }
     .vault-grain,.vault-vignette { position: absolute; inset: 0; pointer-events: none; }
     .vault-grain {
@@ -683,7 +683,7 @@ const vaultData = [...vaultProjects, ...(archive ? [archive] : [])].map((entry) 
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.74'/%3E%3C/svg%3E");
       mix-blend-mode: soft-light;
     }
-    .vault-vignette { z-index: 29; background: radial-gradient(ellipse at 50% 52%, transparent 28%, rgba(5,7,6,.6) 78%), linear-gradient(90deg, rgba(5,7,6,.62), transparent 29% 71%, rgba(5,7,6,.64)); }
+    .vault-vignette { z-index: 29; background: radial-gradient(ellipse at 50% 52%, transparent 34%, rgba(5,7,6,.5) 80%), linear-gradient(90deg, rgba(5,7,6,.5), transparent 29% 71%, rgba(5,7,6,.52)); }
 
     .vault-world { position: absolute; inset: 0; z-index: 1; transform-style: preserve-3d; transform-origin: 50% 60%; will-change: transform; }
     .vault-backwall,.vault-ceiling,.vault-side,.vault-arch { position: absolute; pointer-events: none; transform-style: preserve-3d; }
@@ -728,6 +728,16 @@ const vaultData = [...vaultProjects, ...(archive ? [archive] : [])].map((entry) 
     .vault-depth-meter > span { position: absolute; top: 0; left: 0; width: 1px; height: calc(var(--vault-progress) * 100%); background: #87413c; }
     .vault-depth-meter i { position: absolute; left: 12px; width: 90px; color: #74736c; font-size: .54rem; font-style: normal; white-space: nowrap; }
     .vault-depth-meter i:nth-of-type(1) { top: 0; } .vault-depth-meter i:nth-of-type(2) { top: 40%; } .vault-depth-meter i:nth-of-type(3) { bottom: 0; }
+    .vault-depth-meter i { transition: color .4s ease, text-shadow .4s ease; }
+    .vault[data-active-reserve="1"] .vault-depth-meter i:nth-of-type(1),
+    .vault[data-active-reserve="2"] .vault-depth-meter i:nth-of-type(1),
+    .vault[data-active-reserve="3"] .vault-depth-meter i:nth-of-type(2),
+    .vault[data-active-reserve="4"] .vault-depth-meter i:nth-of-type(2),
+    .vault[data-active-reserve="5"] .vault-depth-meter i:nth-of-type(3),
+    .vault[data-active-reserve="6"] .vault-depth-meter i:nth-of-type(3) {
+      color: #d9c49c;
+      text-shadow: 0 0 14px rgba(217, 196, 156, .4);
+    }
 
     .vault-scenes { position: absolute; inset: 0; z-index: 7; pointer-events: none; transform-style: preserve-3d; }
     .vault-bay { --bay-focus: 0; position: absolute; top: 8%; left: 50%; width: min(38vw,590px); height: min(80vh,730px); pointer-events: auto; transform-style: preserve-3d; transform-origin: 50% 50%; will-change: transform,opacity,filter; }
