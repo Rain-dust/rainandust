@@ -44,25 +44,25 @@ export const xpFavorites = [
     key: "white-hair",
     title: "白毛",
     subtitle: "white hair",
-    image: "/images/about/cover-summer-white-01.webp",
-    imageAlt: "白毛角色插画",
-    imagePosition: "72% 34%"
+    image: "/images/about/white-hair.jpg",
+    imageAlt: "白毛角色照片",
+    imagePosition: "50% 50%"
   },
   {
     key: "red-eyes",
     title: "红瞳",
     subtitle: "red eyes",
-    image: "/images/about/cover-violet-gaze-01.webp",
-    imageAlt: "红瞳角色插画",
-    imagePosition: "70% 46%"
+    image: "/images/about/red-eyes.jpg",
+    imageAlt: "红瞳角色照片",
+    imagePosition: "50% 50%"
   },
   {
     key: "barefoot-imagery",
     title: "赤足",
     subtitle: "barefoot imagery",
-    image: "/themes/kisara/assets/blog/sharon-back-solo-v1.webp",
-    imageAlt: "轻盈跃起的角色插画",
-    imagePosition: "50% 42%"
+    image: "/images/about/barefoot.jpg",
+    imageAlt: "赤足角色照片",
+    imagePosition: "50% 50%"
   }
 ] as const;
 
@@ -71,8 +71,8 @@ export const favoriteReading = [
     key: "novel",
     title: "小说",
     subtitle: "《荒原狼》 · Hermann Hesse",
-    image: "/images/about/steppenwolf-cover.jpg",
-    imageAlt: "赫尔曼·黑塞《荒原狼》1927 年版封面",
+    image: "/images/about/steppenwolf.jpg",
+    imageAlt: "赫尔曼·黑塞《荒原狼》封面",
     imagePosition: "50% 50%"
   },
   {
